@@ -65,12 +65,12 @@ library CustomVerifier {
       return false;
     }
 
-    if (attestationId == 1) {
+    if (attestationId == AttestationId.E_PASSPORT) {
       PassportOutput memory passportOutput = abi.decode(proofOutput, (PassportOutput));
       return CustomVerifier.verifyPassport(verificationConfig, passportOutput);
     }
 
-    if (attestationId == 2) {
+    if (attestationId == AttestationId.EU_ID_CARD) {
       IdCardOutput memory idCardOutput = abi.decode(proofOutput, (IdCardOutput));
       return CustomVerifier.verifyIdCard(verificationConfig, idCardOutput);
     }
