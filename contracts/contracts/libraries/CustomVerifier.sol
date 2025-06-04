@@ -16,6 +16,12 @@ struct IdCardOutput {
 }
 
 library CustomVerifier {
+  error INVALID_CONTRACT_VERSION();
+  error INVALID_ATTESTATION_ID();
+  error INVALID_OFAC();
+  error INVALID_FORBIDDEN_COUNTRIES();
+  error INVALID_OLDER_THAN();
+
   /**
    * @dev Unpacks the configuration of the custom verifier.
    * @param config The configuration of the custom verifier.
@@ -43,11 +49,11 @@ library CustomVerifier {
    * @param currentContractVersion The current contract version.
    * @return True if the configuration is valid, false otherwise.
    */
-  function customVerify(bytes calldata config, uint8 currentContractVersion, bytes calldata proofOutput) external pure returns (bool) {
+  function customVerify(bytes calldata config, uint8 currentContractVersion, bytes calldata proofOutput) external pure {
     (uint8 contractVersion, uint8 attestationId, bytes memory verificationConfigPrevious) = unpackConfig(config);
 
     if (contractVersion > currentContractVersion) {
-      return false;
+      revert INVALID_CONTRACT_VERSION();
     }
 
     VerificationConfig.GenericVerficationConfigV2 memory verificationConfig;
@@ -62,40 +68,40 @@ library CustomVerifier {
     }
 
     if (attestationId == 0) {
-      return false;
+      revert INVALID_ATTESTATION_ID();
     }
 
     if (attestationId == AttestationId.E_PASSPORT) {
       PassportOutput memory passportOutput = abi.decode(proofOutput, (PassportOutput));
       return CustomVerifier.verifyPassport(verificationConfig, passportOutput);
-    }
-
-    if (attestationId == AttestationId.EU_ID_CARD) {
+    } else if (attestationId == AttestationId.EU_ID_CARD) {
       IdCardOutput memory idCardOutput = abi.decode(proofOutput, (IdCardOutput));
       return CustomVerifier.verifyIdCard(verificationConfig, idCardOutput);
+    } else {
+      revert INVALID_ATTESTATION_ID();
     }
-
-    return true;
   }
 
-  function verifyPassport(VerificationConfig.GenericVerficationConfigV2 memory verificationConfig, PassportOutput memory passportOutput) internal pure returns (bool) {
+  function verifyPassport(VerificationConfig.GenericVerficationConfigV2 memory verificationConfig, PassportOutput memory passportOutput) internal pure {
     if (
       verificationConfig.ofacEnabled[0] ||
       verificationConfig.ofacEnabled[1] ||
       verificationConfig.ofacEnabled[2]
     ) {
-      CircuitAttributeHandlerV2.compareOfac(
+      if (!CircuitAttributeHandlerV2.compareOfac(
         AttestationId.E_PASSPORT,
         passportOutput.revealedDataPacked,
         verificationConfig.ofacEnabled[0],
         verificationConfig.ofacEnabled[1],
         verificationConfig.ofacEnabled[2]
-      );
+      )) {
+        revert INVALID_OFAC();
+      }
     }
     if (verificationConfig.forbiddenCountriesEnabled) {
       for (uint256 i = 0; i < 4; i++) {
         if (passportOutput.forbiddenCountriesListPacked[i] != verificationConfig.forbiddenCountriesListPacked[i]) {
-          return false;
+          revert INVALID_FORBIDDEN_COUNTRIES();
         }
       }
     }
@@ -106,27 +112,28 @@ library CustomVerifier {
         passportOutput.revealedDataPacked,
         verificationConfig.olderThan
       )) {
-        return false;
+        revert INVALID_OLDER_THAN();
       }
     }
-    return true;
   }
 
-  function verifyIdCard(VerificationConfig.GenericVerficationConfigV2 memory verificationConfig, IdCardOutput memory idCardOutput) internal pure returns (bool) {
-    if (verificationConfig.ofacEnabled[0] || verificationConfig.ofacEnabled[1] || verificationConfig.ofacEnabled[2]) {
-      CircuitAttributeHandlerV2.compareOfac(
+  function verifyIdCard(VerificationConfig.GenericVerficationConfigV2 memory verificationConfig, IdCardOutput memory idCardOutput) internal pure {
+    if (verificationConfig.ofacEnabled[0] || verificationConfig.ofacEnabled[1]) {
+      if (!CircuitAttributeHandlerV2.compareOfac(
         AttestationId.EU_ID_CARD,
         idCardOutput.revealedDataPacked,
+        false,
         verificationConfig.ofacEnabled[0],
-        verificationConfig.ofacEnabled[1],
-        false
-      );
+        verificationConfig.ofacEnabled[1]
+      )) {
+        revert INVALID_OFAC();
+      }
     }
 
     if (verificationConfig.forbiddenCountriesEnabled) {
       for (uint256 i = 0; i < 4; i++) {
         if (idCardOutput.forbiddenCountriesListPacked[i] != verificationConfig.forbiddenCountriesListPacked[i]) {
-          return false;
+          revert INVALID_FORBIDDEN_COUNTRIES();
         }
       }
     }
@@ -137,10 +144,9 @@ library CustomVerifier {
         idCardOutput.revealedDataPacked,
         verificationConfig.olderThan
       )) {
-        return false;
+        revert INVALID_OLDER_THAN();
       }
     }
-    return true;
   }
 }
 
