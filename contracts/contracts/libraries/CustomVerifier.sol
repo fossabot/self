@@ -16,7 +16,6 @@ struct IdCardOutput {
 }
 
 library CustomVerifier {
-  error INVALID_CONTRACT_VERSION();
   error INVALID_ATTESTATION_ID();
   error INVALID_OFAC();
   error INVALID_FORBIDDEN_COUNTRIES();
@@ -25,20 +24,18 @@ library CustomVerifier {
   /**
    * @dev Unpacks the configuration of the custom verifier.
    * @param config The configuration of the custom verifier.
-   * @return contractVersion The contract version.
    * @return attestationId The attestation id.
    * @return verificationConfig The verification configuration.
    */
-  function unpackConfig(bytes calldata config) internal pure returns (uint8 contractVersion, uint8 attestationId, bytes memory verificationConfig) {
+  function unpackConfig(bytes calldata config) internal pure returns (uint8 attestationId, bytes memory verificationConfig) {
     assembly {
       let scratch := mload(0x40)
 
       calldatacopy(scratch, config.offset, 32)
-      contractVersion := byte(0, mload(scratch))
-      attestationId := byte(1, mload(scratch))
+      attestationId := byte(0, mload(scratch))
     }
 
-    for (uint i = 0; i < config.length; i++) {
+    for (uint i = 1; i < config.length; i++) {
       verificationConfig = bytes.concat(verificationConfig, config[i]);
     }
   }
@@ -46,26 +43,14 @@ library CustomVerifier {
   /**
    * @dev Verifies the configuration of the custom verifier.
    * @param config The configuration of the custom verifier.
-   * @param currentContractVersion The current contract version.
-   * @return True if the configuration is valid, false otherwise.
+   * @param proofOutput The proof output of the custom verifier.
    */
-  function customVerify(bytes calldata config, uint8 currentContractVersion, bytes calldata proofOutput) external pure {
-    (uint8 contractVersion, uint8 attestationId, bytes memory verificationConfigPrevious) = unpackConfig(config);
-
-    if (contractVersion > currentContractVersion) {
-      revert INVALID_CONTRACT_VERSION();
-    }
+  function customVerify(bytes calldata config, bytes calldata proofOutput) external pure {
+    (uint8 attestationId, bytes memory verificationConfigBytes) = unpackConfig(config);
 
     VerificationConfig.GenericVerficationConfigV2 memory verificationConfig;
 
-    // you have to reformat the config to the current contract config
-    if (contractVersion < currentContractVersion) {
-      if (contractVersion == 1) {
-        verificationConfig = VerificationConfig.fromV1Config(verificationConfigPrevious);
-      }
-    } else {
-      verificationConfig = VerificationConfig.fromV2Config(verificationConfigPrevious);
-    }
+    verificationConfig = VerificationConfig.verificationConfigFromBytes(verificationConfigBytes);
 
     if (attestationId == 0) {
       revert INVALID_ATTESTATION_ID();
@@ -167,19 +152,29 @@ library VerificationConfig {
     bool[3] ofacEnabled;
   }
 
-  function fromV1Config(bytes memory verificationConfigV1) internal pure returns (GenericVerficationConfigV2 memory verificationConfig) {
-    GenericVerficationConfigV1 memory config = abi.decode(verificationConfigV1, (GenericVerficationConfigV1));
-
+  function fromV1Config(VerificationConfig.GenericVerficationConfigV1 memory verificationConfigV1) internal pure returns (GenericVerficationConfigV2 memory verificationConfig) {
     verificationConfig = GenericVerficationConfigV2({
-      olderThanEnabled: config.olderThanEnabled,
-      olderThan: config.olderThan,
-      forbiddenCountriesEnabled: config.forbiddenCountriesEnabled,
-      forbiddenCountriesListPacked: config.forbiddenCountriesListPacked,
-      ofacEnabled: config.ofacEnabled
+      olderThanEnabled: verificationConfigV1.olderThanEnabled,
+      olderThan: verificationConfigV1.olderThan,
+      forbiddenCountriesEnabled: verificationConfigV1.forbiddenCountriesEnabled,
+      forbiddenCountriesListPacked: verificationConfigV1.forbiddenCountriesListPacked,
+      ofacEnabled: verificationConfigV1.ofacEnabled
     });
   }
 
-  function fromV2Config(bytes memory verificationConfig) internal pure returns (GenericVerficationConfigV2 memory verificationConfig) {
-    return abi.decode(verificationConfig, (GenericVerficationConfigV2));
+  // function fromV2Config(VerificationConfig.GenericVerficationConfigV2 memory verificationConfigV2) internal pure returns (GenericVerficationConfigV2 memory verificationConfig) {
+  //   verificationConfig = verificationConfigV2;
+  // }
+
+  function verificationConfigFromBytes(bytes memory verificationConfig) internal pure returns (GenericVerficationConfigV2 memory verificationConfig) {
+    verificationConfig = abi.decode(verificationConfig, (GenericVerficationConfigV2));
+  }
+
+  function v1ConfigIntoBytes(uint8 attestationId, GenericVerficationConfigV1 memory verificationConfig) internal pure returns (bytes memory v1ConfigBytes) {
+    v1ConfigBytes = bytes.concat(attestationId, abi.encode(verificationConfig));
+  }
+
+  function v2ConfigIntoBytes(uint8 attestationId, GenericVerficationConfigV2 memory verificationConfig) internal pure returns (bytes memory v2ConfigBytes) {
+    v2ConfigBytes = bytes.concat(attestationId, abi.encode(verificationConfig));
   }
 }
