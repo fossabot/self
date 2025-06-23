@@ -82,33 +82,55 @@ template BigMultModP(CHUNK_SIZE, CHUNK_NUMBER_GREATER, CHUNK_NUMBER_LESS, CHUNK_
 
 
 // in[0] <= in[1]
+// @assumes in fits in CHUNK_SIZE bits
 template BigLessEqThan(CHUNK_SIZE, CHUNK_NUMBER){
     signal input in[2][CHUNK_NUMBER];
 
     signal output out;
 
-    component lessThan[CHUNK_NUMBER];
-    component isEqual[CHUNK_NUMBER];
-    signal result[CHUNK_NUMBER];
-    for (var i = 0; i < CHUNK_NUMBER; i++){
-        lessThan[i] = LessThan(CHUNK_SIZE);
-        lessThan[i].in[0] <== in[0][i];
-        lessThan[i].in[1] <== in[1][i];
-
-        isEqual[i] = IsEqual();
-        isEqual[i].in[0] <== in[0][i];
-        isEqual[i].in[1] <== in[1][i];
+    component lt[CHUNK_NUMBER];
+    component eq[CHUNK_NUMBER];
+    for (var i = 0; i < CHUNK_NUMBER; i++) {
+        lt[i] = LessThan(CHUNK_SIZE);
+        lt[i].in[0] <== in[0][i];
+        lt[i].in[1] <== in[1][i];
+        eq[i] = IsEqual();
+        eq[i].in[0] <== in[0][i];
+        eq[i].in[1] <== in[1][i];
     }
 
-    for (var i = 0; i < CHUNK_NUMBER; i++){
-    if (i == 0){
-            result[i] <== lessThan[i].out + isEqual[i].out;
+    // ors[i] holds (lt[CHUNK_NUMBER - 1] || (eq[CHUNK_NUMBER - 1] && lt[CHUNK_NUMBER - 2]) .. || (eq[CHUNK_NUMBER - 1] && .. && lt[i]))
+    // ands[i] holds (eq[CHUNK_NUMBER - 1] && .. && lt[i])
+    // eqAnds[i] holds (eq[CHUNK_NUMBER - 1] && .. && eq[i])
+    component ors[CHUNK_NUMBER - 1];
+    component ands[CHUNK_NUMBER - 1];
+    component eqAnds[CHUNK_NUMBER - 1];
+    for (var i = CHUNK_NUMBER - 2; i >= 0; i--) {
+        ands[i] = AND();
+        eqAnds[i] = AND();
+        ors[i] = OR();
+
+        if (i == CHUNK_NUMBER - 2) {
+            ands[i].a <== eq[CHUNK_NUMBER - 1].out;
+            ands[i].b <== lt[CHUNK_NUMBER - 2].out;
+            eqAnds[i].a <== eq[CHUNK_NUMBER - 1].out;
+            eqAnds[i].b <== eq[CHUNK_NUMBER - 2].out;
+            ors[i].a <== lt[CHUNK_NUMBER - 1].out;
+            ors[i].b <== ands[i].out;
         } else {
-            result[i] <== lessThan[i].out + isEqual[i].out * result[i - 1];
+            ands[i].a <== eqAnds[i + 1].out;
+            ands[i].b <== lt[i].out;
+            eqAnds[i].a <== eqAnds[i + 1].out;
+            eqAnds[i].b <== eq[i].out;
+            ors[i].a <== ors[i + 1].out;
+            ors[i].b <== ands[i].out;
         }
     }
 
-    out <== result[CHUNK_NUMBER - 1];
+    component finalOr = OR();
+    finalOr.a <== ors[0].out; // a < b
+    finalOr.b <== eqAnds[0].out; // a == b
+    out <== finalOr.out;
 
 }
 
