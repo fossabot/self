@@ -58,6 +58,7 @@ import org.jmrtd.BACKeySpec
 import org.jmrtd.AccessKeySpec
 import org.jmrtd.PassportService
 import org.jmrtd.lds.CardAccessFile
+import org.jmrtd.lds.ChipAuthenticationInfo
 import org.jmrtd.lds.ChipAuthenticationPublicKeyInfo
 import org.jmrtd.lds.PACEInfo
 import org.jmrtd.PACEKeySpec
@@ -401,6 +402,7 @@ class RNPassportReaderModule(private val reactContext: ReactApplicationContext) 
 
                 var maxTransceiveLength = PassportService.NORMAL_MAX_TRANCEIVE_LENGTH * 2
                 var blockSize = PassportService.DEFAULT_MAX_BLOCKSIZE * 2
+                var isSFIEnabled = false
                 var useConservativeMode = opts?.getBoolean(PARAM_USE_CONSERVATIVE_MODE) ?: false
                 var useExtendedMode = opts?.getBoolean(PARAM_USE_EXTENDED_MODE) ?: false
 
@@ -410,6 +412,7 @@ class RNPassportReaderModule(private val reactContext: ReactApplicationContext) 
                 } else if (useExtendedMode) {
                     maxTransceiveLength = PassportService.EXTENDED_MAX_TRANCEIVE_LENGTH
                     blockSize = PassportService.DEFAULT_MAX_BLOCKSIZE
+                    isSFIEnabled = true
                 }
 
                 Log.d("MY_LOGS", "maxTransceiveLength: $maxTransceiveLength")
@@ -419,7 +422,7 @@ class RNPassportReaderModule(private val reactContext: ReactApplicationContext) 
                     cardService,
                     maxTransceiveLength,
                     blockSize,
-                    false,
+                    isSFIEnabled,
                     false,
                 )
 
@@ -475,6 +478,8 @@ class RNPassportReaderModule(private val reactContext: ReactApplicationContext) 
                     }
                 }
 
+                doChipAuth(service)
+
                 eventMessageEmitter("Reading DG1.....")
                 // eventMessageEmitter("Reading DG2.....")
                 // val dg2In = service.getInputStream(PassportService.EF_DG2)
@@ -518,8 +523,8 @@ class RNPassportReaderModule(private val reactContext: ReactApplicationContext) 
                 // }
                 // Log.d(TAG, "============LET'S VERIFY THE SIGNATURE=============")
                 eventMessageEmitter(Messages.AUTH)
-                doChipAuth(service)
-                doPassiveAuth()
+                // doChipAuth(service)
+                // doPassiveAuth()
 
                 // Log.d(TAG, "============SIGNATURE VERIFIED=============")
                 // sendDataToJS(PassportData(dg1File, dg2File, sodFile))
@@ -555,20 +560,56 @@ class RNPassportReaderModule(private val reactContext: ReactApplicationContext) 
                 dg14Encoded = IOUtils.toByteArray(dg14In)
                 val dg14InByte = ByteArrayInputStream(dg14Encoded)
                 dg14File = DG14File(dg14InByte)
-                val dg14FileSecurityInfo = dg14File.securityInfos
-                for (securityInfo: SecurityInfo in dg14FileSecurityInfo) {
-                    if (securityInfo is ChipAuthenticationPublicKeyInfo) {
-                        service.doEACCA(
-                            securityInfo.keyId,
-                            ChipAuthenticationPublicKeyInfo.ID_CA_ECDH_AES_CBC_CMAC_256,
-                            securityInfo.objectIdentifier,
-                            securityInfo.subjectPublicKey,
-                        )
-                        chipAuthSucceeded = true
+                
+                // Separate ChipAuthenticationInfo and ChipAuthenticationPublicKeyInfo
+                var chipAuthenticationInfo: ChipAuthenticationInfo? = null
+                val chipAuthenticationPublicKeyInfos = ArrayList<ChipAuthenticationPublicKeyInfo>()
+                
+                val securityInfos = dg14File.securityInfos
+                for (securityInfo in securityInfos) {
+                    when (securityInfo) {
+                        is ChipAuthenticationInfo -> {
+                            chipAuthenticationInfo = securityInfo
+                        }
+                        is ChipAuthenticationPublicKeyInfo -> {
+                            chipAuthenticationPublicKeyInfos.add(securityInfo)
+                        }
                     }
                 }
+                
+                // Need both ChipAuthenticationInfo and at least one public key
+                if (chipAuthenticationInfo == null || chipAuthenticationPublicKeyInfos.isEmpty()) {
+                    Log.w(TAG, "Missing required info for chip authentication")
+                    return
+                }
+                
+                // Try each public key until one succeeds
+                for (publicKeyInfo in chipAuthenticationPublicKeyInfos) {
+                    try {
+                        Log.i(TAG, "Attempting chip authentication with keyId: ${publicKeyInfo.keyId}")
+                        retryWithBackoff(MAX_RETRIES_STANDARD, "Chip Authentication keyId: ${publicKeyInfo.keyId}") {
+                            service.doEACCA(
+                                publicKeyInfo.keyId,
+                                chipAuthenticationInfo.objectIdentifier,
+                                chipAuthenticationInfo.protocolOIDString,
+                                publicKeyInfo.subjectPublicKey
+                            )
+                        }
+                        chipAuthSucceeded = true
+                        Log.i(TAG, "Chip authentication succeeded with keyId: ${publicKeyInfo.keyId}")
+                        break // Stop after first success
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Chip authentication failed for keyId ${publicKeyInfo.keyId}: ${e.message}")
+                        // Continue with next public key
+                    }
+                }
+                
+                if (!chipAuthSucceeded) {
+                    Log.w(TAG, "All chip authentication attempts failed")
+                }
+                
             } catch (e: Exception) {
-                Log.w(TAG, e)
+                Log.w(TAG, "Error during chip authentication", e)
             }
         }
 
@@ -846,3 +887,4 @@ class RNPassportReaderModule(private val reactContext: ReactApplicationContext) 
         }
     }
 }
+
