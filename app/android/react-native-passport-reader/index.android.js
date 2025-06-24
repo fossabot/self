@@ -10,11 +10,11 @@ module.exports = {
   scan
 }
 
-function scan({ documentNumber, dateOfBirth, dateOfExpiry, canNumber, useCan, quality=1 }) {
+function scan({ documentNumber, dateOfBirth, dateOfExpiry, canNumber, useCan, quality=1, useConservativeMode, useExtendedTransceiveLength }) {
   assert(typeof documentNumber === 'string', 'expected string "documentNumber"')
   assert(isDate(dateOfBirth), 'expected string "dateOfBirth" in format "yyMMdd"')
   assert(isDate(dateOfExpiry), 'expected string "dateOfExpiry" in format "yyMMdd"')
-  return RNPassportReader.scan({ documentNumber, dateOfBirth, dateOfExpiry, quality, useCan, canNumber })
+  return RNPassportReader.scan({ documentNumber, dateOfBirth, dateOfExpiry, quality, useCan, canNumber, useConservativeMode, useExtendedTransceiveLength })
 }
 
 

@@ -8,6 +8,8 @@ declare module 'react-native-passport-reader' {
     canNumber: string;
     useCan: boolean;
     quality?: number;
+    useConservativeMode?: boolean;
+    useExtendedTransceiveLength?: boolean;
   }
 
   interface PassportReader {

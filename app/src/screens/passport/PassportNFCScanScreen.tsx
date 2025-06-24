@@ -121,8 +121,15 @@ const PassportNFCScanScreen: React.FC<PassportNFCScanScreenProps> = ({}) => {
       const scanStartTime = Date.now();
 
       try {
-        const { canNumber, useCan, skipPACE, skipCA, extendedMode } =
-          (route.params || {}) as any;
+        const {
+          canNumber,
+          useCan,
+          skipPACE,
+          skipCA,
+          extendedMode,
+          useConservativeMode,
+          useExtendedTransceiveLength,
+        } = (route.params || {}) as any;
 
         const scanResponse = await scan({
           passportNumber,
@@ -133,6 +140,8 @@ const PassportNFCScanScreen: React.FC<PassportNFCScanScreenProps> = ({}) => {
           skipPACE,
           skipCA,
           extendedMode,
+          useConservativeMode,
+          useExtendedTransceiveLength,
         });
 
         const scanDurationSeconds = (

@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-passport-reader/index.android.js b/node_modules/react-native-passport-reader/index.android.js
-index 672466b..277146b 100644
+index 672466b..68fec25 100644
 --- a/node_modules/react-native-passport-reader/index.android.js
 +++ b/node_modules/react-native-passport-reader/index.android.js
 @@ -9,11 +9,11 @@ module.exports = {
@@ -7,12 +7,12 @@ index 672466b..277146b 100644
  }
  
 -function scan ({ documentNumber, dateOfBirth, dateOfExpiry, quality=1 }) {
-+function scan ({ documentNumber, dateOfBirth, dateOfExpiry, quality=1, useCan, canNumber }) {
++function scan({ documentNumber, dateOfBirth, dateOfExpiry, canNumber, useCan, quality=1, useConservativeMode, useExtendedTransceiveLength }) {
    assert(typeof documentNumber === 'string', 'expected string "documentNumber"')
    assert(isDate(dateOfBirth), 'expected string "dateOfBirth" in format "yyMMdd"')
    assert(isDate(dateOfExpiry), 'expected string "dateOfExpiry" in format "yyMMdd"')
 -  return RNPassportReader.scan({ documentNumber, dateOfBirth, dateOfExpiry, quality })
-+  return RNPassportReader.scan({ documentNumber, dateOfBirth, dateOfExpiry, quality, useCan, canNumber })
++  return RNPassportReader.scan({ documentNumber, dateOfBirth, dateOfExpiry, quality, useCan, canNumber, useConservativeMode, useExtendedTransceiveLength })
  }
  
  

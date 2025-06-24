@@ -21,6 +21,8 @@ type NFCParams = {
   useCan?: boolean;
   skipCA?: boolean;
   extendedMode?: boolean;
+  useConservativeMode?: boolean;
+  useExtendedTransceiveLength?: boolean;
 };
 
 const NFC_METHODS = [
@@ -64,6 +66,22 @@ const NFC_METHODS = [
       'Edit the MRZ fields manually. This allows to correct the MRZ if it is incorrect.',
     platform: ['ios', 'android'],
     params: {},
+  },
+  {
+    key: 'conservativeMode',
+    label: 'Conservative Mode',
+    description:
+      'Use conservative mode for NFC communication. Reduces the scan speed but Compatible with most devices.',
+    platform: ['android'],
+    params: { useConservativeMode: true },
+  },
+  {
+    key: 'extendedTransceiveLength',
+    label: 'Extended Transceive Length',
+    description:
+      'Use extended mode for NFC communication. Increases the scan speed but not compatible with all devices.',
+    platform: ['android'],
+    params: { useExtendedTransceiveLength: true },
   },
 
   // we have these options, but its not recommended to use them in production.

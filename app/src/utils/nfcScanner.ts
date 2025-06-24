@@ -16,6 +16,8 @@ interface Inputs {
   skipPACE?: boolean;
   skipCA?: boolean;
   extendedMode?: boolean;
+  useConservativeMode?: boolean;
+  useExtendedTransceiveLength?: boolean;
 }
 
 export const scan = async (inputs: Inputs) => {
@@ -43,6 +45,8 @@ const scanAndroid = async (inputs: Inputs) => {
     dateOfExpiry: inputs.dateOfExpiry,
     canNumber: inputs.canNumber ?? '',
     useCan: inputs.useCan ?? false,
+    useConservativeMode: inputs.useConservativeMode ?? false,
+    useExtendedTransceiveLength: inputs.useExtendedTransceiveLength ?? false,
   });
 };
 

@@ -398,10 +398,27 @@ class RNPassportReaderModule(private val reactContext: ReactApplicationContext) 
                     cardService.open()
                 }
                 Log.e("MY_LOGS", "cardService opened")
+
+                var maxTransceiveLength = PassportService.NORMAL_MAX_TRANCEIVE_LENGTH * 2
+                var blockSize = PassportService.DEFAULT_MAX_BLOCKSIZE * 2
+                var useConservativeMode = opts?.getBoolean(PARAM_USE_CONSERVATIVE_MODE) ?: false
+                var useExtendedMode = opts?.getBoolean(PARAM_USE_EXTENDED_MODE) ?: false
+
+                if (useConservativeMode) {
+                    maxTransceiveLength = PassportService.NORMAL_MAX_TRANCEIVE_LENGTH
+                    blockSize = 160
+                } else if (useExtendedMode) {
+                    maxTransceiveLength = PassportService.EXTENDED_MAX_TRANCEIVE_LENGTH
+                    blockSize = PassportService.DEFAULT_MAX_BLOCKSIZE
+                }
+
+                Log.d("MY_LOGS", "maxTransceiveLength: $maxTransceiveLength")
+                Log.d("MY_LOGS", "blockSize: $blockSize")
+
                 val service = PassportService(
                     cardService,
-                    PassportService.NORMAL_MAX_TRANCEIVE_LENGTH * 2,
-                    PassportService.DEFAULT_MAX_BLOCKSIZE * 2,
+                    maxTransceiveLength,
+                    blockSize,
                     false,
                     false,
                 )
@@ -818,6 +835,8 @@ class RNPassportReaderModule(private val reactContext: ReactApplicationContext) 
         private const val PARAM_DOE = "dateOfExpiry";
         private const val PARAM_CAN = "canNumber";
         private const val PARAM_USE_CAN = "useCan";
+        private const val PARAM_USE_CONSERVATIVE_MODE = "useConservativeMode";
+        private const val PARAM_USE_EXTENDED_MODE = "useExtendedTransceiveLength";
         const val JPEG_DATA_URI_PREFIX = "data:image/jpeg;base64,"
         private const val KEY_IS_SUPPORTED = "isSupported"
         private var instance: RNPassportReaderModule? = null
