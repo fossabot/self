@@ -281,6 +281,47 @@ class RNPassportReaderModule(private val reactContext: ReactApplicationContext) 
         private var passiveAuthSuccess = false
         private lateinit var dg14Encoded: ByteArray
 
+        // --- Retry config ---
+        private val MAX_RETRIES_CRITICAL = 5
+        private val MAX_RETRIES_STANDARD = 3
+        private val BASE_RETRY_DELAY = 500L
+        private val MAX_RETRY_DELAY = 4000L
+        private val JITTER_RANGE = 200L
+
+        private fun isRetryable(e: Exception): Boolean {
+            return e is IOException ||
+                e.message?.contains("timeout", true) == true ||
+                e.message?.contains("connection", true) == true ||
+                e.message?.contains("transceive", true) == true
+        }
+
+        private fun retryWithBackoff(
+            maxAttempts: Int,
+            opName: String,
+            block: () -> Unit
+        ) {
+            var attempt = 0
+            var lastException: Exception? = null
+            while (attempt < maxAttempts) {
+                try {
+                    block()
+                    return
+                } catch (e: Exception) {
+                    lastException = e
+                    if (!isRetryable(e) || attempt == maxAttempts - 1) {
+                        throw e
+                    }
+                    val delay = (BASE_RETRY_DELAY * Math.pow(2.0, attempt.toDouble())).toLong()
+                    val jitter = (Math.random() * JITTER_RANGE).toLong()
+                    val sleepMs = Math.min(delay + jitter, MAX_RETRY_DELAY)
+                    Log.w("RNPassportReaderModule", "$opName failed (attempt ${attempt + 1}/$maxAttempts): ${e.message}. Retrying in ${sleepMs}ms")
+                    Thread.sleep(sleepMs)
+                    attempt++
+                }
+            }
+            throw lastException ?: Exception("$opName failed after $maxAttempts attempts")
+        }
+
         override fun doInBackground(vararg params: Void?): Exception? {
             try {
                 eventMessageEmitter(Messages.STOP_MOVING)
@@ -293,13 +334,7 @@ class RNPassportReaderModule(private val reactContext: ReactApplicationContext) 
                     throw e
                 }
                 
-                try {
-                    cardService.open()
-                } catch (e: Exception) {
-                    Log.e("MY_LOGS", "Failed to open CardService", e)
-                    isoDep.close()
-                    Thread.sleep(500)
-                    isoDep.connect()
+                retryWithBackoff(MAX_RETRIES_CRITICAL, "cardService.open") {
                     cardService.open()
                 }
                 Log.e("MY_LOGS", "cardService opened")
@@ -310,9 +345,11 @@ class RNPassportReaderModule(private val reactContext: ReactApplicationContext) 
                     false,
                     false,
                 )
-                Log.e("MY_LOGS", "service gotten")
-                service.open()
-                Log.e("MY_LOGS", "service opened")
+
+                retryWithBackoff(MAX_RETRIES_CRITICAL, "service.open") {
+                    service.open()
+                }
+
                 var paceSucceeded = false
                 try {
                     Log.e("MY_LOGS", "trying to get cardAccessFile...")
@@ -321,14 +358,17 @@ class RNPassportReaderModule(private val reactContext: ReactApplicationContext) 
 
                     val securityInfoCollection = cardAccessFile.securityInfos
                     for (securityInfo: SecurityInfo in securityInfoCollection) {
+                        //TODO check if this is correct: do we need to do pace for every securityInfo?
                         if (securityInfo is PACEInfo) {
                             Log.e("MY_LOGS", "trying PACE...")
-                            service.doPACE(
-                                authKey,
-                                securityInfo.objectIdentifier,
-                                PACEInfo.toParameterSpec(securityInfo.parameterId),
-                                null,
-                            )
+                            retryWithBackoff(MAX_RETRIES_CRITICAL, "service.doPACE") {
+                                service.doPACE(
+                                    authKey,
+                                    securityInfo.objectIdentifier,
+                                    PACEInfo.toParameterSpec(securityInfo.parameterId),
+                                    null,
+                                )
+                            }
                             Log.e("MY_LOGS", "PACE succeeded")
                             paceSucceeded = true
                         }
@@ -336,53 +376,37 @@ class RNPassportReaderModule(private val reactContext: ReactApplicationContext) 
                 } catch (e: Exception) {
                     Log.w("MY_LOGS", e)
                 }
-                Log.e("MY_LOGS", "Sending select applet command with paceSucceeded: ${paceSucceeded}") // this is false so PACE doesn't succeed
-                service.sendSelectApplet(paceSucceeded)
+                Log.e("MY_LOGS", "Sending select applet command with paceSucceeded: ${paceSucceeded}")
+                retryWithBackoff(MAX_RETRIES_CRITICAL, "service.sendSelectApplet") {
+                    service.sendSelectApplet(paceSucceeded)
+                }
 
                 if (!paceSucceeded && authKey is BACKeySpec) {
-                    var bacSucceeded = false
-                    var attempts = 0
-                    val maxAttempts = 3
-                    
-                    while (!bacSucceeded && attempts < maxAttempts) {
-                        try {
-                            attempts++
-                            Log.e("MY_LOGS", "BAC attempt $attempts of $maxAttempts")
-                            
-                            if (attempts > 1) {
-                                // Wait before retry
-                                Thread.sleep(500)
-                            }
-                            
-                            // Try to read EF_COM first
-                            try {
-                                service.getInputStream(PassportService.EF_COM).read()
-                            } catch (e: Exception) {
-                                // EF_COM failed, do BAC
-                                service.doBAC(authKey)
-                            }
-                            
-                            bacSucceeded = true
-                            Log.e("MY_LOGS", "BAC succeeded on attempt $attempts")
-                            
-                        } catch (e: Exception) {
-                            Log.e("MY_LOGS", "BAC attempt $attempts failed: ${e.message}")
-                            if (attempts == maxAttempts) {
-                                throw e // Re-throw on final attempt
-                            }
+                    try {
+                        //TODO: check if this flow is correct. Is EF_COM readable without doing BAC?
+                        // Try to read EF_COM first
+                        service.getInputStream(PassportService.EF_COM).read()
+                    } catch (e: Exception) {
+                        // If EF_COM read fails, do BAC with retries
+                        retryWithBackoff(MAX_RETRIES_CRITICAL, "service.doBAC") {
+                            service.doBAC(authKey)
                         }
                     }
                 }
 
                 eventMessageEmitter("Reading DG1.....")
-                val dg1In = service.getInputStream(PassportService.EF_DG1)
-                dg1File = DG1File(dg1In)
                 // eventMessageEmitter("Reading DG2.....")
                 // val dg2In = service.getInputStream(PassportService.EF_DG2)
                 // dg2File = DG2File(dg2In)
+                retryWithBackoff(MAX_RETRIES_STANDARD, "Reading DG1") {
+                    val dg1In = service.getInputStream(PassportService.EF_DG1)
+                    dg1File = DG1File(dg1In)
+                }
                 eventMessageEmitter("Reading SOD.....")
-                val sodIn = service.getInputStream(PassportService.EF_SOD)
-                sodFile = SODFile(sodIn)
+                retryWithBackoff(MAX_RETRIES_CRITICAL, "Reading SOD") {
+                    val sodIn = service.getInputStream(PassportService.EF_SOD)
+                    sodFile = SODFile(sodIn)
+                }
                 
                 // val gson = Gson()
                 // Log.d(TAG, "============FIRST CONSOLE LOG=============")
