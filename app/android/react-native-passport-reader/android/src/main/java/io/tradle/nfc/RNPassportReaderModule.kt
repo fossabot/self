@@ -288,6 +288,66 @@ class RNPassportReaderModule(private val reactContext: ReactApplicationContext) 
         private val MAX_RETRY_DELAY = 4000L
         private val JITTER_RANGE = 200L
 
+        // --- Watchdog config ---
+        private val WATCHDOG_REFRESH_INTERVAL = 100L // ms
+        private val MAX_WATCHDOG_RUNTIME = 30000L // ms
+        private var watchdogHandler: android.os.Handler? = null
+        private var watchdogThread: android.os.HandlerThread? = null
+        private var watchdogRunnable: Runnable? = null
+        private var watchdogStartTime: Long = 0
+
+        private fun startWatchdog() {
+            stopWatchdog()
+            watchdogThread = android.os.HandlerThread("NFCWatchdogThread").apply { start() }
+            watchdogHandler = android.os.Handler(watchdogThread!!.looper)
+            watchdogStartTime = System.currentTimeMillis()
+            watchdogRunnable = object : Runnable {
+                override fun run() {
+                    val elapsed = System.currentTimeMillis() - watchdogStartTime
+                    if (isCancelled || elapsed > MAX_WATCHDOG_RUNTIME) {
+                        return
+                    }
+                    try {
+                        if (isoDep.isConnected) {
+                            val tag = isoDep.tag
+                            if (tag != null) {
+                                try {
+                                    val getTagService = Tag::class.java.getMethod("getTagService")
+                                    val tagService = getTagService.invoke(tag)
+                                    val getServiceHandle = Tag::class.java.getMethod("getServiceHandle")
+                                    val serviceHandle = getServiceHandle.invoke(tag)
+                                    val connectMethod = tagService.javaClass.getMethod("connect", Int::class.java, Int::class.java)
+                                    val result = connectMethod.invoke(tagService, serviceHandle, 3)
+                                    if ((result as? Int) == 0) {
+                                        Log.v("RNPassportReaderModule", "Watchdog: NFC connection refreshed via reflection.")
+                                    } else {
+                                        Log.w("RNPassportReaderModule", "Watchdog: NFC connection refresh returned non-zero result: $result")
+                                    }
+                                } catch (re: Exception) {
+                                    Log.w("RNPassportReaderModule", "Watchdog: Reflection-based refresh failed: ${re.message}")
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.w("RNPassportReaderModule", "Watchdog: Unexpected error: ${e.message}")
+                    }
+                    watchdogHandler?.postDelayed(this, WATCHDOG_REFRESH_INTERVAL)
+                }
+            }
+            watchdogHandler?.post(watchdogRunnable!!)
+        }
+
+        private fun stopWatchdog() {
+            try {
+                watchdogRunnable?.let { watchdogHandler?.removeCallbacks(it) }
+                watchdogHandler?.removeCallbacksAndMessages(null)
+                watchdogHandler = null
+                watchdogRunnable = null
+                watchdogThread?.quit()
+                watchdogThread = null
+            } catch (_: Exception) {}
+        }
+
         private fun isRetryable(e: Exception): Boolean {
             return e is IOException ||
                 e.message?.contains("timeout", true) == true ||
@@ -349,6 +409,8 @@ class RNPassportReaderModule(private val reactContext: ReactApplicationContext) 
                 retryWithBackoff(MAX_RETRIES_CRITICAL, "service.open") {
                     service.open()
                 }
+
+                startWatchdog()
 
                 var paceSucceeded = false
                 try {
@@ -461,6 +523,8 @@ class RNPassportReaderModule(private val reactContext: ReactApplicationContext) 
             } catch (e: Exception) {
                 eventMessageEmitter(Messages.RESET)
                 return e
+            } finally {
+                stopWatchdog()
             }
             return null
         }
@@ -710,6 +774,11 @@ class RNPassportReaderModule(private val reactContext: ReactApplicationContext) 
             scanPromise?.resolve(passport)
             eventMessageEmitter(Messages.RESET)
             resetState()
+        }
+
+        override fun onCancelled(result: Exception?) {
+            super.onCancelled(result)
+            stopWatchdog()
         }
     }
 
