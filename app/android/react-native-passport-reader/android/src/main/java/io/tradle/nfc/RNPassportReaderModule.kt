@@ -418,21 +418,23 @@ class RNPassportReaderModule(private val reactContext: ReactApplicationContext) 
                     val cardAccessFile = CardAccessFile(service.getInputStream(PassportService.EF_CARD_ACCESS))
                     Log.e("MY_LOGS", "cardAccessFile: ${cardAccessFile}")
 
-                    val securityInfoCollection = cardAccessFile.securityInfos
-                    for (securityInfo: SecurityInfo in securityInfoCollection) {
-                        //TODO check if this is correct: do we need to do pace for every securityInfo?
-                        if (securityInfo is PACEInfo) {
-                            Log.e("MY_LOGS", "trying PACE...")
+                    val paceInfos = cardAccessFile.securityInfos.filterIsInstance<PACEInfo>()
+                    for (paceInfo in paceInfos) {
+                        try {
                             retryWithBackoff(MAX_RETRIES_CRITICAL, "service.doPACE") {
                                 service.doPACE(
                                     authKey,
-                                    securityInfo.objectIdentifier,
-                                    PACEInfo.toParameterSpec(securityInfo.parameterId),
+                                    paceInfo.objectIdentifier,
+                                    PACEInfo.toParameterSpec(paceInfo.parameterId),
                                     null,
                                 )
                             }
-                            Log.e("MY_LOGS", "PACE succeeded")
+                            Log.e("MY_LOGS", "PACE succeeded with $paceInfo")
                             paceSucceeded = true
+                            break // Stop after first success
+                        } catch (e: Exception) {
+                            Log.w("MY_LOGS", "PACE failed with $paceInfo: ${e.message}")
+                            // Optionally continue to next PACEInfo
                         }
                     }
                 } catch (e: Exception) {
