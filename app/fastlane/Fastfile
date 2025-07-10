@@ -255,7 +255,7 @@ platform :android do
     # Update build.gradle with new version code
     increment_version_code(
       version_code: version_code,
-      gradle_file_path: android_gradle_file_path
+      gradle_file_path: android_gradle_file_path.gsub("../", "")
     )
 
     # TODO: uncomment when we have the permissions to run this action
