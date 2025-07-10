@@ -36,6 +36,11 @@ on:
           - ios
           - android
           - both
+      test_mode:
+        description: "Test mode (skip upload to stores)"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build-ios:
@@ -310,8 +315,13 @@ jobs:
           echo "Identities in build.keychain:"
           security find-identity -v -p codesigning build.keychain || echo "Failed to find identities in build.keychain"
           echo "--- Starting Fastlane ---"
-          echo "🚀 Uploading to App Store Connect/TestFlight..."
-          bundle exec fastlane ios internal_test --verbose
+          if [ "${{ github.event.inputs.test_mode }}" == "true" ]; then
+            echo "🧪 Running in TEST MODE - will skip upload to TestFlight"
+            bundle exec fastlane ios internal_test --verbose test_mode:true
+          else
+            echo "🚀 Uploading to App Store Connect/TestFlight..."
+            bundle exec fastlane ios internal_test --verbose
+          fi
 
       - name: Remove project.pbxproj updates we don't want to commit
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.platform != 'android'
@@ -495,8 +505,13 @@ jobs:
           SLACK_ANNOUNCE_CHANNEL_NAME: ${{ secrets.SLACK_ANNOUNCE_CHANNEL_NAME }}
         run: |
           cd ${{ env.APP_PATH }}
-          echo "🚀 Uploading to Google Play Internal Testing..."
-          bundle exec fastlane android internal_test --verbose
+          if [ "${{ github.event.inputs.test_mode }}" == "true" ]; then
+            echo "🧪 Running in TEST MODE - will skip upload to Play Store"
+            bundle exec fastlane android internal_test --verbose test_mode:true
+          else
+            echo "🚀 Uploading to Google Play Internal Testing..."
+            bundle exec fastlane android internal_test --verbose
+          fi
 
       - name: Get version from package.json
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.platform != 'ios'

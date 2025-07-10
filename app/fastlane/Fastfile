@@ -58,17 +58,25 @@ platform :ios do
   end
 
   desc "Push a new build to TestFlight Internal Testing"
-  lane :internal_test do
+  lane :internal_test do |options|
+    test_mode = options[:test_mode] == "true"
+    
     result = prepare_ios_build(prod_release: false)
 
-    upload_to_testflight(
-      api_key: result[:api_key],
-      distribute_external: true,
-      # Only external TestFlight groups are valid here
-      groups: ENV["IOS_TESTFLIGHT_GROUPS"].split(","),
-      changelog: "",
-      skip_waiting_for_build_processing: false,
-    ) if result[:should_upload]
+    if test_mode
+      UI.important("🧪 TEST MODE: Skipping TestFlight upload")
+      UI.success("✅ Build completed successfully!")
+      UI.message("📦 IPA path: #{result[:ipa_path]}")
+    else
+      upload_to_testflight(
+        api_key: result[:api_key],
+        distribute_external: true,
+        # Only external TestFlight groups are valid here
+        groups: ENV["IOS_TESTFLIGHT_GROUPS"].split(","),
+        changelog: "",
+        skip_waiting_for_build_processing: false,
+      ) if result[:should_upload]
+    end
     
     # Update deployment timestamp in version.json
     if result[:should_upload]
@@ -208,8 +216,8 @@ platform :android do
   end
 
   desc "Push a new build to Google Play Internal Testing"
-  lane :internal_test do
-    upload_android_build(track: "internal")
+  lane :internal_test do |options|
+    upload_android_build(track: "internal", test_mode: options[:test_mode])
   end
 
   desc "Push a new build to Google Play Store"
@@ -218,6 +226,7 @@ platform :android do
   end
 
   private_lane :upload_android_build do |options|
+    test_mode = options[:test_mode] == "true"
     if local_development
       if ENV["ANDROID_KEYSTORE_PATH"].nil?
         ENV["ANDROID_KEYSTORE_PATH"] = Fastlane::Helpers.android_create_keystore(android_keystore_path)
@@ -272,16 +281,22 @@ platform :android do
       )
     end
 
-    upload_to_play_store(
-      track: options[:track],
-      json_key: ENV["ANDROID_PLAY_STORE_JSON_KEY_PATH"],
-      package_name: ENV["ANDROID_PACKAGE_NAME"],
-      skip_upload_changelogs: true,
-      skip_upload_images: true,
-      skip_upload_screenshots: true,
-      track_promote_release_status: "completed",
-      aab: android_aab_path,
-    ) if should_upload && android_has_permissions
+    if test_mode
+      UI.important("🧪 TEST MODE: Skipping Play Store upload")
+      UI.success("✅ Build completed successfully!")
+      UI.message("📦 AAB path: #{android_aab_path}")
+    else
+      upload_to_play_store(
+        track: options[:track],
+        json_key: ENV["ANDROID_PLAY_STORE_JSON_KEY_PATH"],
+        package_name: ENV["ANDROID_PACKAGE_NAME"],
+        skip_upload_changelogs: true,
+        skip_upload_images: true,
+        skip_upload_screenshots: true,
+        track_promote_release_status: "completed",
+        aab: android_aab_path,
+      ) if should_upload && android_has_permissions
+    end
     
     # Update deployment timestamp in version.json
     if should_upload
