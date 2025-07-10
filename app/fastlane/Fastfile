@@ -69,6 +69,11 @@ platform :ios do
       changelog: "",
       skip_waiting_for_build_processing: false,
     ) if result[:should_upload]
+    
+    # Update deployment timestamp in version.json
+    if result[:should_upload]
+      Fastlane::Helpers.update_deployment_timestamp('ios')
+    end
 
     # Notify Slack about the new build
     if ENV["SLACK_CHANNEL_ID"]
@@ -122,13 +127,16 @@ platform :ios do
 
     Fastlane::Helpers.verify_env_vars(required_env_vars)
 
-    # Get current build number without auto-incrementing
-    project = Xcodeproj::Project.open(ios_xcode_profile_path)
-    target = project.targets.first
-    config = target.build_configurations.first
-    build_number = config.build_settings["CURRENT_PROJECT_VERSION"]
-
-    # Verify build number is higher than TestFlight (but don't auto-increment)
+    # Get build number from version.json and increment it
+    build_number = Fastlane::Helpers.bump_ios_build_number
+    
+    # Update Xcode project with new build number
+    increment_build_number(
+      build_number: build_number,
+      xcodeproj: ios_xcode_profile_path
+    )
+    
+    # Verify build number is higher than TestFlight
     Fastlane::Helpers.ios_verify_app_store_build_number(ios_xcode_profile_path)
     Fastlane::Helpers.ios_verify_provisioning_profile
 
@@ -232,10 +240,14 @@ platform :android do
 
     Fastlane::Helpers.verify_env_vars(required_env_vars)
 
-    # Get current version code without auto-incrementing
-    content = File.read(android_gradle_file_path)
-    match = content.match(/versionCode\s+(\d+)/)
-    version_code = match ? match[1].to_i : 1
+    # Get version code from version.json and increment it
+    version_code = Fastlane::Helpers.bump_android_build_number
+    
+    # Update build.gradle with new version code
+    increment_version_code(
+      version_code: version_code,
+      gradle_file: android_gradle_file_path
+    )
 
     # TODO: uncomment when we have the permissions to run this action
     # Fastlane::Helpers.android_verify_version_code(android_gradle_file_path)
@@ -270,6 +282,11 @@ platform :android do
       track_promote_release_status: "completed",
       aab: android_aab_path,
     ) if should_upload && android_has_permissions
+    
+    # Update deployment timestamp in version.json
+    if should_upload
+      Fastlane::Helpers.update_deployment_timestamp('android')
+    end
 
     # Notify Slack about the new build
     if ENV["SLACK_CHANNEL_ID"]
