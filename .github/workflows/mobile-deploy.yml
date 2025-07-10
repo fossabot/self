@@ -323,6 +323,23 @@ jobs:
             bundle exec fastlane ios internal_test --verbose
           fi
 
+      - name: Commit version.json changes
+        if: success() && github.event.inputs.test_mode != 'true'
+        run: |
+          cd ${{ github.workspace }}
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Check if version.json has changes
+          if git diff --quiet app/version.json; then
+            echo "No changes to version.json, skipping commit"
+          else
+            git add app/version.json
+            git commit -m "chore: update version.json after iOS deployment [skip ci]"
+            git push
+            echo "✅ Committed version.json changes"
+          fi
+
       - name: Remove project.pbxproj updates we don't want to commit
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.platform != 'android'
         run: |
@@ -511,6 +528,23 @@ jobs:
           else
             echo "🚀 Uploading to Google Play Internal Testing..."
             bundle exec fastlane android internal_test --verbose
+          fi
+
+      - name: Commit version.json changes
+        if: success() && github.event.inputs.test_mode != 'true'
+        run: |
+          cd ${{ github.workspace }}
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Check if version.json has changes
+          if git diff --quiet app/version.json; then
+            echo "No changes to version.json, skipping commit"
+          else
+            git add app/version.json
+            git commit -m "chore: update version.json after Android deployment [skip ci]"
+            git push
+            echo "✅ Committed version.json changes"
           fi
 
       - name: Get version from package.json
