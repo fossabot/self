@@ -113,12 +113,6 @@ jobs:
           echo "- Gems cache hit: ${{ steps.gems-cache.outputs.cache-hit }}"
           echo "- Pods cache hit: ${{ steps.pods-cache.outputs.cache-hit }}"
 
-      - name: Configure bundler to use cached gems
-        run: |
-          cd ${{ env.APP_PATH }}
-          bundle config set --local path 'vendor/bundle'
-          bundle config set --local deployment 'true'
-
       - name: Install Mobile Dependencies
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.platform != 'android'
         uses: ./.github/actions/mobile-setup
@@ -551,12 +545,6 @@ jobs:
           echo "- Gems cache hit: ${{ steps.gems-cache.outputs.cache-hit }}"
           echo "- Gradle cache hit: ${{ steps.gradle-cache.outputs.cache-hit }}"
           echo "- NDK cache hit: ${{ steps.ndk-cache.outputs.cache-hit }}"
-
-      - name: Configure bundler to use cached gems
-        run: |
-          cd ${{ env.APP_PATH }}
-          bundle config set --local path 'vendor/bundle'
-          bundle config set --local deployment 'true'
 
       - name: Install Mobile Dependencies
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.platform != 'ios'
