@@ -52,7 +52,6 @@ runs:
       run: |
         cd ${{ inputs.app_path }}
         bundle config set --local path 'vendor/bundle'
-        bundle config set --local deployment 'true'
 
     - name: Install app dependencies
       shell: bash
