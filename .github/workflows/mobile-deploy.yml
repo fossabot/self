@@ -323,21 +323,31 @@ jobs:
             bundle exec fastlane ios internal_test --verbose
           fi
 
-      - name: Commit version.json changes
+      - name: Update package.json version
+        if: success() && github.event.inputs.test_mode != 'true'
+        run: |
+          cd ${{ env.APP_PATH }}
+          # Use jq to extract the version from version.json
+          NEW_VERSION=$(jq -r .version version.json)
+          echo "Updating package.json to version $NEW_VERSION"
+          # Use yarn to update package.json and the lockfile
+          yarn version --new-version $NEW_VERSION --no-git-tag-version
+
+      - name: Commit version files
         if: success() && github.event.inputs.test_mode != 'true'
         run: |
           cd ${{ github.workspace }}
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Check if version.json has changes
-          if git diff --quiet app/version.json; then
-            echo "No changes to version.json, skipping commit"
+          # Check if version files have changes
+          if git diff --quiet app/version.json app/package.json yarn.lock; then
+            echo "No changes to version files, skipping commit"
           else
-            git add app/version.json
-            git commit -m "chore: update version.json after iOS deployment [skip ci]"
+            git add app/version.json app/package.json yarn.lock
+            git commit -m "chore: update version files after iOS deployment [skip ci]"
             git push
-            echo "✅ Committed version.json changes"
+            echo "✅ Committed version file changes"
           fi
 
       - name: Remove project.pbxproj updates we don't want to commit
@@ -530,21 +540,31 @@ jobs:
             bundle exec fastlane android internal_test --verbose
           fi
 
-      - name: Commit version.json changes
+      - name: Update package.json version
+        if: success() && github.event.inputs.test_mode != 'true'
+        run: |
+          cd ${{ env.APP_PATH }}
+          # Use jq to extract the version from version.json
+          NEW_VERSION=$(jq -r .version version.json)
+          echo "Updating package.json to version $NEW_VERSION"
+          # Use yarn to update package.json and the lockfile
+          yarn version --new-version $NEW_VERSION --no-git-tag-version
+
+      - name: Commit version files
         if: success() && github.event.inputs.test_mode != 'true'
         run: |
           cd ${{ github.workspace }}
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Check if version.json has changes
-          if git diff --quiet app/version.json; then
-            echo "No changes to version.json, skipping commit"
+          # Check if version files have changes
+          if git diff --quiet app/version.json app/package.json yarn.lock; then
+            echo "No changes to version files, skipping commit"
           else
-            git add app/version.json
-            git commit -m "chore: update version.json after Android deployment [skip ci]"
+            git add app/version.json app/package.json yarn.lock
+            git commit -m "chore: update version files after Android deployment [skip ci]"
             git push
-            echo "✅ Committed version.json changes"
+            echo "✅ Committed version file changes"
           fi
 
       - name: Get version from package.json
