@@ -81,7 +81,7 @@ jobs:
           path: |
             ${{ env.APP_PATH }}/node_modules
             ~/.cache/yarn
-          key: ${{ runner.os }}-yarn-${{ env.GH_CACHE_VERSION }}-${{ env.GH_YARN_CACHE_VERSION }}-${{ hashFiles('app/yarn.lock') }}
+          key: ${{ runner.os }}-yarn-${{ env.GH_CACHE_VERSION }}-${{ env.GH_YARN_CACHE_VERSION }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-${{ env.GH_CACHE_VERSION }}-${{ env.GH_YARN_CACHE_VERSION }}-
             ${{ runner.os }}-yarn-${{ env.GH_CACHE_VERSION }}-
@@ -115,19 +115,19 @@ jobs:
 
       - name: Verify lock files are up to date
         run: |
-          cd ${{ env.APP_PATH }}
           echo "🔍 Checking if lock files are in sync with dependency files..."
           
-          # Quick check for obvious issues
-          if [ ! -f "yarn.lock" ]; then
-            echo "❌ ERROR: yarn.lock file is missing!"
-            echo "Run 'yarn install' locally and commit the yarn.lock file."
+          # For yarn workspaces, yarn.lock is at root
+          if [ ! -f "${{ env.WORKSPACE }}/yarn.lock" ]; then
+            echo "❌ ERROR: yarn.lock file is missing at workspace root!"
+            echo "Run 'yarn install' at the repository root and commit the yarn.lock file."
             exit 1
           fi
           
-          if [ ! -f "Gemfile.lock" ]; then
+          # Gemfile.lock is in app directory
+          if [ ! -f "${{ env.APP_PATH }}/Gemfile.lock" ]; then
             echo "❌ ERROR: Gemfile.lock file is missing!"
-            echo "Run 'bundle install' locally and commit the Gemfile.lock file."
+            echo "Run 'bundle install' in the app directory and commit the Gemfile.lock file."
             exit 1
           fi
           
@@ -524,7 +524,7 @@ jobs:
           path: |
             ${{ env.APP_PATH }}/node_modules
             ~/.cache/yarn
-          key: ${{ runner.os }}-yarn-${{ env.GH_CACHE_VERSION }}-${{ env.GH_YARN_CACHE_VERSION }}-${{ hashFiles('app/yarn.lock') }}
+          key: ${{ runner.os }}-yarn-${{ env.GH_CACHE_VERSION }}-${{ env.GH_YARN_CACHE_VERSION }}-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-${{ env.GH_CACHE_VERSION }}-${{ env.GH_YARN_CACHE_VERSION }}-
             ${{ runner.os }}-yarn-${{ env.GH_CACHE_VERSION }}-
@@ -568,19 +568,19 @@ jobs:
 
       - name: Verify lock files are up to date
         run: |
-          cd ${{ env.APP_PATH }}
           echo "🔍 Checking if lock files are in sync with dependency files..."
           
-          # Quick check for obvious issues
-          if [ ! -f "yarn.lock" ]; then
-            echo "❌ ERROR: yarn.lock file is missing!"
-            echo "Run 'yarn install' locally and commit the yarn.lock file."
+          # For yarn workspaces, yarn.lock is at root
+          if [ ! -f "${{ env.WORKSPACE }}/yarn.lock" ]; then
+            echo "❌ ERROR: yarn.lock file is missing at workspace root!"
+            echo "Run 'yarn install' at the repository root and commit the yarn.lock file."
             exit 1
           fi
           
-          if [ ! -f "Gemfile.lock" ]; then
+          # Gemfile.lock is in app directory
+          if [ ! -f "${{ env.APP_PATH }}/Gemfile.lock" ]; then
             echo "❌ ERROR: Gemfile.lock file is missing!"
-            echo "Run 'bundle install' locally and commit the Gemfile.lock file."
+            echo "Run 'bundle install' in the app directory and commit the Gemfile.lock file."
             exit 1
           fi
           
