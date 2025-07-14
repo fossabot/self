@@ -52,6 +52,8 @@ runs:
       run: |
         cd ${{ inputs.app_path }}
         bundle config set --local path 'vendor/bundle'
+        bundle config set --local deployment 'true'
+        echo "✅ Bundler configured for strict mode (deployment=true)"
 
     - name: Install app dependencies
       shell: bash
@@ -62,19 +64,38 @@ runs:
         corepack enable
         yarn set version 4.6.0
         
-        # Check if node_modules exists and is valid
-        if [ -d "node_modules" ] && [ -f "node_modules/.yarn-integrity" ]; then
-          echo "✅ node_modules found - checking if up to date..."
-          # Yarn will only install if needed
-          yarn install --immutable
-        else
-          echo "📦 Installing dependencies from scratch..."
-          yarn install
+        echo "📦 Installing JavaScript dependencies with strict lock file..."
+        if ! yarn install --immutable; then
+          echo ""
+          echo "❌ ERROR: yarn.lock is out of date!"
+          echo ""
+          echo "This happens when package.json was modified but yarn.lock wasn't updated."
+          echo ""
+          echo "To fix this:"
+          echo "  1. Run 'yarn install' locally in the app directory"
+          echo "  2. Commit the updated yarn.lock file"
+          echo "  3. Push your changes"
+          echo ""
+          echo "This ensures everyone has the exact same dependency versions."
+          exit 1
         fi
         
         # Run mobile-specific installation
         yarn install-app:mobile-deploy
         
         # Install Ruby gems with bundler (respecting cache)
-        echo "📦 Installing Ruby gems..."
-        bundle install --jobs 4 --retry 3
+        echo "📦 Installing Ruby gems with strict lock file..."
+        if ! bundle install --jobs 4 --retry 3; then
+          echo ""
+          echo "❌ ERROR: Gemfile.lock is out of date!"
+          echo ""
+          echo "This happens when Gemfile was modified but Gemfile.lock wasn't updated."
+          echo ""
+          echo "To fix this:"
+          echo "  1. Run 'bundle install' locally in the app directory"
+          echo "  2. Commit the updated Gemfile.lock file"
+          echo "  3. Push your changes"
+          echo ""
+          echo "This ensures everyone has the exact same gem versions."
+          exit 1
+        fi

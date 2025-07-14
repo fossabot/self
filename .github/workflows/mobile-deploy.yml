@@ -113,6 +113,26 @@ jobs:
           echo "- Gems cache hit: ${{ steps.gems-cache.outputs.cache-hit }}"
           echo "- Pods cache hit: ${{ steps.pods-cache.outputs.cache-hit }}"
 
+      - name: Verify lock files are up to date
+        run: |
+          cd ${{ env.APP_PATH }}
+          echo "🔍 Checking if lock files are in sync with dependency files..."
+          
+          # Quick check for obvious issues
+          if [ ! -f "yarn.lock" ]; then
+            echo "❌ ERROR: yarn.lock file is missing!"
+            echo "Run 'yarn install' locally and commit the yarn.lock file."
+            exit 1
+          fi
+          
+          if [ ! -f "Gemfile.lock" ]; then
+            echo "❌ ERROR: Gemfile.lock file is missing!"
+            echo "Run 'bundle install' locally and commit the Gemfile.lock file."
+            exit 1
+          fi
+          
+          echo "✅ Lock files exist"
+
       - name: Install Mobile Dependencies
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.platform != 'android'
         uses: ./.github/actions/mobile-setup
@@ -545,6 +565,26 @@ jobs:
           echo "- Gems cache hit: ${{ steps.gems-cache.outputs.cache-hit }}"
           echo "- Gradle cache hit: ${{ steps.gradle-cache.outputs.cache-hit }}"
           echo "- NDK cache hit: ${{ steps.ndk-cache.outputs.cache-hit }}"
+
+      - name: Verify lock files are up to date
+        run: |
+          cd ${{ env.APP_PATH }}
+          echo "🔍 Checking if lock files are in sync with dependency files..."
+          
+          # Quick check for obvious issues
+          if [ ! -f "yarn.lock" ]; then
+            echo "❌ ERROR: yarn.lock file is missing!"
+            echo "Run 'yarn install' locally and commit the yarn.lock file."
+            exit 1
+          fi
+          
+          if [ ! -f "Gemfile.lock" ]; then
+            echo "❌ ERROR: Gemfile.lock file is missing!"
+            echo "Run 'bundle install' locally and commit the Gemfile.lock file."
+            exit 1
+          fi
+          
+          echo "✅ Lock files exist"
 
       - name: Install Mobile Dependencies
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.platform != 'ios'
