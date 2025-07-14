@@ -59,7 +59,7 @@ platform :ios do
 
   desc "Push a new build to TestFlight Internal Testing"
   lane :internal_test do |options|
-    test_mode = options[:test_mode] == "true"
+    test_mode = options[:test_mode] == true || options[:test_mode] == "true"
     
     result = prepare_ios_build(prod_release: false)
 
@@ -228,7 +228,7 @@ platform :android do
   end
 
   private_lane :upload_android_build do |options|
-    test_mode = options[:test_mode] == "true"
+    test_mode = options[:test_mode] == true || options[:test_mode] == "true"
     if local_development
       if ENV["ANDROID_KEYSTORE_PATH"].nil?
         ENV["ANDROID_KEYSTORE_PATH"] = Fastlane::Helpers.android_create_keystore(android_keystore_path)
