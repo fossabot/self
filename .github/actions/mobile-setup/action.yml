@@ -51,7 +51,24 @@ runs:
       shell: bash
       run: |
         cd ${{ inputs.app_path }}
+        
+        # Configure Yarn
         corepack enable
         yarn set version 4.6.0
-        yarn install
+        
+        # Check if node_modules exists and is valid
+        if [ -d "node_modules" ] && [ -f "node_modules/.yarn-integrity" ]; then
+          echo "✅ node_modules found - checking if up to date..."
+          # Yarn will only install if needed
+          yarn install --immutable
+        else
+          echo "📦 Installing dependencies from scratch..."
+          yarn install
+        fi
+        
+        # Run mobile-specific installation
         yarn install-app:mobile-deploy
+        
+        # Install Ruby gems with bundler (respecting cache)
+        echo "📦 Installing Ruby gems..."
+        bundle install --jobs 4 --retry 3

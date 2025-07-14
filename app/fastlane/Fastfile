@@ -84,7 +84,7 @@ platform :ios do
     end
 
     # Notify Slack about the new build
-    if ENV["SLACK_CHANNEL_ID"]
+    if ENV["SLACK_CHANNEL_ID"] && !test_mode
       deploy_source = Fastlane::Helpers.is_ci_environment? ? "GitHub Workflow" : "Local Deploy"
       Fastlane::Helpers.upload_file_to_slack(
         file_path: result[:ipa_path],
@@ -92,6 +92,8 @@ platform :ios do
         initial_comment: "🍎 iOS v#{package_version} (Build #{result[:build_number]}) deployed to TestFlight via #{deploy_source}",
         title: "#{APP_NAME}-#{package_version}-#{result[:build_number]}.ipa",
       )
+    elsif test_mode
+      UI.important("🧪 TEST MODE: Skipping Slack notification")
     else
       UI.important("Skipping Slack notification: SLACK_CHANNEL_ID not set.")
     end
@@ -304,7 +306,7 @@ platform :android do
     end
 
     # Notify Slack about the new build
-    if ENV["SLACK_CHANNEL_ID"]
+    if ENV["SLACK_CHANNEL_ID"] && !test_mode
       deploy_source = Fastlane::Helpers.is_ci_environment? ? "GitHub Workflow" : "Local Deploy"
       Fastlane::Helpers.upload_file_to_slack(
         file_path: android_aab_path,
@@ -312,6 +314,8 @@ platform :android do
         initial_comment: "🤖 Android v#{package_version} (Build #{version_code}) deployed to #{target_platform} via #{deploy_source}",
         title: "#{APP_NAME}-#{package_version}-#{version_code}.aab",
       )
+    elsif test_mode
+      UI.important("🧪 TEST MODE: Skipping Slack notification")
     else
       UI.important("Skipping Slack notification: SLACK_CHANNEL_ID not set.")
     end
