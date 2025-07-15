@@ -262,13 +262,13 @@ function getVersionJsonData() {
  */
 function getTimeAgo(timestamp) {
   if (!timestamp) return 'Never deployed';
-  
+
   const now = new Date();
   const then = new Date(timestamp);
   const diffMs = now - then;
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
   const diffDays = Math.floor(diffHours / 24);
-  
+
   if (diffDays > 0) {
     return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
   } else if (diffHours > 0) {
@@ -284,7 +284,7 @@ function getTimeAgo(timestamp) {
  */
 function getCurrentVersions() {
   const versionJson = getVersionJsonData();
-  
+
   return {
     main: getMainVersion(),
     ios: getIOSVersion(),
@@ -352,45 +352,61 @@ function displayPlatformVersions(platform, versions) {
 
   if (platform === PLATFORMS.IOS || platform === PLATFORMS.BOTH) {
     const currentBuild = versions.ios.build;
-    const nextBuild = versions.versionJson ? versions.versionJson.ios.build + 1 : parseInt(currentBuild) + 1;
-    const lastDeployed = versions.versionJson ? getTimeAgo(versions.versionJson.ios.lastDeployed) : 'Unknown';
-    
+    const nextBuild = versions.versionJson
+      ? versions.versionJson.ios.build + 1
+      : parseInt(currentBuild) + 1;
+    const lastDeployed = versions.versionJson
+      ? getTimeAgo(versions.versionJson.ios.lastDeployed)
+      : 'Unknown';
+
     console.log(
       `${CONSOLE_SYMBOLS.APPLE} iOS Version: ${versions.ios.version}`,
     );
-    console.log(`${CONSOLE_SYMBOLS.APPLE} iOS Build: ${currentBuild} → ${nextBuild}`);
+    console.log(
+      `${CONSOLE_SYMBOLS.APPLE} iOS Build: ${currentBuild} → ${nextBuild}`,
+    );
     console.log(`${CONSOLE_SYMBOLS.APPLE} Last iOS Deploy: ${lastDeployed}`);
   }
 
   if (platform === PLATFORMS.ANDROID || platform === PLATFORMS.BOTH) {
     const currentBuild = versions.android.versionCode;
-    const nextBuild = versions.versionJson ? versions.versionJson.android.build + 1 : parseInt(currentBuild) + 1;
-    const lastDeployed = versions.versionJson ? getTimeAgo(versions.versionJson.android.lastDeployed) : 'Unknown';
-    
+    const nextBuild = versions.versionJson
+      ? versions.versionJson.android.build + 1
+      : parseInt(currentBuild) + 1;
+    const lastDeployed = versions.versionJson
+      ? getTimeAgo(versions.versionJson.android.lastDeployed)
+      : 'Unknown';
+
     console.log(
       `${CONSOLE_SYMBOLS.ANDROID} Android Version: ${versions.android.version}`,
     );
     console.log(
       `${CONSOLE_SYMBOLS.ANDROID} Android Version Code: ${currentBuild} → ${nextBuild}`,
     );
-    console.log(`${CONSOLE_SYMBOLS.ANDROID} Last Android Deploy: ${lastDeployed}`);
+    console.log(
+      `${CONSOLE_SYMBOLS.ANDROID} Last Android Deploy: ${lastDeployed}`,
+    );
   }
-  
+
   // Check for potential issues
   if (versions.versionJson) {
     if (platform === PLATFORMS.IOS || platform === PLATFORMS.BOTH) {
       const jsonBuild = versions.versionJson.ios.build;
       const actualBuild = parseInt(versions.ios.build);
       if (jsonBuild !== actualBuild) {
-        console.log(`\n${CONSOLE_SYMBOLS.WARNING} iOS build mismatch: version.json has ${jsonBuild}, but Xcode has ${actualBuild}`);
+        console.log(
+          `\n${CONSOLE_SYMBOLS.WARNING} iOS build mismatch: version.json has ${jsonBuild}, but Xcode has ${actualBuild}`,
+        );
       }
     }
-    
+
     if (platform === PLATFORMS.ANDROID || platform === PLATFORMS.BOTH) {
       const jsonBuild = versions.versionJson.android.build;
       const actualBuild = parseInt(versions.android.versionCode);
       if (jsonBuild !== actualBuild) {
-        console.log(`\n${CONSOLE_SYMBOLS.WARNING} Android build mismatch: version.json has ${jsonBuild}, but gradle has ${actualBuild}`);
+        console.log(
+          `\n${CONSOLE_SYMBOLS.WARNING} Android build mismatch: version.json has ${jsonBuild}, but gradle has ${actualBuild}`,
+        );
       }
     }
   }
