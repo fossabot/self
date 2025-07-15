@@ -381,7 +381,7 @@ jobs:
           echo "Identities in build.keychain:"
           security find-identity -v -p codesigning build.keychain || echo "Failed to find identities in build.keychain"
           echo "--- Starting Fastlane ---"
-          if [ "${{ github.event.inputs.test_mode }}" == "true" ]; then
+          if [ "${{ github.event.inputs.test_mode }}" = "true" ]; then
             echo "🧪 Running in TEST MODE - will skip upload to TestFlight"
             bundle exec fastlane ios internal_test --verbose test_mode:true
           else
@@ -389,36 +389,7 @@ jobs:
             bundle exec fastlane ios internal_test --verbose
           fi
 
-      - name: Update package.json version
-        if: success() && github.event.inputs.test_mode != 'true'
-        run: |
-          cd ${{ env.APP_PATH }}
-          # Get current version from package.json
-          CURRENT_VERSION=$(node -p "require('./package.json').version")
-          # Get new version from version.json
-          NEW_VERSION=$(jq -r .version version.json)
-          echo "📦 Updating package.json version:"
-          echo "   From: v$CURRENT_VERSION"
-          echo "   To:   v$NEW_VERSION"
-          # Use yarn to update package.json and the lockfile
-          yarn version --new-version $NEW_VERSION --no-git-tag-version
-
-      - name: Commit version files
-        if: success() && github.event.inputs.test_mode != 'true'
-        run: |
-          cd ${{ github.workspace }}
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Check if version files have changes
-          if git diff --quiet app/version.json app/package.json yarn.lock; then
-            echo "No changes to version files, skipping commit"
-          else
-            git add app/version.json app/package.json yarn.lock
-            git commit -m "chore: update version files after iOS deployment [skip ci]"
-            git push
-            echo "✅ Committed version file changes"
-          fi
+      # Version updates moved to separate job to avoid race conditions
 
       - name: Remove project.pbxproj updates we don't want to commit
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.platform != 'android'
@@ -695,7 +666,7 @@ jobs:
           SLACK_ANNOUNCE_CHANNEL_NAME: ${{ secrets.SLACK_ANNOUNCE_CHANNEL_NAME }}
         run: |
           cd ${{ env.APP_PATH }}
-          if [ "${{ github.event.inputs.test_mode }}" == "true" ]; then
+          if [ "${{ github.event.inputs.test_mode }}" = "true" ]; then
             echo "🧪 Running in TEST MODE - will skip upload to Play Store"
             bundle exec fastlane android internal_test --verbose test_mode:true
           else
@@ -703,36 +674,7 @@ jobs:
             bundle exec fastlane android internal_test --verbose
           fi
 
-      - name: Update package.json version
-        if: success() && github.event.inputs.test_mode != 'true'
-        run: |
-          cd ${{ env.APP_PATH }}
-          # Get current version from package.json
-          CURRENT_VERSION=$(node -p "require('./package.json').version")
-          # Get new version from version.json
-          NEW_VERSION=$(jq -r .version version.json)
-          echo "📦 Updating package.json version:"
-          echo "   From: v$CURRENT_VERSION"
-          echo "   To:   v$NEW_VERSION"
-          # Use yarn to update package.json and the lockfile
-          yarn version --new-version $NEW_VERSION --no-git-tag-version
-
-      - name: Commit version files
-        if: success() && github.event.inputs.test_mode != 'true'
-        run: |
-          cd ${{ github.workspace }}
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Check if version files have changes
-          if git diff --quiet app/version.json app/package.json yarn.lock; then
-            echo "No changes to version files, skipping commit"
-          else
-            git add app/version.json app/package.json yarn.lock
-            git commit -m "chore: update version files after Android deployment [skip ci]"
-            git push
-            echo "✅ Committed version file changes"
-          fi
+      # Version updates moved to separate job to avoid race conditions
 
       - name: Get version from package.json
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.platform != 'ios'
@@ -776,3 +718,84 @@ jobs:
           
           echo "===================================="
           echo "💡 GitHub Actions cache limit: 10GB per repository"
+
+  # Separate job to update version files after successful deployment
+  # This avoids race conditions when both iOS and Android run in parallel
+  update-version:
+    runs-on: ubuntu-latest
+    needs: [build-ios, build-android]
+    if: |
+      always() && 
+      github.event.inputs.test_mode != 'true' &&
+      (needs.build-ios.result == 'success' || needs.build-android.result == 'success')
+    env:
+      NODE_VERSION: 18
+      APP_PATH: ${{ github.workspace }}/app
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ github.token }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Update package.json version
+        run: |
+          cd ${{ env.APP_PATH }}
+          
+          # Get current version from package.json
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          
+          # Get new version from version.json (if it exists and has version field)
+          if [ -f version.json ] && grep -q '"version"' version.json; then
+            NEW_VERSION=$(node -pe 'require("./version.json").version' 2>/dev/null || echo "")
+          else
+            # Fallback: use current version from package.json
+            NEW_VERSION="$CURRENT_VERSION"
+          fi
+          
+          # Only update if versions differ
+          if [ "$CURRENT_VERSION" != "$NEW_VERSION" ] && [ -n "$NEW_VERSION" ]; then
+            echo "📦 Updating package.json version:"
+            echo "   From: v$CURRENT_VERSION"
+            echo "   To:   v$NEW_VERSION"
+            
+            # Use yarn to update package.json and the lockfile
+            yarn version --new-version "$NEW_VERSION" --no-git-tag-version
+          else
+            echo "ℹ️ Version already up to date or no version field in version.json"
+          fi
+
+      - name: Commit and push version files
+        run: |
+          cd ${{ github.workspace }}
+          
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Check if there are any changes to commit
+          if git diff --quiet app/version.json app/package.json yarn.lock 2>/dev/null; then
+            echo "No changes to version files, skipping commit"
+          else
+            # Stage the changes
+            git add app/version.json app/package.json yarn.lock 2>/dev/null || true
+            
+            # Create commit message based on which platforms were deployed
+            COMMIT_MSG="chore: update version files after"
+            if [ "${{ needs.build-ios.result }}" = "success" ] && [ "${{ needs.build-android.result }}" = "success" ]; then
+              COMMIT_MSG="$COMMIT_MSG iOS and Android deployment"
+            elif [ "${{ needs.build-ios.result }}" = "success" ]; then
+              COMMIT_MSG="$COMMIT_MSG iOS deployment"
+            else
+              COMMIT_MSG="$COMMIT_MSG Android deployment"
+            fi
+            COMMIT_MSG="$COMMIT_MSG [skip ci]"
+            
+            # Commit and push
+            git commit -m "$COMMIT_MSG"
+            git push
+            echo "✅ Committed version file changes"
+          fi

@@ -37,6 +37,12 @@ function getPackageVersion() {
 }
 
 function bumpBuild(platform = 'both') {
+  const validPlatforms = ['ios', 'android', 'both'];
+  if (!validPlatforms.includes(platform)) {
+    console.error(`Invalid platform: ${platform}. Must be one of: ${validPlatforms.join(', ')}`);
+    process.exit(1);
+  }
+  
   const versionData = readVersionFile();
   
   if (platform === 'ios' || platform === 'both') {
@@ -53,6 +59,12 @@ function bumpBuild(platform = 'both') {
 }
 
 function setDeploymentTime(platform) {
+  const validPlatforms = ['ios', 'android', 'both'];
+  if (!validPlatforms.includes(platform)) {
+    console.error(`Invalid platform: ${platform}. Must be one of: ${validPlatforms.join(', ')}`);
+    process.exit(1);
+  }
+  
   const versionData = readVersionFile();
   const timestamp = new Date().toISOString();
   

@@ -62,17 +62,14 @@ module Fastlane
       end
 
       def update_deployment_timestamp(platform)
+        unless %w[ios android].include?(platform)
+          UI.user_error!("Invalid platform: #{platform}. Must be 'ios' or 'android'")
+        end
+        
         data = read_version_file
         timestamp = Time.now.utc.iso8601
         
-        case platform
-        when 'ios'
-          data['ios']['lastDeployed'] = timestamp
-        when 'android'
-          data['android']['lastDeployed'] = timestamp
-        else
-          UI.user_error!("Invalid platform: #{platform}")
-        end
+        data[platform]['lastDeployed'] = timestamp
         
         write_version_file(data)
         UI.success("Updated #{platform} deployment timestamp")
