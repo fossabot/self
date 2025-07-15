@@ -13,12 +13,20 @@
     "moduleResolution": "NodeNext",
     "baseUrl": "./",
     "composite": true,
+    "types": [],
+    "lib": ["ES2020"]
   },
   "include": [
-    "src/**/*", "index.ts",
+    "src/**/*",
+    "./index.ts"
   ],
   "exclude": [
     "dist",
-    "node_modules"
+    "node_modules",
+    "**/node_modules/**",
+    "tests",
+    "scripts",
+    "**/*.test.ts",
+    "**/*.test.js"
   ]
 }
