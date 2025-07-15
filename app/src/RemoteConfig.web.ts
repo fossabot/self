@@ -4,6 +4,14 @@
 // This file provides the same API as RemoteConfig.ts but for web environments
 
 import {
+  fetchAndActivate,
+  getAll,
+  getRemoteConfig,
+  getValue,
+} from 'firebase/remote-config';
+
+import { app } from '../web/firebase'; // Import the initialized Firebase app
+import {
   clearAllLocalOverrides as clearAllLocalOverridesShared,
   clearLocalOverride as clearLocalOverrideShared,
   FeatureFlagValue,
@@ -16,6 +24,8 @@ import {
   setLocalOverride as setLocalOverrideShared,
   StorageBackend,
 } from './RemoteConfig.shared';
+
+const remoteConfig = getRemoteConfig(app);
 
 // Web-specific storage backend using LocalStorage
 const webStorageBackend: StorageBackend = {
@@ -30,60 +40,30 @@ const webStorageBackend: StorageBackend = {
   },
 };
 
-// Mock Firebase Remote Config for web (since Firebase Web SDK for Remote Config is not installed)
-// In a real implementation, you would import and use the Firebase Web SDK
-class MockFirebaseRemoteConfig implements RemoteConfigBackend {
-  private config: Record<string, any> = {};
-  private settings: any = {};
-
-  setDefaults(defaults: Record<string, any>) {
-    this.config = { ...defaults };
-  }
-
-  setConfigSettings(settings: any) {
-    this.settings = settings;
-  }
-
-  async fetchAndActivate(): Promise<boolean> {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 100));
-    return true;
-  }
-
-  getValue(key: string) {
-    const value = this.config[key] || '';
-    return {
-      asBoolean: () => {
-        if (typeof value === 'boolean') return value;
-        if (typeof value === 'string') return value === 'true';
-        return false;
-      },
-      asNumber: () => {
-        if (typeof value === 'number') return value;
-        if (typeof value === 'string') {
-          const num = Number(value);
-          return isNaN(num) ? 0 : num;
-        }
-        return 0;
-      },
-      asString: () => {
-        if (typeof value === 'string') return value;
-        return String(value);
-      },
-      getSource: () => {
-        return value;
-      },
+// Web-specific remote config backend using Firebase Web SDK
+const webRemoteConfigBackend: RemoteConfigBackend = {
+  getValue: (key: string) => {
+    return getValue(remoteConfig, key);
+  },
+  getAll: () => {
+    return getAll(remoteConfig);
+  },
+  setDefaults: async (defaults: Record<string, any>) => {
+    remoteConfig.defaultConfig = {
+      ...remoteConfig.defaultConfig,
+      ...defaults,
     };
-  }
-
-  getAll() {
-    return this.config;
-  }
-}
-
-// Web-specific remote config backend using mock Firebase
-const webRemoteConfigBackend: RemoteConfigBackend =
-  new MockFirebaseRemoteConfig();
+  },
+  setConfigSettings: async (settings: Record<string, any>) => {
+    remoteConfig.settings = {
+      ...remoteConfig.settings,
+      ...settings,
+    };
+  },
+  fetchAndActivate: async (): Promise<boolean> => {
+    return await fetchAndActivate(remoteConfig);
+  },
+};
 
 // Export the shared functions with web-specific backends
 export const getLocalOverrides = () =>
