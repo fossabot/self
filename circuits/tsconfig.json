@@ -9,10 +9,12 @@
     "allowJs": true,
     "checkJs": false,
     "outDir": "./dist",
-    "baseUrl": "."
+    "baseUrl": ".",
+    "types": [],
+    "lib": ["ES2020"]
   },
   "include": ["tests/**/*", "src/**/*"],
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules", "dist"],
   "references": [
     {
       "path": "../common"

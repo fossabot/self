@@ -11,7 +11,9 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "jsx": "react",
-    "moduleResolution": "NodeNext"
+    "moduleResolution": "NodeNext",
+    "types": [],
+    "lib": ["ESNext", "DOM"]
   },
   "include": [
     "animations",
@@ -22,7 +24,7 @@
   "exclude": [
     "node_modules",
     "**/__tests__/*",
-    "dist",
+    "dist"
   ],
   "references": [
     {
