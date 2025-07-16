@@ -48,6 +48,46 @@ on:
         required: false
         type: boolean
         default: false
+      deployment_track:
+        description: "Deployment track (internal/production)"
+        required: false
+        type: choice
+        default: "internal"
+        options:
+          - internal
+          - production
+      version_bump:
+        description: "Version bump type"
+        required: false
+        type: choice
+        default: "build"
+        options:
+          - build
+          - patch
+          - minor
+          - major
+  
+  workflow_call:
+    inputs:
+      platform:
+        type: string
+        required: true
+      deployment_track:
+        type: string
+        required: false
+        default: "internal"
+      version_bump:
+        type: string
+        required: false
+        default: "build"
+      auto_deploy:
+        type: boolean
+        required: false
+        default: false
+      test_mode:
+        type: boolean
+        required: false
+        default: false
 
 jobs:
   build-ios:
@@ -381,12 +421,30 @@ jobs:
           echo "Identities in build.keychain:"
           security find-identity -v -p codesigning build.keychain || echo "Failed to find identities in build.keychain"
           echo "--- Starting Fastlane ---"
-          if [ "${{ github.event.inputs.test_mode }}" = "true" ]; then
+          
+          # Determine deployment track and version bump
+          DEPLOYMENT_TRACK="${{ inputs.deployment_track || 'internal' }}"
+          VERSION_BUMP="${{ inputs.version_bump || 'build' }}"
+          TEST_MODE="${{ inputs.test_mode || false }}"
+          
+          echo "📱 Deployment Configuration:"
+          echo "  - Track: $DEPLOYMENT_TRACK"
+          echo "  - Version Bump: $VERSION_BUMP"
+          echo "  - Test Mode: $TEST_MODE"
+          
+          if [ "$TEST_MODE" = "true" ]; then
             echo "🧪 Running in TEST MODE - will skip upload to TestFlight"
-            bundle exec fastlane ios internal_test --verbose test_mode:true
+            bundle exec fastlane ios deploy_auto \
+              deployment_track:$DEPLOYMENT_TRACK \
+              version_bump:$VERSION_BUMP \
+              test_mode:true \
+              --verbose
           else
-            echo "🚀 Uploading to App Store Connect/TestFlight..."
-            bundle exec fastlane ios internal_test --verbose
+            echo "🚀 Deploying to App Store Connect..."
+            bundle exec fastlane ios deploy_auto \
+              deployment_track:$DEPLOYMENT_TRACK \
+              version_bump:$VERSION_BUMP \
+              --verbose
           fi
 
       # Version updates moved to separate job to avoid race conditions
@@ -666,12 +724,30 @@ jobs:
           SLACK_ANNOUNCE_CHANNEL_NAME: ${{ secrets.SLACK_ANNOUNCE_CHANNEL_NAME }}
         run: |
           cd ${{ env.APP_PATH }}
-          if [ "${{ github.event.inputs.test_mode }}" = "true" ]; then
+          
+          # Determine deployment track and version bump
+          DEPLOYMENT_TRACK="${{ inputs.deployment_track || 'internal' }}"
+          VERSION_BUMP="${{ inputs.version_bump || 'build' }}"
+          TEST_MODE="${{ inputs.test_mode || false }}"
+          
+          echo "🤖 Deployment Configuration:"
+          echo "  - Track: $DEPLOYMENT_TRACK"
+          echo "  - Version Bump: $VERSION_BUMP"
+          echo "  - Test Mode: $TEST_MODE"
+          
+          if [ "$TEST_MODE" = "true" ]; then
             echo "🧪 Running in TEST MODE - will skip upload to Play Store"
-            bundle exec fastlane android internal_test --verbose test_mode:true
+            bundle exec fastlane android deploy_auto \
+              deployment_track:$DEPLOYMENT_TRACK \
+              version_bump:$VERSION_BUMP \
+              test_mode:true \
+              --verbose
           else
-            echo "🚀 Uploading to Google Play Internal Testing..."
-            bundle exec fastlane android internal_test --verbose
+            echo "🚀 Deploying to Google Play Store..."
+            bundle exec fastlane android deploy_auto \
+              deployment_track:$DEPLOYMENT_TRACK \
+              version_bump:$VERSION_BUMP \
+              --verbose
           fi
 
       # Version updates moved to separate job to avoid race conditions

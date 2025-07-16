@@ -99,6 +99,78 @@ platform :ios do
     end
   end
 
+  desc "Deploy iOS app with automatic version management"
+  lane :deploy_auto do |options|
+    deployment_track = options[:deployment_track] || 'internal'
+    version_bump = options[:version_bump] || 'build'
+    test_mode = options[:test_mode] == true || options[:test_mode] == "true"
+    
+    UI.message("🚀 Starting iOS deployment")
+    UI.message("  Track: #{deployment_track}")
+    UI.message("  Version bump: #{version_bump}")
+    UI.message("  Test mode: #{test_mode}")
+    
+    # Handle version bumping
+    if !test_mode
+      require_relative "helpers/version_manager"
+      version_manager = Fastlane::Helpers::VersionManager.new
+      
+      case version_bump
+      when 'major', 'minor', 'patch'
+        version_manager.bump_version(version_bump)
+        UI.success("✅ Bumped #{version_bump} version")
+      when 'build'
+        # Build number is automatically incremented during build
+        UI.message("📦 Build number will be incremented")
+      end
+    end
+    
+    # Prepare and build
+    result = prepare_ios_build(prod_release: deployment_track == 'production')
+    
+    # Handle deployment based on track
+    if test_mode
+      UI.important("🧪 TEST MODE: Skipping App Store upload")
+      UI.success("✅ Build completed successfully!")
+    elsif deployment_track == 'internal'
+      upload_to_testflight(
+        api_key: result[:api_key],
+        distribute_external: true,
+        groups: ENV["IOS_TESTFLIGHT_GROUPS"].split(","),
+        changelog: "",
+        skip_waiting_for_build_processing: false,
+      ) if result[:should_upload]
+    elsif deployment_track == 'production'
+      # For production, upload to TestFlight first, then promote
+      upload_to_testflight(
+        api_key: result[:api_key],
+        distribute_external: false,
+        skip_waiting_for_build_processing: true,
+      ) if result[:should_upload]
+      
+      # TODO: Add app store submission when ready
+      UI.important("⚠️  Production deployment uploaded to TestFlight. Manual App Store submission required.")
+    end
+    
+    # Update deployment info
+    if result[:should_upload] && !test_mode
+      Fastlane::Helpers.update_deployment_timestamp('ios')
+    end
+    
+    # Slack notification
+    if ENV["SLACK_CHANNEL_ID"] && !test_mode
+      deploy_source = Fastlane::Helpers.is_ci_environment? ? "GitHub Actions (Auto)" : "Local Deploy"
+      track_emoji = deployment_track == 'production' ? '🚀' : '🧪'
+      
+      Fastlane::Helpers.upload_file_to_slack(
+        file_path: result[:ipa_path],
+        channel_id: ENV["SLACK_CHANNEL_ID"],
+        initial_comment: "#{track_emoji} iOS v#{package_version} (Build #{result[:build_number]}) deployed to #{deployment_track} via #{deploy_source}",
+        title: "#{APP_NAME}-#{package_version}-#{result[:build_number]}.ipa",
+      )
+    end
+  end
+
   private_lane :prepare_ios_build do |options|
     if local_development
       # app breaks with Xcode 16.3
@@ -227,6 +299,44 @@ platform :android do
     upload_android_build(track: "production")
   end
 
+  desc "Deploy Android app with automatic version management"
+  lane :deploy_auto do |options|
+    deployment_track = options[:deployment_track] || 'internal'
+    version_bump = options[:version_bump] || 'build'
+    test_mode = options[:test_mode] == true || options[:test_mode] == "true"
+    
+    UI.message("🚀 Starting Android deployment")
+    UI.message("  Track: #{deployment_track}")
+    UI.message("  Version bump: #{version_bump}")
+    UI.message("  Test mode: #{test_mode}")
+    
+    # Handle version bumping
+    if !test_mode
+      require_relative "helpers/version_manager"
+      version_manager = Fastlane::Helpers::VersionManager.new
+      
+      case version_bump
+      when 'major', 'minor', 'patch'
+        version_manager.bump_version(version_bump)
+        UI.success("✅ Bumped #{version_bump} version")
+        # Sync the new version to build.gradle
+        android_set_version_name(
+          version_name: version_manager.get_current_version,
+          gradle_file: android_gradle_file_path.gsub("../", ""),
+        )
+      when 'build'
+        # Build number is automatically incremented during build
+        UI.message("📦 Build number will be incremented")
+      end
+    end
+    
+    # Map deployment track to Play Store track
+    play_store_track = deployment_track == 'production' ? 'production' : 'internal'
+    
+    # Build and deploy
+    upload_android_build(track: play_store_track, test_mode: test_mode, deployment_track: deployment_track)
+  end
+
   private_lane :upload_android_build do |options|
     test_mode = options[:test_mode] == true || options[:test_mode] == "true"
     if local_development
@@ -288,16 +398,31 @@ platform :android do
       UI.success("✅ Build completed successfully!")
       UI.message("📦 AAB path: #{android_aab_path}")
     else
-      upload_to_play_store(
-        track: options[:track],
-        json_key: ENV["ANDROID_PLAY_STORE_JSON_KEY_PATH"],
-        package_name: ENV["ANDROID_PACKAGE_NAME"],
-        skip_upload_changelogs: true,
-        skip_upload_images: true,
-        skip_upload_screenshots: true,
-        track_promote_release_status: "completed",
-        aab: android_aab_path,
-      ) if should_upload && android_has_permissions
+      if should_upload
+        begin
+          upload_to_play_store(
+            track: options[:track],
+            json_key: ENV["ANDROID_PLAY_STORE_JSON_KEY_PATH"],
+            package_name: ENV["ANDROID_PACKAGE_NAME"],
+            skip_upload_changelogs: true,
+            skip_upload_images: true,
+            skip_upload_screenshots: true,
+            track_promote_release_status: "completed",
+            aab: android_aab_path,
+          )
+        rescue => e
+          if e.message.include?("forbidden") || e.message.include?("403") || e.message.include?("insufficientPermissions")
+            UI.error("❌ Play Store upload failed: Insufficient permissions")
+            UI.error("Please fix permissions in Google Play Console")
+            UI.important("Build saved at: #{android_aab_path}")
+          else
+            # Re-raise if it's a different error
+            raise e
+          end
+        end
+      else
+        UI.message("Skipping Play Store upload (should_upload: false)")
+      end
     end
     
     # Update deployment timestamp in version.json
@@ -307,11 +432,14 @@ platform :android do
 
     # Notify Slack about the new build
     if ENV["SLACK_CHANNEL_ID"] && !test_mode
-      deploy_source = Fastlane::Helpers.is_ci_environment? ? "GitHub Workflow" : "Local Deploy"
+      deploy_source = Fastlane::Helpers.is_ci_environment? ? "GitHub Actions (Auto)" : "Local Deploy"
+      deployment_track = options[:deployment_track] || options[:track]
+      track_emoji = deployment_track == 'production' ? '🚀' : '🧪'
+      
       Fastlane::Helpers.upload_file_to_slack(
         file_path: android_aab_path,
         channel_id: ENV["SLACK_CHANNEL_ID"],
-        initial_comment: "🤖 Android v#{package_version} (Build #{version_code}) deployed to #{target_platform} via #{deploy_source}",
+        initial_comment: "#{track_emoji} Android v#{package_version} (Build #{version_code}) deployed to #{deployment_track || target_platform} via #{deploy_source}",
         title: "#{APP_NAME}-#{package_version}-#{version_code}.aab",
       )
     elsif test_mode
