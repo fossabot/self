@@ -22,7 +22,7 @@ import { SelfBackendVerifier } from '@selfxyz/core';
 const selfBackendVerifier = new SelfBackendVerifier(
   scope, // Your application's unique scope
   endpoint, // Your verification endpoint URL
-  mockPassport, // Whether to use testnet (true) or mainnet (false)
+  network, // Network to use ('mainnet' or 'testnet')
   allowedIds, // Map of allowed attestation IDs
   configStorage, // Configuration storage implementation
   userIdentifierType // Type of user identifier ('hex' or 'uuid')
@@ -209,7 +209,7 @@ const selfApp = new SelfAppBuilder({
   appName: 'My Application',
   scope: 'my-application-scope',
   endpoint: 'https://my-api.com/api/verify', // Your API using SelfBackendVerifier
-  logoBase64: myLogoBase64,
+  logoUrl: 'https://my-api.com/logo.png',
   userId,
   disclosures: {
     name: true,

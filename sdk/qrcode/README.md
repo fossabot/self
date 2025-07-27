@@ -30,7 +30,7 @@ const selfApp = new SelfAppBuilder({
   appName: 'My App',
   scope: 'my-app-scope',
   endpoint: 'https://myapp.com/api/verify',
-  logoBase64: 'base64EncodedLogo', // Optional
+  logoUrl: 'https://myapp.com/logo.png', // Optional
   userId,
   // Optional disclosure requirements
   disclosures: {
@@ -79,7 +79,7 @@ The `SelfAppBuilder` allows you to configure your application's verification req
 | `appName`     | string | Yes      | The name of your application                   |
 | `scope`       | string | Yes      | A unique identifier for your application       |
 | `endpoint`    | string | Yes      | The endpoint that will verify the proof        |
-| `logoBase64`  | string | No       | Base64-encoded logo to display in the Self app |
+| `logoUrl`     | string | No       | URL to PNG logo to display in the Self app     |
 | `userId`      | string | Yes      | Unique identifier for the user                 |
 | `disclosures` | object | No       | Disclosure and verification requirements       |
 

@@ -1,1 +1,1 @@
-export { SelfBackendVerifier } from './SelfBackendVerifier.js';
+export { SelfBackendVerifier, type Network } from './SelfBackendVerifier.js';

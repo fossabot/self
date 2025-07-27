@@ -5,7 +5,7 @@ import { SelfApp } from '@selfxyz/common/utils/appType';
 export interface WebAppInfo {
   appName: string;
   userId: string;
-  logoBase64: string;
+  logoUrl: string;
 }
 
 // Log once when this module loads

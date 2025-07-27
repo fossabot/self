@@ -24,6 +24,8 @@ const CELO_TESTNET_RPC_URL = 'https://alfajores-forno.celo-testnet.org';
 const IDENTITY_VERIFICATION_HUB_ADDRESS = '0xe57F4773bd9c9d8b6Cd70431117d353298B9f5BF';
 const IDENTITY_VERIFICATION_HUB_ADDRESS_STAGING = '0x68c931C9a534D37aa78094877F46fE46a49F1A51';
 
+export type Network = 'mainnet' | 'testnet';
+
 export class SelfBackendVerifier {
   protected scope: string;
   protected identityVerificationHubContract: IdentityVerificationHubImpl;
@@ -35,14 +37,14 @@ export class SelfBackendVerifier {
   constructor(
     scope: string,
     endpoint: string,
-    mockPassport: boolean = false,
+    network: Network = 'mainnet',
     allowedIds: Map<AttestationId, boolean>,
     configStorage: IConfigStorage,
     userIdentifierType: UserIdType
   ) {
-    const rpcUrl = mockPassport ? CELO_TESTNET_RPC_URL : CELO_MAINNET_RPC_URL;
+    const rpcUrl = network === 'testnet' ? CELO_TESTNET_RPC_URL : CELO_MAINNET_RPC_URL;
     const provider = new ethers.JsonRpcProvider(rpcUrl);
-    const identityVerificationHubAddress = mockPassport
+    const identityVerificationHubAddress = network === 'testnet'
       ? IDENTITY_VERIFICATION_HUB_ADDRESS_STAGING
       : IDENTITY_VERIFICATION_HUB_ADDRESS;
     this.identityVerificationHubContract = IdentityVerificationHubImpl__factory.connect(

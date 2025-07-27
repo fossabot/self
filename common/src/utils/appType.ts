@@ -10,7 +10,7 @@ import { formatEndpoint } from './scope.js';
 
 export interface SelfApp {
   appName: string;
-  logoBase64: string;
+  logoUrl: string;
   endpointType: EndpointType;
   endpoint: string;
   header: string;
@@ -94,10 +94,10 @@ export class SelfAppBuilder {
       devMode: false,
       endpointType: 'https',
       header: '',
-      logoBase64: '',
+      logoUrl: '',
       disclosures: {},
       chainID: config.endpointType === 'staging_celo' ? 44787 : 42220,
-      version: config.version ?? 2,
+      version: 2,
       userDefinedData: '',
       ...config,
     } as SelfApp;
