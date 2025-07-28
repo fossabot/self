@@ -73,7 +73,7 @@ describe('database (SQLite)', () => {
         endpointType: 'https' as const,
         status: ProofStatus.PENDING,
         disclosures: '{"test": "data"}',
-        logoBase64: 'base64-logo',
+        logoUrl: 'https://example.com/logo.png',
       };
 
       const mockInsertResult = {
@@ -95,7 +95,7 @@ describe('database (SQLite)', () => {
           null, // errorReason
           expect.any(Number), // timestamp
           mockProof.disclosures,
-          mockProof.logoBase64,
+          mockProof.logoUrl,
           mockProof.userId,
           mockProof.userIdType,
           mockProof.sessionId,
@@ -141,7 +141,7 @@ describe('database (SQLite)', () => {
           mockProof.errorReason,
           expect.any(Number),
           mockProof.disclosures,
-          null, // logoBase64
+          null, // logoUrl (stored in logoBase64 column)
           mockProof.userId,
           mockProof.userIdType,
           mockProof.sessionId,

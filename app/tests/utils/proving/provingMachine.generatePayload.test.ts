@@ -91,7 +91,7 @@ describe('_generatePayload', () => {
         scope: 's',
         sessionId: '',
         appName: '',
-        logoBase64: '',
+        logoUrl: '',
         header: '',
         userIdType: 'uuid',
         devMode: false,

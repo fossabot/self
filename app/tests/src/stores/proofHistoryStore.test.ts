@@ -63,7 +63,7 @@ describe('proofHistoryStore', () => {
             errorReason: null,
             timestamp: Date.now(),
             disclosures: '{"test": "data"}',
-            logoBase64: 'base64-logo',
+            logoUrl: 'https://example.com/logo.png',
             userId: 'user-456',
             userIdType: 'uuid',
           },
@@ -106,7 +106,7 @@ describe('proofHistoryStore', () => {
         endpointType: 'celo',
         status: ProofStatus.PENDING,
         disclosures: '{"test": "data"}',
-        logoBase64: 'base64-logo',
+        logoUrl: 'https://example.com/logo.png',
       } as const;
 
       const mockInsertResult = {
@@ -243,7 +243,7 @@ describe('proofHistoryStore', () => {
             errorReason: null,
             timestamp: Date.now(),
             disclosures: '{"test": "data1"}',
-            logoBase64: 'base64-logo1',
+            logoUrl: 'https://example.com/logo1.png',
             userId: 'user-1',
             userIdType: 'uuid',
           },
