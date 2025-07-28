@@ -89,18 +89,21 @@ export class SelfAppBuilder {
     }
 
     this.config = {
+      appName: config.appName,
+      logoUrl: config.logoUrl || '',
+      endpointType: config.endpointType || 'https',
+      endpoint: config.endpoint,
+      header: config.header || '',
+      scope: config.scope,
       sessionId: v4(),
-      userIdType: 'uuid',
-      devMode: false,
-      endpointType: 'https',
-      header: '',
-      logoUrl: '',
-      disclosures: {},
-      chainID: config.endpointType === 'staging_celo' ? 44787 : 42220,
+      userId: config.userId,
+      userIdType: config.userIdType || 'uuid',
+      devMode: config.devMode || false,
+      disclosures: config.disclosures || {},
       version: 2,
-      userDefinedData: '',
-      ...config,
-    } as SelfApp;
+      chainID: config.endpointType === 'staging_celo' ? 44787 : 42220,
+      userDefinedData: config.userDefinedData || '',
+    };
   }
 
   build(): SelfApp {
