@@ -44,9 +44,10 @@ export class SelfBackendVerifier {
   ) {
     const rpcUrl = network === 'testnet' ? CELO_TESTNET_RPC_URL : CELO_MAINNET_RPC_URL;
     const provider = new ethers.JsonRpcProvider(rpcUrl);
-    const identityVerificationHubAddress = network === 'testnet'
-      ? IDENTITY_VERIFICATION_HUB_ADDRESS_STAGING
-      : IDENTITY_VERIFICATION_HUB_ADDRESS;
+    const identityVerificationHubAddress =
+      network === 'testnet'
+        ? IDENTITY_VERIFICATION_HUB_ADDRESS_STAGING
+        : IDENTITY_VERIFICATION_HUB_ADDRESS;
     this.identityVerificationHubContract = IdentityVerificationHubImpl__factory.connect(
       identityVerificationHubAddress,
       provider
