@@ -132,7 +132,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const selfBackendVerifier = new SelfBackendVerifier(
         'my-application-scope',
         'https://my-api.com/api/verify',
-        false, // Use mainnet
+        'mainnet', // Network to use ('mainnet' or 'testnet')
         new Map([[1, true]]), // Allow passport attestation
         configStore,
         'uuid' // User identifier type
