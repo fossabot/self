@@ -129,3 +129,91 @@ yarn format  # Format all workspaces
 ```
 
 **Note**: The app workspace uses `yarn fmt`/`yarn fmt:fix` while root uses `yarn format`. Both must pass for CI to succeed.
+
+## Linting
+
+The codebase uses ESLint for code quality checks. Run linting before commits:
+
+### Root-level linting:
+```bash
+yarn lint  # Lint all workspaces (warnings allowed, errors will fail CI)
+```
+
+**Note**: ESLint warnings are allowed and will not fail CI, but errors will. The lint output includes warnings for console statements and TypeScript `any` types which are acceptable in development code.
+
+## CI/CD Requirements
+
+The project uses GitHub Actions with multiple workflows for different components. All checks must pass for PRs to be merged.
+
+### CI Workflows Overview
+
+#### General Checks (`general-checks.yml`)
+Runs on all pull requests:
+- **Lint**: `yarn lint` - ESLint checks across all workspaces
+- **Type Check**: `yarn types` - TypeScript type checking across workspaces  
+- **Common Tests**: `yarn workspace @selfxyz/common test` - Tests for shared utilities
+
+#### App CI (`app.yml`)
+Runs when `app/` or `common/` files change:
+- **Lint**: `yarn lint` in app workspace
+- **Format**: `yarn fmt` in app workspace (Prettier check)
+- **Test**: `yarn test` after building dependencies
+- **Build**: Full iOS/Android build with Xcode 16.2
+
+#### Circuits CI (`circuits.yml`)
+Runs when `circuits/` or `common/` files change:
+- **Lint**: `yarn workspace @selfxyz/circuits lint`
+- **Test**: Circuit tests with Circom 2.1.9 and specialized dependencies
+
+#### Contracts CI (`contracts.yml`)
+Runs when `contracts/` or `common/` files change:
+- **Format**: `yarn prettier:check` in contracts workspace
+- **Build**: `yarn build` after building common dependencies
+- **Test**: Currently disabled (`if: false`)
+
+#### Security Scans
+Run on all pull requests:
+- **Gitleaks**: Secret detection using `.gitleaks.toml` configuration
+- **GitGuardian**: Additional secret scanning service
+
+### Key CI Commands
+
+To ensure CI passes, run these commands before committing:
+
+```bash
+# Root level - runs across all workspaces
+yarn lint          # ESLint (warnings OK, errors fail CI)
+yarn types         # TypeScript type checking
+yarn format        # Prettier formatting
+
+# App workspace specific
+cd app
+yarn lint          # App-specific ESLint
+yarn fmt           # App-specific Prettier check
+yarn test          # Jest tests
+yarn build:deps    # Build dependencies
+
+# Circuits workspace
+yarn workspace @selfxyz/circuits lint
+yarn workspace @selfxyz/circuits test
+
+# Contracts workspace
+cd contracts
+yarn prettier:check
+yarn build
+```
+
+### Pre-commit Setup
+
+The project uses Husky for pre-commit hooks:
+- **Gitleaks**: `yarn gitleaks` - Prevents committing secrets
+- Configured via `yarn prepare` during installation
+
+### Environment Requirements
+
+Different workspaces have specific environment needs:
+- **Node.js**: 18.x for most workspaces, 20.x for contracts
+- **Ruby**: 3.2 for mobile builds
+- **Java**: 17 for Android builds  
+- **Xcode**: 16.2 for iOS builds
+- **Circom**: 2.1.9 for circuit compilation

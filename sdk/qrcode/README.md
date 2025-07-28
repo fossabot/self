@@ -74,14 +74,14 @@ function MyComponent() {
 
 The `SelfAppBuilder` allows you to configure your application's verification requirements:
 
-| Parameter     | Type   | Required | Description                                    |
-| ------------- | ------ | -------- | ---------------------------------------------- |
-| `appName`     | string | Yes      | The name of your application                   |
-| `scope`       | string | Yes      | A unique identifier for your application       |
-| `endpoint`    | string | Yes      | The endpoint that will verify the proof        |
-| `logoUrl`     | string | No       | URL to PNG logo to display in the Self app     |
-| `userId`      | string | Yes      | Unique identifier for the user                 |
-| `disclosures` | object | No       | Disclosure and verification requirements       |
+| Parameter     | Type   | Required | Description                                |
+| ------------- | ------ | -------- | ------------------------------------------ |
+| `appName`     | string | Yes      | The name of your application               |
+| `scope`       | string | Yes      | A unique identifier for your application   |
+| `endpoint`    | string | Yes      | The endpoint that will verify the proof    |
+| `logoUrl`     | string | No       | URL to PNG logo to display in the Self app |
+| `userId`      | string | Yes      | Unique identifier for the user             |
+| `disclosures` | object | No       | Disclosure and verification requirements   |
 
 ### Disclosure Options
 
