@@ -66,7 +66,7 @@ on:
           - patch
           - minor
           - major
-  
+
   workflow_call:
     inputs:
       platform:
@@ -421,17 +421,17 @@ jobs:
           echo "Identities in build.keychain:"
           security find-identity -v -p codesigning build.keychain || echo "Failed to find identities in build.keychain"
           echo "--- Starting Fastlane ---"
-          
+
           # Determine deployment track and version bump
           DEPLOYMENT_TRACK="${{ inputs.deployment_track || 'internal' }}"
           VERSION_BUMP="${{ inputs.version_bump || 'build' }}"
           TEST_MODE="${{ inputs.test_mode || false }}"
-          
+
           echo "📱 Deployment Configuration:"
           echo "  - Track: $DEPLOYMENT_TRACK"
           echo "  - Version Bump: $VERSION_BUMP"
           echo "  - Test Mode: $TEST_MODE"
-          
+
           if [ "$TEST_MODE" = "true" ]; then
             echo "🧪 Running in TEST MODE - will skip upload to TestFlight"
             bundle exec fastlane ios deploy_auto \
@@ -724,17 +724,17 @@ jobs:
           SLACK_ANNOUNCE_CHANNEL_NAME: ${{ secrets.SLACK_ANNOUNCE_CHANNEL_NAME }}
         run: |
           cd ${{ env.APP_PATH }}
-          
+
           # Determine deployment track and version bump
           DEPLOYMENT_TRACK="${{ inputs.deployment_track || 'internal' }}"
           VERSION_BUMP="${{ inputs.version_bump || 'build' }}"
           TEST_MODE="${{ inputs.test_mode || false }}"
-          
+
           echo "🤖 Deployment Configuration:"
           echo "  - Track: $DEPLOYMENT_TRACK"
           echo "  - Version Bump: $VERSION_BUMP"
           echo "  - Test Mode: $TEST_MODE"
-          
+
           if [ "$TEST_MODE" = "true" ]; then
             echo "🧪 Running in TEST MODE - will skip upload to Play Store"
             bundle exec fastlane android deploy_auto \
@@ -880,7 +880,7 @@ jobs:
   create-release-tags:
     needs: [build-ios, build-android, update-version-files]
     if: |
-      always() && 
+      always() &&
       needs.update-version-files.result == 'success' &&
       (needs.build-ios.result == 'success' || needs.build-android.result == 'success') &&
       (inputs.deployment_track == 'production' || (github.event_name == 'workflow_dispatch' && github.event.inputs.deployment_track == 'production'))
@@ -899,14 +899,14 @@ jobs:
       - name: Create and push tags
         run: |
           cd ${{ env.APP_PATH }}
-          
+
           # Read current version info
           VERSION=$(cat package.json | jq -r .version)
           IOS_BUILD=$(cat version.json | jq -r .ios.build)
           ANDROID_BUILD=$(cat version.json | jq -r .android.build)
-          
+
           echo "📦 Creating tags for version $VERSION"
-          
+
           # Create main version tag
           if ! git tag -l | grep -q "^v${VERSION}$"; then
             git tag -a "v${VERSION}" -m "Release ${VERSION}"
@@ -914,7 +914,7 @@ jobs:
           else
             echo "⏭️  Tag v${VERSION} already exists"
           fi
-          
+
           # Create platform-specific tags if deployments succeeded
           if [ "${{ needs.build-ios.result }}" = "success" ]; then
             TAG_NAME="v${VERSION}-ios-${IOS_BUILD}"
@@ -923,7 +923,7 @@ jobs:
               echo "✅ Created tag: ${TAG_NAME}"
             fi
           fi
-          
+
           if [ "${{ needs.build-android.result }}" = "success" ]; then
             TAG_NAME="v${VERSION}-android-${ANDROID_BUILD}"
             if ! git tag -l | grep -q "^${TAG_NAME}$"; then
@@ -931,7 +931,7 @@ jobs:
               echo "✅ Created tag: ${TAG_NAME}"
             fi
           fi
-          
+
           # Push all tags
           git push origin --tags
           echo "🚀 Tags pushed to repository"
@@ -940,25 +940,25 @@ jobs:
         id: changelog
         run: |
           cd ${{ env.APP_PATH }}
-          
+
           # Find the previous version tag
           PREV_TAG=$(git tag -l "v*" | grep -v "-" | sort -V | tail -2 | head -1 || echo "")
-          
+
           # Generate simple changelog
           echo "## What's Changed" > release_notes.md
           echo "" >> release_notes.md
-          
+
           if [ -n "$PREV_TAG" ]; then
             git log --pretty=format:"- %s" ${PREV_TAG}..HEAD --no-merges | grep -v "^- Merge" >> release_notes.md
           else
             echo "Initial release" >> release_notes.md
           fi
-          
+
           echo "" >> release_notes.md
           echo "## Build Information" >> release_notes.md
           echo "- iOS Build: ${IOS_BUILD}" >> release_notes.md
           echo "- Android Build: ${ANDROID_BUILD}" >> release_notes.md
-          
+
           # Set output for next step
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
 

@@ -320,9 +320,8 @@ function hasUncommittedChanges() {
 /**
  * Displays the header and platform information
  * @param {string} platform - Target platform
- * @param {Object} versions - Version information object
  */
-function displayDeploymentHeader(platform, versions) {
+function displayDeploymentHeader(platform) {
   console.log(`\n${CONSOLE_SYMBOLS.MOBILE} Mobile App Deployment Confirmation`);
   console.log('=====================================');
   console.log(`${CONSOLE_SYMBOLS.ROCKET} Platform: ${platform.toUpperCase()}`);
@@ -438,7 +437,7 @@ function displayWarningsAndGitStatus() {
  * @param {string} deploymentMethod - The deployment method to use
  */
 function displayFullConfirmation(platform, versions, deploymentMethod) {
-  displayDeploymentHeader(platform, versions);
+  displayDeploymentHeader(platform);
   displayDeploymentMethod(deploymentMethod);
   displayPlatformVersions(platform, versions);
   displayWarningsAndGitStatus();
