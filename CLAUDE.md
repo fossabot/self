@@ -33,6 +33,8 @@ This is a Yarn workspaces monorepo with these main packages:
 - `yarn test` - Run Jest tests
 - `yarn types` - TypeScript type checking
 - `yarn lint` / `yarn lint:fix` - ESLint
+- `yarn fmt` - Check code formatting (Prettier)
+- `yarn fmt:fix` - Fix code formatting issues
 - `yarn setup` - Full setup including pods and dependencies
 - `yarn reinstall` - Clean reinstall everything
 
@@ -110,3 +112,20 @@ This is a Yarn workspaces monorepo with these main packages:
 - Platform-specific code uses `.web.ts` suffix for web implementations
 - Circuit compilation requires significant memory (8GB+ recommended)
 - Mobile development requires iOS/Android SDKs and simulators/devices
+
+## Code Formatting & CI
+
+**IMPORTANT**: CI will fail if code formatting is incorrect. Always run formatting before committing:
+
+### App-specific formatting:
+```bash
+cd app && yarn fmt:fix  # Fix formatting in app workspace
+cd app && yarn fmt     # Check formatting passes
+```
+
+### Root-level formatting:
+```bash
+yarn format  # Format all workspaces
+```
+
+**Note**: The app workspace uses `yarn fmt`/`yarn fmt:fix` while root uses `yarn format`. Both must pass for CI to succeed.

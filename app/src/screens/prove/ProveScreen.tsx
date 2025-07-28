@@ -119,7 +119,10 @@ const ProveScreen: React.FC = () => {
     }
 
     // If not a URL, warn and return null
-    console.warn('logoUrl should be a valid HTTP/HTTPS URL:', selectedApp.logoUrl);
+    console.warn(
+      'logoUrl should be a valid HTTP/HTTPS URL:',
+      selectedApp.logoUrl,
+    );
     return null;
   }, [selectedApp?.logoUrl]);
 
