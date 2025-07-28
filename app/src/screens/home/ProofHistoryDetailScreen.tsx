@@ -113,22 +113,22 @@ const ProofHistoryDetailScreen: React.FC<ProofHistoryDetailScreenProps> = ({
   }, [data.status]);
 
   const logoSource = useMemo(() => {
-    if (!data.logoBase64) {
+    if (!data.logoUrl) {
       return null;
     }
 
     if (
-      data.logoBase64.startsWith('http://') ||
-      data.logoBase64.startsWith('https://')
+      data.logoUrl.startsWith('http://') ||
+      data.logoUrl.startsWith('https://')
     ) {
-      return { uri: data.logoBase64 };
+      return { uri: data.logoUrl };
     }
 
-    const base64String = data.logoBase64.startsWith('data:image')
-      ? data.logoBase64
-      : `data:image/png;base64,${data.logoBase64}`;
+    const base64String = data.logoUrl.startsWith('data:image')
+      ? data.logoUrl
+      : `data:image/png;base64,${data.logoUrl}`;
     return { uri: base64String };
-  }, [data.logoBase64]);
+  }, [data.logoUrl]);
 
   const isEthereumAddress = useMemo(() => {
     return (

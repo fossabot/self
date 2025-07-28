@@ -72,7 +72,7 @@ const ProveScreen: React.FC = () => {
         userIdType: selectedApp.userIdType,
         endpointType: selectedApp.endpointType,
         status: ProofStatus.PENDING,
-        logoBase64: selectedApp.logoBase64,
+        logoUrl: selectedApp.logoUrl,
         disclosures: JSON.stringify(selectedApp.disclosures),
       });
     }
@@ -104,26 +104,24 @@ const ProveScreen: React.FC = () => {
     return (selectedApp?.disclosures as SelfAppDisclosureConfig) || [];
   }, [selectedApp?.disclosures]);
 
-  // Format the logo source based on whether it's a URL or base64 string
+  // Format the logo source - now only supports URLs
   const logoSource = useMemo(() => {
-    if (!selectedApp?.logoBase64) {
+    if (!selectedApp?.logoUrl) {
       return null;
     }
 
-    // Check if the logo is already a URL
+    // Check if the logo is a valid URL
     if (
-      selectedApp.logoBase64.startsWith('http://') ||
-      selectedApp.logoBase64.startsWith('https://')
+      selectedApp.logoUrl.startsWith('http://') ||
+      selectedApp.logoUrl.startsWith('https://')
     ) {
-      return { uri: selectedApp.logoBase64 };
+      return { uri: selectedApp.logoUrl };
     }
 
-    // Otherwise handle as base64 as before
-    const base64String = selectedApp.logoBase64.startsWith('data:image')
-      ? selectedApp.logoBase64
-      : `data:image/png;base64,${selectedApp.logoBase64}`;
-    return { uri: base64String };
-  }, [selectedApp?.logoBase64]);
+    // If not a URL, warn and return null
+    console.warn('logoUrl should be a valid HTTP/HTTPS URL:', selectedApp.logoUrl);
+    return null;
+  }, [selectedApp?.logoUrl]);
 
   const url = useMemo(() => {
     if (!selectedApp?.endpoint) {

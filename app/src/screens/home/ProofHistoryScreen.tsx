@@ -185,13 +185,13 @@ const ProofHistoryScreen: React.FC = () => {
     }) => {
       try {
         const disclosures = JSON.parse(item.disclosures);
-        const logoSource = item.logoBase64
+        const logoSource = item.logoUrl
           ? {
               uri:
-                item.logoBase64.startsWith('data:') ||
-                item.logoBase64.startsWith('http')
-                  ? item.logoBase64
-                  : `data:image/png;base64,${item.logoBase64}`,
+                item.logoUrl.startsWith('data:') ||
+                item.logoUrl.startsWith('http')
+                  ? item.logoUrl
+                  : `data:image/png;base64,${item.logoUrl}`,
             }
           : null;
 
