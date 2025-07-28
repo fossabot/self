@@ -169,7 +169,7 @@ export const useProofHistoryStore = create<ProofHistoryState>()((set, get) => {
         const proofs: ProofHistory[] = [];
         const totalCount = results.total_count || 0;
         for (let i = 0; i < results.rows.length; i++) {
-          const row = results.rows[i];
+          const row = results.rows[i] as any; // Database row has logoBase64 column
           proofs.push({
             id: row.id.toString(),
             sessionId: row.sessionId,
@@ -180,7 +180,7 @@ export const useProofHistoryStore = create<ProofHistoryState>()((set, get) => {
             errorReason: row.errorReason,
             timestamp: row.timestamp,
             disclosures: row.disclosures,
-            logoBase64: row.logoBase64,
+            logoUrl: row.logoBase64, // logoBase64 column stores logoUrl
             userId: row.userId,
             userIdType: row.userIdType,
           });

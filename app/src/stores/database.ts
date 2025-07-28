@@ -105,7 +105,7 @@ export const database: ProofDB = {
         errorReason TEXT,
         timestamp INTEGER NOT NULL,
         disclosures TEXT NOT NULL,
-        logoBase64 TEXT
+        logoBase64 TEXT -- Note: stores logoUrl for backward compatibility
       )
     `);
 
@@ -128,7 +128,7 @@ export const database: ProofDB = {
         proof.errorReason || null,
         timestamp,
         proof.disclosures,
-        proof.logoBase64 || null,
+        proof.logoUrl || null, // logoUrl stored in logoBase64 column for compatibility
         proof.userId,
         proof.userIdType,
         proof.sessionId,

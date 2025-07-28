@@ -14,7 +14,7 @@ export interface ProofHistory {
   errorReason?: string;
   timestamp: number;
   disclosures: string;
-  logoBase64?: string;
+  logoUrl?: string;
 }
 
 export enum ProofStatus {
