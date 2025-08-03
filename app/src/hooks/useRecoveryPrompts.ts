@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { navigationRef } from '../navigation';
 import { usePassport } from '../providers/passportDataProvider';
@@ -27,6 +27,8 @@ export default function useRecoveryPrompts() {
     onModalDismiss: () => {},
   } as const);
 
+  const lastPromptCount = useRef<number | null>(null);
+
   useEffect(() => {
     async function maybePrompt() {
       if (!navigationRef.isReady()) {
@@ -40,8 +42,13 @@ export default function useRecoveryPrompts() {
           }
           const shouldPrompt =
             loginCount > 0 && (loginCount <= 3 || (loginCount - 3) % 5 === 0);
-          if (shouldPrompt) {
+          if (
+            shouldPrompt &&
+            !visible &&
+            lastPromptCount.current !== loginCount
+          ) {
             showModal();
+            lastPromptCount.current = loginCount;
           }
         } catch (error) {
           // Silently fail to avoid breaking the hook
@@ -55,6 +62,7 @@ export default function useRecoveryPrompts() {
     loginCount,
     cloudBackupEnabled,
     hasViewedRecoveryPhrase,
+    visible,
     showModal,
     getAllDocuments,
   ]);

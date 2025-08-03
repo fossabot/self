@@ -17,13 +17,13 @@ jest.mock('../../../src/navigation', () => ({
 }));
 
 const showModal = jest.fn();
-(useModal as jest.Mock).mockReturnValue({ showModal, visible: false });
 const getAllDocuments = jest.fn();
 (usePassport as jest.Mock).mockReturnValue({ getAllDocuments });
 
 describe('useRecoveryPrompts', () => {
   beforeEach(() => {
     showModal.mockClear();
+    (useModal as jest.Mock).mockReturnValue({ showModal, visible: false });
     getAllDocuments.mockResolvedValue({ doc1: {} as any });
     act(() => {
       useSettingStore.setState({
@@ -86,6 +86,17 @@ describe('useRecoveryPrompts', () => {
     });
   });
 
+  it('does not show modal if already visible', async () => {
+    (useModal as jest.Mock).mockReturnValueOnce({ showModal, visible: true });
+    act(() => {
+      useSettingStore.setState({ loginCount: 1 });
+    });
+    renderHook(() => useRecoveryPrompts());
+    await waitFor(() => {
+      expect(showModal).not.toHaveBeenCalled();
+    });
+  });
+
   it('does not show modal when recovery phrase has been viewed', async () => {
     act(() => {
       useSettingStore.setState({
@@ -121,6 +132,32 @@ describe('useRecoveryPrompts', () => {
         expect(showModal).toHaveBeenCalled();
       });
     }
+  });
+
+  it('does not show modal again for same login count when state changes', async () => {
+    act(() => {
+      useSettingStore.setState({ loginCount: 1 });
+    });
+    renderHook(() => useRecoveryPrompts());
+    await waitFor(() => {
+      expect(showModal).toHaveBeenCalledTimes(1);
+    });
+
+    showModal.mockClear();
+
+    act(() => {
+      useSettingStore.setState({ hasViewedRecoveryPhrase: true });
+    });
+    await waitFor(() => {
+      expect(showModal).not.toHaveBeenCalled();
+    });
+
+    act(() => {
+      useSettingStore.setState({ hasViewedRecoveryPhrase: false });
+    });
+    await waitFor(() => {
+      expect(showModal).not.toHaveBeenCalled();
+    });
   });
 
   it('returns correct visible state', () => {
