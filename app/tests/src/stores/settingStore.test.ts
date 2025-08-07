@@ -2,7 +2,7 @@
 
 import { act } from '@testing-library/react-native';
 
-import { useSettingStore } from '../../../src/stores/settingStore';
+import { useSettingStore } from '@/stores/settingStore';
 
 describe('settingStore', () => {
   beforeEach(() => {

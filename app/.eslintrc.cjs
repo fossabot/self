@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
+
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
@@ -17,7 +19,7 @@ module.exports = {
     'plugin:jest/recommended',
     'plugin:prettier/recommended',
   ],
-  plugins: ['header', 'simple-import-sort', 'import'],
+  plugins: ['header', 'simple-import-sort', 'import', 'sort-exports'],
   ignorePatterns: [
     'ios/',
     'android/',
@@ -26,9 +28,7 @@ module.exports = {
     'web/dist/',
     '.tamagui/*',
     '*.js.map',
-    '*.d.ts',
-    'metro.config.cjs',
-    'docs/examples/',
+    'tests/e2e/',
   ],
   settings: {
     react: { version: 'detect' },
@@ -41,42 +41,116 @@ module.exports = {
     'import/ignore': ['react-native'],
   },
   rules: {
-    // Import/Export Rules
+    // Enhanced Import/Export Rules
+
     'import/order': 'off',
     'no-duplicate-imports': 'off',
-    'simple-import-sort/exports': 'warn',
-    'simple-import-sort/imports': 'warn',
 
-    // Header rule
+    // Import sorting with explicit groups for your project structure
+
+    'simple-import-sort/imports': [
+      'error',
+      {
+        groups: [
+          // Node.js built-ins
+          ['^node:'],
+          ['^node:.*/'],
+
+          // External packages (including @-prefixed external packages)
+          ['^[a-zA-Z]', '^@(?!selfxyz|/)'],
+
+          // Internal workspace packages
+          ['^@selfxyz/'],
+
+          // Internal alias imports (new @/ alias)
+          ['^@/'],
+
+          // Internal relative imports
+          ['^[./]'],
+        ],
+      },
+    ],
+
+    // Export sorting
+
+    'sort-exports/sort-exports': [
+      'error',
+      { sortDir: 'asc', ignoreCase: false, sortExportKindFirst: 'type' },
+    ],
+
+    // Standard import rules
+
+    'import/first': 'error',
+    'import/newline-after-import': 'error',
+    'import/no-duplicates': 'error',
+
+    // Header rule - configured to prevent duplicates, single line header only
+
     'header/header': [
-      2,
+      'error',
       'line',
       ' SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11',
-      2,
+    ],
+
+    // Prevent empty lines at the beginning and end of files, and limit consecutive empty lines
+
+    'no-multiple-empty-lines': [
+      'error',
+      {
+        max: 1,
+        maxEOF: 0,
+        maxBOF: 0,
+      },
+    ],
+    // Enforce empty line after header comments (but not at file start)
+
+    'lines-around-comment': [
+      'error',
+      {
+        beforeBlockComment: false,
+        afterBlockComment: false,
+        beforeLineComment: false,
+        afterLineComment: false,
+        allowBlockStart: true,
+        allowBlockEnd: false,
+        allowObjectStart: false,
+        allowObjectEnd: false,
+        allowArrayStart: false,
+        allowArrayEnd: false,
+        allowClassStart: false,
+        allowClassEnd: false,
+        applyDefaultIgnorePatterns: false,
+      },
     ],
 
     // Add prettier rule to show prettier errors as ESLint errors
+
     'prettier/prettier': ['warn', {}, { usePrettierrc: true }],
 
     // React Core Rules
+
     'react/no-unescaped-entities': 'off',
     'react/prop-types': 'off',
     'react/react-in-jsx-scope': 'off',
     'react-native/no-inline-styles': 'off',
 
     // React Hooks Rules
+
     'react-hooks/exhaustive-deps': 'warn',
 
     // General JavaScript Rules
     // Warn on common issues but don't block development
+
     'no-console': 'warn',
     'no-empty-pattern': 'off',
     'prefer-const': 'warn',
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/no-var-requires': 'off',
-    '@typescript-eslint/no-unused-vars': 'error',
+    '@typescript-eslint/no-require-imports': 'error',
+    '@typescript-eslint/no-empty-object-type': 'warn',
+    '@typescript-eslint/no-unused-vars': 'warn',
+    '@typescript-eslint/no-unused-expressions': 'warn',
     'no-redeclare': 'off',
-    '@typescript-eslint/ban-types': 'off',
     '@typescript-eslint/no-namespace': 'off',
     'no-case-declarations': 'off',
     'react/no-children-prop': 'off',
@@ -85,11 +159,74 @@ module.exports = {
     'no-empty': 'off',
 
     // Override rules conflicting with TypeScript union formatting
+
     '@typescript-eslint/indent': 'off',
   },
   overrides: [
     {
-      files: ['*.cjs'],
+      files: ['docs/examples/**/*.ts'],
+      rules: {
+        '@typescript-eslint/no-unused-vars': 'off',
+        '@typescript-eslint/no-explicit-any': 'off',
+        'no-console': 'off',
+        'no-unused-vars': 'off',
+        'import/no-unresolved': 'off',
+      },
+    },
+    {
+      // Disable export sorting for files with dependency issues
+      files: [
+        'src/components/NavBar/BaseNavBar.tsx',
+        'src/navigation/index.tsx',
+        'src/providers/passportDataProvider.tsx',
+        'src/utils/cloudBackup/helpers.ts',
+        'src/utils/haptic/index.ts',
+        'src/utils/proving/provingUtils.ts',
+      ],
+      rules: {
+        'sort-exports/sort-exports': 'off',
+      },
+    },
+    {
+      files: ['tests/**/*.{ts,tsx}'],
+      env: {
+        jest: true,
+      },
+      parserOptions: {
+        project: './tsconfig.test.json',
+      },
+      rules: {
+        // Allow console logging and relaxed typing in tests
+        'no-console': 'off',
+        // Allow require() imports in tests for mocking
+        '@typescript-eslint/no-require-imports': 'off',
+        // Allow any types in tests for mocking
+        '@typescript-eslint/no-explicit-any': 'off',
+      },
+    },
+    {
+      // Allow console logging in scripts
+      files: ['scripts/**/*.cjs', 'scripts/*.cjs'],
+      rules: {
+        'no-console': 'off',
+      },
+    },
+    {
+      // Allow require imports for dynamic imports in proving machine
+      files: ['src/utils/proving/provingMachine.ts'],
+      rules: {
+        '@typescript-eslint/no-require-imports': 'off',
+      },
+    },
+    {
+      // Allow require imports for conditional loading in navigation
+      files: ['src/navigation/index.tsx'],
+      rules: {
+        '@typescript-eslint/no-require-imports': 'off',
+      },
+    },
+    {
+      files: ['*.cjs', '*.js'],
       env: {
         node: true,
         commonjs: true,
@@ -100,8 +237,12 @@ module.exports = {
         sourceType: 'script',
       },
       rules: {
-        'header/header': 'off',
+        'no-console': 'off',
+        'no-unused-vars': 'off',
+        '@typescript-eslint/no-unused-vars': 'off',
+        '@typescript-eslint/no-explicit-any': 'off',
         '@typescript-eslint/no-var-requires': 'off',
+        '@typescript-eslint/no-require-imports': 'off',
         'no-undef': 'off',
       },
     },

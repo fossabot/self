@@ -1,21 +1,22 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import { StaticScreenProps, useNavigation } from '@react-navigation/native';
 import React, { useCallback } from 'react';
 import { styled, View, XStack, YStack } from 'tamagui';
+import type { StaticScreenProps } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
-import { PrimaryButton } from '../../components/buttons/PrimaryButton';
-import { SecondaryButton } from '../../components/buttons/SecondaryButton';
-import Description from '../../components/typography/Description';
-import { Title } from '../../components/typography/Title';
-import ModalClose from '../../images/icons/modal_close.svg';
-import LogoInversed from '../../images/logo_inversed.svg';
-import { white } from '../../utils/colors';
-import { confirmTap, impactLight } from '../../utils/haptic';
+import { PrimaryButton } from '@/components/buttons/PrimaryButton';
+import { SecondaryButton } from '@/components/buttons/SecondaryButton';
+import Description from '@/components/typography/Description';
+import { Title } from '@/components/typography/Title';
+import ModalClose from '@/images/icons/modal_close.svg';
+import LogoInversed from '@/images/logo_inversed.svg';
+import { white } from '@/utils/colors';
+import { confirmTap, impactLight } from '@/utils/haptic';
 import {
   getModalCallbacks,
   unregisterModalCallbacks,
-} from '../../utils/modalCallbackRegistry';
+} from '@/utils/modalCallbackRegistry';
 
 const ModalBackDrop = styled(View, {
   display: 'flex',
@@ -29,6 +30,11 @@ const ModalBackDrop = styled(View, {
   height: '100%',
 });
 
+export interface ModalNavigationParams
+  extends Omit<ModalParams, 'onButtonPress' | 'onModalDismiss'> {
+  callbackId: number;
+}
+
 export interface ModalParams extends Record<string, any> {
   titleText: string;
   bodyText: string;
@@ -39,12 +45,7 @@ export interface ModalParams extends Record<string, any> {
   preventDismiss?: boolean;
 }
 
-export interface ModalNavigationParams
-  extends Omit<ModalParams, 'onButtonPress' | 'onModalDismiss'> {
-  callbackId: number;
-}
-
-interface ModalScreenProps extends StaticScreenProps<ModalNavigationParams> {}
+type ModalScreenProps = StaticScreenProps<ModalNavigationParams>;
 
 const ModalScreen: React.FC<ModalScreenProps> = ({ route: { params } }) => {
   const navigation = useNavigation();

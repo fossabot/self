@@ -10,10 +10,11 @@ import {
 } from 'react-native';
 import { SystemBars } from 'react-native-edge-to-edge';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { View, ViewProps } from 'tamagui';
+import type { ViewProps } from 'tamagui';
+import { View } from 'tamagui';
 
-import { black, white } from '../utils/colors';
-import { extraYPadding } from '../utils/constants';
+import { black, white } from '@/utils/colors';
+import { extraYPadding } from '@/utils/constants';
 
 // Get the current font scale factor
 const fontScale = PixelRatio.getFontScale();
@@ -71,7 +72,7 @@ const TopSection: React.FC<TopSectionProps> = ({
   );
 };
 
-interface FullSectionProps extends ViewProps {}
+type FullSectionProps = ViewProps;
 /*
  * Rather than using a top and bottom section, this component is te entire thing.
  * It leave space for the safe area insets and provides basic padding

@@ -1,20 +1,19 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import { render, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import { Text } from 'react-native';
+import { render, waitFor } from '@testing-library/react-native';
 
 import {
   RemoteConfigProvider,
   useRemoteConfig,
-} from '../../../src/providers/remoteConfigProvider';
+} from '@/providers/remoteConfigProvider';
+import { initRemoteConfig } from '@/RemoteConfig';
 
 // Mock the RemoteConfig module
-jest.mock('../../../src/RemoteConfig', () => ({
+jest.mock('@/RemoteConfig', () => ({
   initRemoteConfig: jest.fn(),
 }));
-
-import { initRemoteConfig } from '../../../src/RemoteConfig';
 
 const mockInitRemoteConfig = initRemoteConfig as jest.MockedFunction<
   typeof initRemoteConfig

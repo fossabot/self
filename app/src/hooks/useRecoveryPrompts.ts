@@ -2,10 +2,10 @@
 
 import { useEffect, useRef } from 'react';
 
-import { navigationRef } from '../navigation';
-import { usePassport } from '../providers/passportDataProvider';
-import { useSettingStore } from '../stores/settingStore';
-import { useModal } from './useModal';
+import { useModal } from '@/hooks/useModal';
+import { navigationRef } from '@/navigation';
+import { usePassport } from '@/providers/passportDataProvider';
+import { useSettingStore } from '@/stores/settingStore';
 
 // TODO: need to debug and test the logic. it pops up too often.
 export default function useRecoveryPrompts() {
@@ -50,7 +50,7 @@ export default function useRecoveryPrompts() {
             showModal();
             lastPromptCount.current = loginCount;
           }
-        } catch (error) {
+        } catch {
           // Silently fail to avoid breaking the hook
           // If we can't get documents, we shouldn't show the prompt
           return;

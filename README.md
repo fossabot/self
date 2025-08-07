@@ -7,6 +7,7 @@ By scanning the NFC chip in their ID document, users can prove their validity wh
 Under the hood, Self uses zk-SNARKs to make sure personal data is redacted, but the document is verified.
 
 Use cases unlocked include:
+
 - **Airdrop protection**: Protect a token distribution from bots
 - **Social media**: Add humanity checks to user's profiles
 - **Quadratic funding**: Prevent farmers from skewing rewards
@@ -27,6 +28,7 @@ Checkout our [coverage map here](http://map.self.xyz/).
 #### What can I request/prove with Self?
 
 When a country issues a passport or a compliant ID document, they sign datagroups that include at least:
+
 - First and last name
 - Nationality
 - Date of birth
@@ -59,14 +61,26 @@ The International Civil Aviation Organization (ICAO) is a specialized agency of 
 - Allow DeFi protocols to check if the nationality of a user is included in a set of forbidden states.
 - Gate an adult content website to a specific age.
 - Create a petition system or a survey portal.
-- Passport Wallet: use [active authentication](https://en.wikipedia.org/wiki/Biometric_passport#:~:text=Active%20Authentication%20(AA),Using%20AA%20is%20optional.) to build a wallet, a multisig or a recovery module using passport signatures
+- Passport Wallet: use [active authentication](<https://en.wikipedia.org/wiki/Biometric_passport#:~:text=Active%20Authentication%20(AA),Using%20AA%20is%20optional.>) to build a wallet, a multisig or a recovery module using passport signatures
 
 We provide bounties for new and interesting applications using Self.
 
 ## Development Setup
 
+This project requires **Node.js 22.x**. Use the included `.nvmrc` to match the version.
+
 Run `yarn install` to bootstrap dependencies and husky hooks.
 Gitleaks will scan staged changes on each commit via `yarn gitleaks`.
+
+## Development Documentation
+
+For detailed development patterns and conventions, see:
+
+- **[Development Patterns](docs/development-patterns.md)** - React Native architecture, navigation, state management, and code organization
+- **[Testing Guide](docs/testing-guide.md)** - Jest configuration, mock patterns, testing strategies, and E2E testing
+- **[NFC Implementation](docs/nfc-implementation.md)** - Cross-platform NFC passport reading, authentication methods, and error handling
+
+These guides provide comprehensive context for AI-assisted development with ChatGPT Codex, Cursor, and CodeRabbit AI.
 
 ## Contributing
 

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import { act } from '@testing-library/react-native';
 import { io } from 'socket.io-client';
+import { act } from '@testing-library/react-native';
 
-import { database } from '../../../src/stores/database';
-import { ProofStatus } from '../../../src/stores/proof-types';
-import { useProofHistoryStore } from '../../../src/stores/proofHistoryStore';
+import { database } from '@/stores/database';
+import { ProofStatus } from '@/stores/proof-types';
+import { useProofHistoryStore } from '@/stores/proofHistoryStore';
 
 // Mock socket.io-client
 jest.mock('socket.io-client', () => ({
@@ -13,7 +13,7 @@ jest.mock('socket.io-client', () => ({
 }));
 
 // Mock database
-jest.mock('../../../src/stores/database', () => ({
+jest.mock('@/stores/database', () => ({
   database: {
     init: jest.fn(),
     insertProof: jest.fn(),
@@ -29,6 +29,15 @@ const mockIo = io as any;
 
 describe('proofHistoryStore', () => {
   let mockSocket: any;
+
+  // Suppress console errors during testing to avoid cluttering output
+  beforeAll(() => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterAll(() => {
+    jest.restoreAllMocks();
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();

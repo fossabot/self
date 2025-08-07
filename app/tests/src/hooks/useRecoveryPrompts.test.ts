@@ -2,14 +2,14 @@
 
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 
-import { useModal } from '../../../src/hooks/useModal';
-import useRecoveryPrompts from '../../../src/hooks/useRecoveryPrompts';
-import { usePassport } from '../../../src/providers/passportDataProvider';
-import { useSettingStore } from '../../../src/stores/settingStore';
+import { useModal } from '@/hooks/useModal';
+import useRecoveryPrompts from '@/hooks/useRecoveryPrompts';
+import { usePassport } from '@/providers/passportDataProvider';
+import { useSettingStore } from '@/stores/settingStore';
 
-jest.mock('../../../src/hooks/useModal');
-jest.mock('../../../src/providers/passportDataProvider');
-jest.mock('../../../src/navigation', () => ({
+jest.mock('@/hooks/useModal');
+jest.mock('@/providers/passportDataProvider');
+jest.mock('@/navigation', () => ({
   navigationRef: {
     isReady: jest.fn(() => true),
     navigate: jest.fn(),
@@ -75,7 +75,7 @@ describe('useRecoveryPrompts', () => {
   });
 
   it('does not show modal when navigation is not ready', async () => {
-    const navigationRef = require('../../../src/navigation').navigationRef;
+    const navigationRef = require('@/navigation').navigationRef;
     navigationRef.isReady.mockReturnValueOnce(false);
     act(() => {
       useSettingStore.setState({ loginCount: 1 });

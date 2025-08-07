@@ -1,39 +1,35 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
+import LottieView from 'lottie-react-native';
+import React, { useCallback, useState } from 'react';
+import { StyleSheet } from 'react-native';
+import { View, XStack, YStack } from 'tamagui';
 import {
   useFocusEffect,
   useIsFocused,
   useNavigation,
 } from '@react-navigation/native';
-import LottieView from 'lottie-react-native';
-import React, { useCallback, useState } from 'react';
-import { StyleSheet } from 'react-native';
-import { View, XStack, YStack } from 'tamagui';
 
-import qrScanAnimation from '../../assets/animations/qr_scan.json';
-import { SecondaryButton } from '../../components/buttons/SecondaryButton';
-import {
-  QRCodeScannerView,
-  QRCodeScannerViewProps,
-} from '../../components/native/QRCodeScanner';
-import Additional from '../../components/typography/Additional';
-import Description from '../../components/typography/Description';
-import { Title } from '../../components/typography/Title';
-import { ProofEvents } from '../../consts/analytics';
-import useConnectionModal from '../../hooks/useConnectionModal';
-import useHapticNavigation from '../../hooks/useHapticNavigation';
-import QRScan from '../../images/icons/qr_code.svg';
-import { ExpandableBottomLayout } from '../../layouts/ExpandableBottomLayout';
-import { useSelfAppStore } from '../../stores/selfAppStore';
-import analytics from '../../utils/analytics';
-import { black, slate800, white } from '../../utils/colors';
-import { parseAndValidateUrlParams } from '../../utils/deeplinks';
-
-interface QRCodeViewFinderScreenProps {}
+import qrScanAnimation from '@/assets/animations/qr_scan.json';
+import { SecondaryButton } from '@/components/buttons/SecondaryButton';
+import type { QRCodeScannerViewProps } from '@/components/native/QRCodeScanner';
+import { QRCodeScannerView } from '@/components/native/QRCodeScanner';
+import Additional from '@/components/typography/Additional';
+import Description from '@/components/typography/Description';
+import { Title } from '@/components/typography/Title';
+import { ProofEvents } from '@/consts/analytics';
+import useConnectionModal from '@/hooks/useConnectionModal';
+import useHapticNavigation from '@/hooks/useHapticNavigation';
+import QRScan from '@/images/icons/qr_code.svg';
+import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
+import { useSelfAppStore } from '@/stores/selfAppStore';
+import analytics from '@/utils/analytics';
+import { black, slate800, white } from '@/utils/colors';
+import { parseAndValidateUrlParams } from '@/utils/deeplinks';
 
 const { trackEvent } = analytics();
 
-const QRCodeViewFinderScreen: React.FC<QRCodeViewFinderScreenProps> = ({}) => {
+const QRCodeViewFinderScreen: React.FC = () => {
   const { visible: connectionModalVisible } = useConnectionModal();
   const navigation = useNavigation();
   const isFocused = useIsFocused();

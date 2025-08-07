@@ -1,52 +1,46 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import { useNavigation } from '@react-navigation/native';
-import { Bug, FileText } from '@tamagui/lucide-icons';
-import React, { PropsWithChildren, useCallback, useMemo } from 'react';
+import type { PropsWithChildren } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Linking, Platform, Share } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { SvgProps } from 'react-native-svg';
+import type { SvgProps } from 'react-native-svg';
 import { Button, ScrollView, View, XStack, YStack } from 'tamagui';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Bug, FileText } from '@tamagui/lucide-icons';
 
-import { version } from '../../../package.json';
-import { pressedStyle } from '../../components/buttons/pressedStyle';
-import { BodyText } from '../../components/typography/BodyText';
+import { pressedStyle } from '@/components/buttons/pressedStyle';
+import { BodyText } from '@/components/typography/BodyText';
 import {
   appStoreUrl,
   gitHubUrl,
   playStoreUrl,
   selfUrl,
   telegramUrl,
-} from '../../consts/links';
-import Github from '../../images/icons/github.svg';
-import Cloud from '../../images/icons/settings_cloud_backup.svg';
-import Data from '../../images/icons/settings_data.svg';
-import Feedback from '../../images/icons/settings_feedback.svg';
-import Lock from '../../images/icons/settings_lock.svg';
-import ShareIcon from '../../images/icons/share.svg';
-import Star from '../../images/icons/star.svg';
-import Telegram from '../../images/icons/telegram.svg';
-import Web from '../../images/icons/webpage.svg';
-import { RootStackParamList } from '../../navigation';
-import { useSettingStore } from '../../stores/settingStore';
-import {
-  amber500,
-  black,
-  neutral700,
-  slate800,
-  white,
-} from '../../utils/colors';
-import { extraYPadding } from '../../utils/constants';
-import { impactLight } from '../../utils/haptic';
-import { getCountry, getLocales, getTimeZone } from '../../utils/locale';
+  xUrl,
+} from '@/consts/links';
+import Github from '@/images/icons/github.svg';
+import Cloud from '@/images/icons/settings_cloud_backup.svg';
+import Data from '@/images/icons/settings_data.svg';
+import Feedback from '@/images/icons/settings_feedback.svg';
+import Lock from '@/images/icons/settings_lock.svg';
+import ShareIcon from '@/images/icons/share.svg';
+import Star from '@/images/icons/star.svg';
+import Telegram from '@/images/icons/telegram.svg';
+import Web from '@/images/icons/webpage.svg';
+import X from '@/images/icons/x.svg';
+import type { RootStackParamList } from '@/navigation';
+import { useSettingStore } from '@/stores/settingStore';
+import { amber500, black, neutral700, slate800, white } from '@/utils/colors';
+import { extraYPadding } from '@/utils/constants';
+import { impactLight } from '@/utils/haptic';
+import { getCountry, getLocales, getTimeZone } from '@/utils/locale';
 
-interface SettingsScreenProps {}
+import { version } from '../../../package.json';
+
 interface MenuButtonProps extends PropsWithChildren {
-  Icon: React.FC<SvgProps>;
-  onPress: () => void;
-}
-interface MenuButtonProps {
   Icon: React.FC<SvgProps>;
   onPress: () => void;
 }
@@ -102,6 +96,7 @@ const DEBUG_MENU: [React.FC<SvgProps>, string, RouteOption][] = [
 ];
 
 const social = [
+  [X, xUrl],
   [Github, gitHubUrl],
   [Web, selfUrl],
   [Telegram, telegramUrl],
@@ -138,15 +133,16 @@ const SocialButton: React.FC<SocialButtonProps> = ({ Icon, href }) => {
     <Button
       unstyled
       hitSlop={8}
-      icon={<Icon height={32} width={32} color={amber500} onPress={onPress} />}
+      onPress={onPress}
+      icon={<Icon height={32} width={32} color={amber500} />}
     />
   );
 };
 
-const SettingsScreen: React.FC<SettingsScreenProps> = ({}) => {
+const SettingsScreen: React.FC = () => {
   const { isDevMode, setDevModeOn } = useSettingStore();
-  useSettingStore();
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const screenRoutes = useMemo(() => {
     return isDevMode ? [...routes, ...DEBUG_MENU] : routes;
@@ -200,11 +196,11 @@ ${deviceInfo.map(([k, v]) => `${k}=${v}`).join('; ')}
             break;
 
           case 'ManageDocuments':
-            navigation.navigate('ManageDocuments' as any);
+            navigation.navigate('ManageDocuments');
             break;
 
           default:
-            navigation.navigate(menuRoute as any);
+            navigation.navigate(menuRoute as never);
             break;
         }
       };

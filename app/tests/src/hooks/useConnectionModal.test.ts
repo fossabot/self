@@ -2,21 +2,21 @@
 
 import { act, renderHook } from '@testing-library/react-native';
 
+import useConnectionModal from '@/hooks/useConnectionModal';
+import { useModal } from '@/hooks/useModal';
+
 jest.useFakeTimers();
 
-jest.mock('../../../src/navigation', () => ({
+jest.mock('@/navigation', () => ({
   navigationRef: { isReady: jest.fn(() => true), navigate: jest.fn() },
 }));
 
-jest.mock('../../../src/hooks/useModal');
+jest.mock('@/hooks/useModal');
 jest.mock('@react-native-community/netinfo', () => ({
   useNetInfo: jest
     .fn()
     .mockReturnValue({ isConnected: false, isInternetReachable: false }),
 }));
-
-import useConnectionModal from '../../../src/hooks/useConnectionModal';
-import { useModal } from '../../../src/hooks/useModal';
 
 const showModal = jest.fn();
 const dismissModal = jest.fn();
@@ -61,7 +61,7 @@ describe('useConnectionModal', () => {
   });
 
   it('does not show modal when hideNetworkModal is true', () => {
-    jest.doMock('../../../src/stores/settingStore', () => ({
+    jest.doMock('@/stores/settingStore', () => ({
       useSettingStore: jest.fn(() => true),
     }));
 
@@ -73,7 +73,7 @@ describe('useConnectionModal', () => {
   });
 
   it('does not show modal when navigation is not ready', () => {
-    const { navigationRef } = require('../../../src/navigation');
+    const { navigationRef } = require('@/navigation');
     navigationRef.isReady.mockReturnValue(false);
 
     renderHook(() => useConnectionModal());

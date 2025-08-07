@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import { useNavigation } from '@react-navigation/native';
-import { CheckSquare2, Wallet, XCircle } from '@tamagui/lucide-icons';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -11,10 +9,13 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card, Image, Text, View, XStack, YStack } from 'tamagui';
+import { useNavigation } from '@react-navigation/native';
+import { CheckSquare2, Wallet, XCircle } from '@tamagui/lucide-icons';
 
-import { BodyText } from '../../components/typography/BodyText';
-import { ProofHistory, ProofStatus } from '../../stores/proof-types';
-import { useProofHistoryStore } from '../../stores/proofHistoryStore';
+import { BodyText } from '@/components/typography/BodyText';
+import type { ProofHistory } from '@/stores/proof-types';
+import { ProofStatus } from '@/stores/proof-types';
+import { useProofHistoryStore } from '@/stores/proofHistoryStore';
 import {
   black,
   blue100,
@@ -25,9 +26,9 @@ import {
   slate300,
   slate500,
   white,
-} from '../../utils/colors';
-import { extraYPadding } from '../../utils/constants';
-import { dinot } from '../../utils/fonts';
+} from '@/utils/colors';
+import { extraYPadding } from '@/utils/constants';
+import { dinot } from '@/utils/fonts';
 
 type Section = {
   title: string;

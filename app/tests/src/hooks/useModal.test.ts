@@ -3,8 +3,8 @@
 import { useNavigation } from '@react-navigation/native';
 import { act, renderHook } from '@testing-library/react-native';
 
-import { useModal } from '../../../src/hooks/useModal';
-import { getModalCallbacks } from '../../../src/utils/modalCallbackRegistry';
+import { useModal } from '@/hooks/useModal';
+import { getModalCallbacks } from '@/utils/modalCallbackRegistry';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),

@@ -4,8 +4,9 @@ import { ethers } from 'ethers';
 import { Platform } from 'react-native';
 import { CloudStorage, CloudStorageScope } from 'react-native-cloud-storage';
 
+import type { Mnemonic } from '@/types/mnemonic';
+
 import { name } from '../../../package.json';
-import { Mnemonic } from '../../types/mnemonic';
 
 export const FOLDER = `/${name}`;
 export const ENCRYPTED_FILE_PATH = `/${FOLDER}/encrypted-private-key`;
@@ -37,7 +38,7 @@ export function parseMnemonic(mnemonicString: string): Mnemonic {
 
   try {
     parsed = JSON.parse(mnemonicString);
-  } catch (e) {
+  } catch {
     throw new Error('Invalid JSON format in mnemonic backup');
   }
 

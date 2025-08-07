@@ -2,12 +2,12 @@
 
 import { act, renderHook } from '@testing-library/react-native';
 
-jest.mock('../../../src/providers/authProvider', () => ({
+import useMnemonic from '@/hooks/useMnemonic';
+import { useAuth } from '@/providers/authProvider';
+
+jest.mock('@/providers/authProvider', () => ({
   useAuth: jest.fn(),
 }));
-
-import useMnemonic from '../../../src/hooks/useMnemonic';
-import { useAuth } from '../../../src/providers/authProvider';
 
 jest.mock('ethers', () => ({
   ethers: {

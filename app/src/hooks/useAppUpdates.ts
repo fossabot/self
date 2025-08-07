@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import { useNavigation } from '@react-navigation/native';
 import { useEffect, useState } from 'react';
 import { Linking } from 'react-native';
 import { checkVersion } from 'react-native-check-version';
+import { useNavigation } from '@react-navigation/native';
 
-import { AppEvents } from '../consts/analytics';
-import analytics from '../utils/analytics';
-import { registerModalCallbacks } from '../utils/modalCallbackRegistry';
+import { AppEvents } from '@/consts/analytics';
+import analytics from '@/utils/analytics';
+import { registerModalCallbacks } from '@/utils/modalCallbackRegistry';
 
 const { trackEvent } = analytics();
 

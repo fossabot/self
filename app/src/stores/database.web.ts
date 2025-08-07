@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import {
+import type {
   ProofDB,
   ProofDBResult,
   ProofHistory,
-  ProofStatus,
-} from './proof-types';
+} from '@/stores/proof-types';
+import { ProofStatus } from '@/stores/proof-types';
 
 export const DB_NAME = 'proof_history_db';
 const STORE_NAME = 'proof_history';

@@ -1,37 +1,33 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useState } from 'react';
 import { Separator, View, XStack, YStack } from 'tamagui';
+import { useNavigation } from '@react-navigation/native';
 
-import { PrimaryButton } from '../../components/buttons/PrimaryButton';
-import { SecondaryButton } from '../../components/buttons/SecondaryButton';
-import { Caption } from '../../components/typography/Caption';
-import Description from '../../components/typography/Description';
-import { Title } from '../../components/typography/Title';
-import { BackupEvents } from '../../consts/analytics';
-import useHapticNavigation from '../../hooks/useHapticNavigation';
-import Keyboard from '../../images/icons/keyboard.svg';
-import RestoreAccountSvg from '../../images/icons/restore_account.svg';
-import { ExpandableBottomLayout } from '../../layouts/ExpandableBottomLayout';
-import { useAuth } from '../../providers/authProvider';
+import { PrimaryButton } from '@/components/buttons/PrimaryButton';
+import { SecondaryButton } from '@/components/buttons/SecondaryButton';
+import { Caption } from '@/components/typography/Caption';
+import Description from '@/components/typography/Description';
+import { Title } from '@/components/typography/Title';
+import { BackupEvents } from '@/consts/analytics';
+import useHapticNavigation from '@/hooks/useHapticNavigation';
+import Keyboard from '@/images/icons/keyboard.svg';
+import RestoreAccountSvg from '@/images/icons/restore_account.svg';
+import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
+import { useAuth } from '@/providers/authProvider';
 import {
   loadPassportDataAndSecret,
   reStorePassportDataWithRightCSCA,
-} from '../../providers/passportDataProvider';
-import { useSettingStore } from '../../stores/settingStore';
-import analytics from '../../utils/analytics';
-import { STORAGE_NAME, useBackupMnemonic } from '../../utils/cloudBackup';
-import { black, slate500, slate600, white } from '../../utils/colors';
-import { isUserRegisteredWithAlternativeCSCA } from '../../utils/proving/validateDocument';
+} from '@/providers/passportDataProvider';
+import { useSettingStore } from '@/stores/settingStore';
+import analytics from '@/utils/analytics';
+import { STORAGE_NAME, useBackupMnemonic } from '@/utils/cloudBackup';
+import { black, slate500, slate600, white } from '@/utils/colors';
+import { isUserRegisteredWithAlternativeCSCA } from '@/utils/proving/validateDocument';
 
 const { trackEvent } = analytics();
 
-interface AccountRecoveryChoiceScreenProps {}
-
-const AccountRecoveryChoiceScreen: React.FC<
-  AccountRecoveryChoiceScreenProps
-> = ({}) => {
+const AccountRecoveryChoiceScreen: React.FC = () => {
   const { restoreAccountFromMnemonic } = useAuth();
   const [restoring, setRestoring] = useState(false);
   const { cloudBackupEnabled, toggleCloudBackupEnabled, biometricsAvailable } =
@@ -63,9 +59,8 @@ const AccountRecoveryChoiceScreen: React.FC<
         passportData,
         secret,
       );
-      console.log('User is registered:', isRegistered);
       if (!isRegistered) {
-        console.log(
+        console.warn(
           'Secret provided did not match a registered ID. Please try again.',
         );
         trackEvent(BackupEvents.CLOUD_RESTORE_FAILED_PASSPORT_NOT_REGISTERED);
@@ -81,7 +76,7 @@ const AccountRecoveryChoiceScreen: React.FC<
       trackEvent(BackupEvents.ACCOUNT_RECOVERY_COMPLETED);
       onRestoreFromCloudNext();
       setRestoring(false);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
       trackEvent(BackupEvents.CLOUD_RESTORE_FAILED_UNKNOWN);
       setRestoring(false);

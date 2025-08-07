@@ -1,14 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import {
-  useFocusEffect,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
-import type { PassportData } from '@selfxyz/common/types';
-import { getSKIPEM } from '@selfxyz/common/utils/csca';
-import { initPassportDataParsing } from '@selfxyz/common/utils/passports';
-import { CircleHelp } from '@tamagui/lucide-icons';
 import LottieView from 'lottie-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -21,45 +12,68 @@ import {
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import NfcManager from 'react-native-nfc-manager';
 import { Button, Image, XStack } from 'tamagui';
+import type { RouteProp } from '@react-navigation/native';
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
+import { CircleHelp } from '@tamagui/lucide-icons';
 
-import passportVerifyAnimation from '../../assets/animations/passport_verify.json';
-import { PrimaryButton } from '../../components/buttons/PrimaryButton';
-import { SecondaryButton } from '../../components/buttons/SecondaryButton';
-import ButtonsContainer from '../../components/ButtonsContainer';
-import TextsContainer from '../../components/TextsContainer';
-import { BodyText } from '../../components/typography/BodyText';
-import { Title } from '../../components/typography/Title';
-import { PassportEvents } from '../../consts/analytics';
-import useHapticNavigation from '../../hooks/useHapticNavigation';
-import NFC_IMAGE from '../../images/nfc.png';
-import { ExpandableBottomLayout } from '../../layouts/ExpandableBottomLayout';
-import { storePassportData } from '../../providers/passportDataProvider';
-import useUserStore from '../../stores/userStore';
-import analytics from '../../utils/analytics';
-import { black, slate100, slate400, slate500, white } from '../../utils/colors';
-import { dinot } from '../../utils/fonts';
+import type { PassportData } from '@selfxyz/common/types';
+import { getSKIPEM } from '@selfxyz/common/utils/csca';
+import { initPassportDataParsing } from '@selfxyz/common/utils/passports';
+
+import passportVerifyAnimation from '@/assets/animations/passport_verify.json';
+import { PrimaryButton } from '@/components/buttons/PrimaryButton';
+import { SecondaryButton } from '@/components/buttons/SecondaryButton';
+import ButtonsContainer from '@/components/ButtonsContainer';
+import TextsContainer from '@/components/TextsContainer';
+import { BodyText } from '@/components/typography/BodyText';
+import { Title } from '@/components/typography/Title';
+import { PassportEvents } from '@/consts/analytics';
+import useHapticNavigation from '@/hooks/useHapticNavigation';
+import NFC_IMAGE from '@/images/nfc.png';
+import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
+import { storePassportData } from '@/providers/passportDataProvider';
+import useUserStore from '@/stores/userStore';
+import analytics from '@/utils/analytics';
+import { black, slate100, slate400, slate500, white } from '@/utils/colors';
+import { dinot } from '@/utils/fonts';
 import {
   buttonTap,
   feedbackSuccess,
   feedbackUnsuccessful,
   impactLight,
-} from '../../utils/haptic';
-import { registerModalCallbacks } from '../../utils/modalCallbackRegistry';
-import { parseScanResponse, scan } from '../../utils/nfcScanner';
-import { hasAnyValidRegisteredDocument } from '../../utils/proving/validateDocument';
+} from '@/utils/haptic';
+import { registerModalCallbacks } from '@/utils/modalCallbackRegistry';
+import { parseScanResponse, scan } from '@/utils/nfcScanner';
+import { hasAnyValidRegisteredDocument } from '@/utils/proving/validateDocument';
 
 const { trackEvent } = analytics();
-
-interface PassportNFCScanScreenProps {}
 
 const emitter =
   Platform.OS === 'android'
     ? new NativeEventEmitter(NativeModules.nativeModule)
     : null;
 
-const PassportNFCScanScreen: React.FC<PassportNFCScanScreenProps> = ({}) => {
+type PassportNFCScanRouteParams = {
+  usePacePolling?: boolean;
+  canNumber?: string;
+  useCan?: boolean;
+  skipPACE?: boolean;
+  skipCA?: boolean;
+  extendedMode?: boolean;
+};
+
+type PassportNFCScanRoute = RouteProp<
+  Record<string, PassportNFCScanRouteParams>,
+  string
+>;
+
+const PassportNFCScanScreen: React.FC = () => {
   const navigation = useNavigation();
-  const route = useRoute();
+  const route = useRoute<PassportNFCScanRoute>();
   const {
     passportNumber,
     dateOfBirth,
@@ -131,7 +145,7 @@ const PassportNFCScanScreen: React.FC<PassportNFCScanScreenProps> = ({}) => {
   }, []);
 
   const usePacePolling = (): boolean => {
-    const { usePacePolling: usePacePollingParam } = (route.params || {}) as any;
+    const { usePacePolling: usePacePollingParam } = route.params ?? {};
     const shouldUsePacePolling = documentType + countryCode === 'IDFRA';
 
     if (usePacePollingParam !== undefined) {
@@ -154,7 +168,7 @@ const PassportNFCScanScreen: React.FC<PassportNFCScanScreenProps> = ({}) => {
 
       try {
         const { canNumber, useCan, skipPACE, skipCA, extendedMode } =
-          (route.params || {}) as any;
+          route.params ?? {};
 
         const scanResponse = await scan({
           passportNumber,
@@ -184,10 +198,10 @@ const PassportNFCScanScreen: React.FC<PassportNFCScanScreenProps> = ({}) => {
         let parsedPassportData: PassportData | null = null;
         try {
           passportData = parseScanResponse(scanResponse);
-        } catch (e: any) {
+        } catch (e: unknown) {
           console.error('Parsing NFC Response Unsuccessful');
           trackEvent(PassportEvents.NFC_RESPONSE_PARSE_FAILED, {
-            error: e.message,
+            error: e instanceof Error ? e.message : String(e),
           });
           return;
         }
@@ -241,24 +255,25 @@ const PassportNFCScanScreen: React.FC<PassportNFCScanScreenProps> = ({}) => {
           // Feels better somehow
           await new Promise(resolve => setTimeout(resolve, 1000));
           navigation.navigate('ConfirmBelongingScreen', {});
-        } catch (e: any) {
+        } catch (e: unknown) {
           console.error('Passport Parsed Failed:', e);
           trackEvent(PassportEvents.PASSPORT_PARSE_FAILED, {
-            error: e.message,
+            error: e instanceof Error ? e.message : String(e),
           });
           return;
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         const scanDurationSeconds = (
           (Date.now() - scanStartTime) /
           1000
         ).toFixed(2);
         console.error('NFC Scan Unsuccessful:', e);
+        const message = e instanceof Error ? e.message : String(e);
         trackEvent(PassportEvents.NFC_SCAN_FAILED, {
-          error: e.message,
+          error: message,
           duration_seconds: parseFloat(scanDurationSeconds),
         });
-        openErrorModal(e.message);
+        openErrorModal(message);
       } finally {
         setIsNfcSheetOpen(false);
       }
@@ -357,7 +372,7 @@ const PassportNFCScanScreen: React.FC<PassportNFCScanScreenProps> = ({}) => {
               animationRef.current?.play();
             }, 5000); // Pause 5 seconds before playing again
           }}
-          source={passportVerifyAnimation as any}
+          source={passportVerifyAnimation}
           style={styles.animation}
           cacheComposition={true}
           renderMode="HARDWARE"

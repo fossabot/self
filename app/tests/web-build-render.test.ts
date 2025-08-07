@@ -4,8 +4,8 @@
  * @jest-environment node
  */
 
-import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 import { execSync, spawn } from 'child_process';
+import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 
 // Ensure fetch is available (Node.js 18+ has built-in fetch)
 if (typeof fetch === 'undefined') {
@@ -52,8 +52,11 @@ describe('Web Build and Render', () => {
         previewProcess.stdout.on('data', (data: Buffer) => {
           const output = data.toString();
           serverOutput += output;
-          // eslint-disable-next-line no-console
-          console.log('Preview server stdout:', JSON.stringify(output));
+
+          // Suppress noisy output in tests
+          if (process.env.DEBUG_BUILD_TEST) {
+            console.log('Preview server stdout:', JSON.stringify(output));
+          }
 
           // Look for the Local: indicator that the server is ready
           // Be more flexible with pattern matching
@@ -65,8 +68,9 @@ describe('Web Build and Render', () => {
             (output.includes('4173') && output.includes('Local'));
 
           if (isReady) {
-            // eslint-disable-next-line no-console
-            console.log('Server ready detected!');
+            if (process.env.DEBUG_BUILD_TEST) {
+              console.log('Server ready detected!');
+            }
             clearTimeout(timeout);
             resolve();
           }
@@ -76,7 +80,7 @@ describe('Web Build and Render', () => {
       if (previewProcess?.stderr) {
         previewProcess.stderr.on('data', (data: Buffer) => {
           const error = data.toString();
-          // eslint-disable-next-line no-console
+
           console.error('Preview server stderr:', error);
           serverOutput += error;
         });
@@ -113,7 +117,6 @@ describe('Web Build and Render', () => {
           previewProcess.kill('SIGKILL');
         }
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.error('Error killing preview process:', error);
       }
     }

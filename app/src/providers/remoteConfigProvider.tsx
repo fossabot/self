@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-import { initRemoteConfig } from '../RemoteConfig';
+import { initRemoteConfig } from '@/RemoteConfig';
 
 interface RemoteConfigContextValue {
   isInitialized: boolean;
@@ -13,8 +13,6 @@ const RemoteConfigContext = createContext<RemoteConfigContextValue>({
   isInitialized: false,
   error: null,
 });
-
-export const useRemoteConfig = () => useContext(RemoteConfigContext);
 
 export const RemoteConfigProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -44,3 +42,5 @@ export const RemoteConfigProvider: React.FC<{ children: React.ReactNode }> = ({
     </RemoteConfigContext.Provider>
   );
 };
+
+export const useRemoteConfig = () => useContext(RemoteConfigContext);

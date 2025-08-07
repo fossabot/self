@@ -2,8 +2,8 @@
 
 import SQLite from 'react-native-sqlite-storage';
 
-import { database } from '../../../src/stores/database';
-import { ProofStatus } from '../../../src/stores/proof-types';
+import { database } from '@/stores/database';
+import { ProofStatus } from '@/stores/proof-types';
 
 // Mock react-native-sqlite-storage
 jest.mock('react-native-sqlite-storage', () => ({
@@ -15,6 +15,15 @@ const mockSQLite = SQLite as any;
 
 describe('database (SQLite)', () => {
   let mockDb: any;
+
+  // Suppress console errors during testing to avoid cluttering output
+  beforeAll(() => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterAll(() => {
+    jest.restoreAllMocks();
+  });
 
   beforeEach(() => {
     // Reset all mocks

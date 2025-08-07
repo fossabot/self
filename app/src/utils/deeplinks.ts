@@ -3,9 +3,12 @@
 import { parseUrl } from 'query-string';
 import { Linking, Platform } from 'react-native';
 
-import { navigationRef } from '../navigation';
-import { useSelfAppStore } from '../stores/selfAppStore';
-import useUserStore from '../stores/userStore';
+import { countries } from '@selfxyz/common/constants/countries';
+import type { IdDocInput } from '@selfxyz/common/utils';
+
+import { navigationRef } from '@/navigation';
+import { useSelfAppStore } from '@/stores/selfAppStore';
+import useUserStore from '@/stores/userStore';
 
 // Validation patterns for each expected parameter
 const VALIDATION_PATTERNS = {
@@ -18,6 +21,15 @@ type ValidatedParams = {
   sessionId?: string;
   selfApp?: string;
   mock_passport?: string;
+};
+
+// Define proper types for the mock data structure
+type MockDataDeepLinkRawParams = {
+  name?: string;
+  surname?: string;
+  nationality?: string;
+  birth_date?: string;
+  gender?: string;
 };
 
 /**
@@ -58,6 +70,72 @@ const validateAndSanitizeParam = (
   return decodedValue;
 };
 
+export const handleUrl = (uri: string) => {
+  const validatedParams = parseAndValidateUrlParams(uri);
+  const { sessionId, selfApp: selfAppStr, mock_passport } = validatedParams;
+
+  if (selfAppStr) {
+    try {
+      const selfAppJson = JSON.parse(selfAppStr);
+      useSelfAppStore.getState().setSelfApp(selfAppJson);
+      useSelfAppStore.getState().startAppListener(selfAppJson.sessionId);
+      navigationRef.navigate('ProveScreen');
+
+      return;
+    } catch (error) {
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+        console.error('Error parsing selfApp:', error);
+      }
+      navigationRef.navigate('QRCodeTrouble');
+    }
+  } else if (sessionId && typeof sessionId === 'string') {
+    useSelfAppStore.getState().cleanSelfApp();
+    useSelfAppStore.getState().startAppListener(sessionId);
+    navigationRef.navigate('ProveScreen');
+  } else if (mock_passport) {
+    try {
+      const data = JSON.parse(mock_passport);
+      const rawParams = data as MockDataDeepLinkRawParams;
+
+      // Validate nationality is a valid country code
+      const isValidCountryCode = (
+        code: string | undefined,
+      ): code is IdDocInput['nationality'] => {
+        if (!code) return false;
+        // Check if the code exists as a value in the countries object
+        return Object.values(countries).some(
+          countryCode => countryCode === code,
+        );
+      };
+
+      useUserStore.getState().setDeepLinkUserDetails({
+        name: rawParams.name,
+        surname: rawParams.surname,
+        nationality: isValidCountryCode(rawParams.nationality)
+          ? rawParams.nationality
+          : undefined,
+        birthDate: rawParams.birth_date,
+        gender: rawParams.gender,
+      });
+
+      navigationRef.navigate('MockDataDeepLink');
+    } catch (error) {
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+        console.error('Error parsing mock_passport data or navigating:', error);
+      }
+      navigationRef.navigate('QRCodeTrouble');
+    }
+  } else if (Platform.OS === 'web') {
+    // TODO: web handle links if we need to idk if we do
+    // For web, we can handle the URL some other way if we dont do this loading app in web always navigates to QRCodeTrouble
+  } else {
+    if (typeof __DEV__ !== 'undefined' && __DEV__) {
+      console.error('No sessionId or selfApp found in the data');
+    }
+    navigationRef.navigate('QRCodeTrouble');
+  }
+};
+
 /**
  * Parses and validates query parameters from a URL
  * @param uri - The URL to parse
@@ -84,66 +162,6 @@ export const parseAndValidateUrlParams = (uri: string): ValidatedParams => {
   }
 
   return validatedParams;
-};
-
-export const handleUrl = (uri: string) => {
-  const validatedParams = parseAndValidateUrlParams(uri);
-  const { sessionId, selfApp: selfAppStr, mock_passport } = validatedParams;
-
-  if (selfAppStr) {
-    try {
-      const selfAppJson = JSON.parse(selfAppStr);
-      useSelfAppStore.getState().setSelfApp(selfAppJson);
-      useSelfAppStore.getState().startAppListener(selfAppJson.sessionId);
-      navigationRef.navigate('ProveScreen');
-
-      return;
-    } catch (error) {
-      if (typeof __DEV__ !== 'undefined' && __DEV__) {
-        console.error('Error parsing selfApp:', error);
-      }
-      navigationRef.navigate('QRCodeTrouble');
-    }
-  } else if (sessionId && typeof sessionId === 'string') {
-    useSelfAppStore.getState().cleanSelfApp();
-    useSelfAppStore.getState().startAppListener(sessionId);
-    navigationRef.navigate('ProveScreen');
-  } else if (mock_passport) {
-    try {
-      const data = JSON.parse(mock_passport);
-      type MockDataDeepLinkRawParams = {
-        name?: string;
-        surname?: string;
-        nationality?: string;
-        birth_date?: string;
-        gender?: string;
-      };
-      const rawParams = data as MockDataDeepLinkRawParams;
-
-      useUserStore.getState().setDeepLinkUserDetails({
-        name: rawParams.name,
-        surname: rawParams.surname,
-        nationality: rawParams.nationality,
-        birthDate: rawParams.birth_date,
-        gender: rawParams.gender,
-      });
-
-      navigationRef.navigate('MockDataDeepLink');
-    } catch (error) {
-      if (typeof __DEV__ !== 'undefined' && __DEV__) {
-        console.error('Error parsing mock_passport data or navigating:', error);
-      }
-      navigationRef.navigate('QRCodeTrouble');
-    }
-  } else if (Platform.OS === 'web') {
-    // TODO: web handle links if we need to idk if we do
-    // For web, we can handle the URL some other way if we dont do this loading app in web always navigates to QRCodeTrouble
-  } else {
-    if (typeof __DEV__ !== 'undefined' && __DEV__) {
-      console.error('No sessionId or selfApp found in the data');
-    }
-    navigationRef.navigate('QRCodeTrouble');
-  }
 };
 
 export const setupUniversalLinkListenerInNavigation = () => {
