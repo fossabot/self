@@ -5,12 +5,15 @@ import { createRoot } from 'react-dom/client';
 import { TamaguiProvider, View } from 'tamagui';
 
 import App from '../App';
-import { black } from '../src/utils/colors';
 import tamaguiConfig from '../tamagui.config.ts';
+
+import 'react-native-get-random-values';
+import './fonts.css';
+import './reset.css';
 
 const Root = () => (
   <TamaguiProvider config={tamaguiConfig}>
-    <View backgroundColor={black} flex={1} height="100vh" width="100%">
+    <View flex={1} height="100vh" width="100%">
       <App />
     </View>
   </TamaguiProvider>

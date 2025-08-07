@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import type { SelfApp } from '@selfxyz/common';
-import { WS_DB_RELAYER } from '@selfxyz/common';
-import io, { Socket } from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
+import socketIo from 'socket.io-client';
 import { create } from 'zustand';
+
+import { WS_DB_RELAYER } from '@selfxyz/common/constants';
+import type { SelfApp } from '@selfxyz/common/utils/appType';
 
 interface SelfAppState {
   selfApp: SelfApp | null;
@@ -32,7 +34,7 @@ export const useSelfAppStore = create<SelfAppState>((set, get) => ({
     const socketUrl = `${connectionUrl}/websocket`;
 
     // Create a new socket connection using the updated URL.
-    const socket = io(socketUrl, {
+    const socket = socketIo(socketUrl, {
       path: '/',
       transports: ['websocket'],
       forceNew: true, // Ensure a new connection is established

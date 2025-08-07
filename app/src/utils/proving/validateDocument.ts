@@ -1,23 +1,41 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import { LeanIMT } from '@openpassport/zk-kit-lean-imt';
-import {
-  API_URL,
-  formatMrz,
-  generateCommitment,
-  generateNullifier,
-  getCircuitNameFromPassportData,
-  getLeafDscTree,
-  Hash,
-  ID_CARD_ATTESTATION_ID,
-  parseCertificateSimple,
-  PASSPORT_ATTESTATION_ID,
-  type PassportData,
-} from '@selfxyz/common';
-import { DocumentCategory } from '@selfxyz/common';
 import { poseidon2, poseidon5 } from 'poseidon-lite';
 
+import {
+  API_URL,
+  API_URL_STAGING,
+  ID_CARD_ATTESTATION_ID,
+  PASSPORT_ATTESTATION_ID,
+} from '@selfxyz/common/constants';
+import type { DocumentCategory, PassportData } from '@selfxyz/common/types';
+import { parseCertificateSimple } from '@selfxyz/common/utils/certificates/parseSimple';
+import { getCircuitNameFromPassportData } from '@selfxyz/common/utils/circuitNames';
+import { packBytesAndPoseidon } from '@selfxyz/common/utils/hash/poseidon';
+import { hash } from '@selfxyz/common/utils/hash/sha';
+import { formatMrz } from '@selfxyz/common/utils/passportFormat';
+import {
+  generateCommitment,
+  generateNullifier,
+} from '@selfxyz/common/utils/passports';
+import { getLeafDscTree } from '@selfxyz/common/utils/trees';
+
+import { DocumentEvents } from '../../consts/analytics';
+import {
+  getAllDocuments,
+  loadDocumentCatalog,
+  loadPassportDataAndSecret,
+  loadSelectedDocument,
+  setSelectedDocument,
+  storePassportData,
+  updateDocumentRegistrationState,
+} from '../../providers/passportDataProvider';
 import { useProtocolStore } from '../../stores/protocolStore';
+import analytics from '../../utils/analytics';
+
+import { LeanIMT } from '@openpassport/zk-kit-lean-imt';
+
+const { trackEvent } = analytics();
 
 export type PassportSupportStatus =
   | 'passport_metadata_missing'
@@ -25,6 +43,108 @@ export type PassportSupportStatus =
   | 'registration_circuit_not_supported'
   | 'dsc_circuit_not_supported'
   | 'passport_supported';
+/**
+ * This function checks and updates registration states for all documents and updates the `isRegistered`.
+ */
+export async function checkAndUpdateRegistrationStates(): Promise<void> {
+  const allDocuments = await getAllDocuments();
+  for (const documentId of Object.keys(allDocuments)) {
+    try {
+      await setSelectedDocument(documentId);
+      const selectedDocument = await loadSelectedDocument();
+      if (!selectedDocument) continue;
+      let { data: passportData } = selectedDocument;
+      if (!isPassportDataValid(passportData)) {
+        trackEvent(DocumentEvents.VALIDATE_DOCUMENT_FAILED, {
+          error: 'Passport data is not valid',
+          documentId,
+        });
+        console.log(`Skipping invalid document ${documentId}`);
+        continue;
+      }
+      const migratedPassportData = migratePassportData(passportData);
+      if (migratedPassportData !== passportData) {
+        await storePassportData(migratedPassportData);
+        passportData = migratedPassportData;
+      }
+      const environment = migratedPassportData.mock ? 'stg' : 'prod';
+      const documentCategory = migratedPassportData.documentCategory;
+      const authorityKeyIdentifier =
+        migratedPassportData.dsc_parsed?.authorityKeyIdentifier;
+      if (!authorityKeyIdentifier) {
+        trackEvent(DocumentEvents.VALIDATE_DOCUMENT_FAILED, {
+          error: 'Authority key identifier is null',
+          documentId,
+          documentCategory,
+          mock: migratedPassportData.mock,
+        });
+        console.log(
+          `Skipping document ${documentId} - no authority key identifier`,
+        );
+        continue;
+      }
+      await useProtocolStore
+        .getState()
+        [documentCategory].fetch_all(environment, authorityKeyIdentifier);
+      const passportDataAndSecret = await loadPassportDataAndSecret();
+      if (!passportDataAndSecret) {
+        console.log(
+          `Skipping document ${documentId} - no passport data and secret`,
+        );
+        continue;
+      }
+
+      const { secret } = JSON.parse(passportDataAndSecret);
+      const isRegistered = await isUserRegistered(migratedPassportData, secret);
+
+      // Update the registration state in the document metadata
+      await updateDocumentRegistrationState(documentId, isRegistered);
+
+      if (isRegistered) {
+        trackEvent(DocumentEvents.DOCUMENT_VALIDATED, {
+          documentId,
+          documentCategory,
+          mock: migratedPassportData.mock,
+        });
+      }
+
+      console.log(
+        `Updated registration state for document ${documentId}: ${isRegistered}`,
+      );
+    } catch (error) {
+      console.error(
+        `Error checking registration state for document ${documentId}: ${error}`,
+      );
+      trackEvent(DocumentEvents.VALIDATE_DOCUMENT_FAILED, {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        documentId,
+      });
+    }
+  }
+
+  console.log('Registration state check and update completed');
+}
+
+export async function checkIfPassportDscIsInTree(
+  passportData: PassportData,
+  dscTree: string,
+): Promise<boolean> {
+  const hashFunction = (a: any, b: any) => poseidon2([a, b]);
+  const tree = LeanIMT.import(hashFunction, dscTree);
+  const leaf = getLeafDscTree(
+    passportData.dsc_parsed!,
+    passportData.csca_parsed!,
+  );
+  const index = tree.indexOf(BigInt(leaf));
+  if (index === -1) {
+    console.log('DSC not found in the tree');
+    return false;
+  } else {
+    console.log('DSC found in the tree');
+    return true;
+  }
+}
+
 export async function checkPassportSupported(
   passportData: PassportData,
 ): Promise<{
@@ -72,6 +192,152 @@ export async function checkPassportSupported(
   }
   console.log('Passport supported');
   return { status: 'passport_supported', details: 'null' };
+}
+
+export function generateCommitmentInApp(
+  secret: string,
+  attestation_id: string,
+  passportData: PassportData,
+  alternativeCSCA: Record<string, string>,
+) {
+  const dg1_packed_hash = packBytesAndPoseidon(formatMrz(passportData.mrz));
+  const eContent_packed_hash = packBytesAndPoseidon(
+    (
+      hash(
+        passportData.passportMetadata!.eContentHashFunction,
+        Array.from(passportData.eContent),
+        'bytes',
+      ) as number[]
+    )
+      // eslint-disable-next-line no-bitwise
+      .map(byte => byte & 0xff),
+  );
+
+  const csca_list: string[] = [];
+  const commitment_list: string[] = [];
+
+  for (const [cscaKey, cscaValue] of Object.entries(alternativeCSCA)) {
+    try {
+      const formattedCsca = formatCSCAPem(cscaValue);
+      const cscaParsed = parseCertificateSimple(formattedCsca);
+
+      const commitment = poseidon5([
+        secret,
+        attestation_id,
+        dg1_packed_hash,
+        eContent_packed_hash,
+        getLeafDscTree(passportData.dsc_parsed!, cscaParsed),
+      ]).toString();
+
+      csca_list.push(formatCSCAPem(cscaValue));
+      commitment_list.push(commitment);
+    } catch (error) {
+      console.warn(
+        `Failed to parse CSCA certificate for key ${cscaKey}:`,
+        error,
+      );
+    }
+  }
+
+  if (commitment_list.length === 0) {
+    console.error('No valid CSCA certificates found in alternativeCSCA');
+  }
+
+  return { commitment_list, csca_list };
+}
+
+export async function hasAnyValidRegisteredDocument(): Promise<boolean> {
+  try {
+    const catalog = await loadDocumentCatalog();
+    return catalog.documents.some(doc => doc.isRegistered === true);
+  } catch (error) {
+    console.error('Error loading document catalog:', error);
+    return false;
+  }
+}
+
+export async function isDocumentNullified(passportData: PassportData) {
+  const nullifier = generateNullifier(passportData);
+  const nullifierHex = `0x${BigInt(nullifier).toString(16)}`;
+  const attestationId =
+    passportData.documentCategory === 'passport'
+      ? '0x0000000000000000000000000000000000000000000000000000000000000001'
+      : '0x0000000000000000000000000000000000000000000000000000000000000002';
+  console.log('checking for nullifier', nullifierHex, attestationId);
+  const baseUrl = passportData.mock === false ? API_URL : API_URL_STAGING;
+  const response = await fetch(
+    `${baseUrl}/is-nullifier-onchain-with-attestation-id`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        nullifier: nullifierHex,
+        attestation_id: attestationId,
+      }),
+    },
+  );
+  const data = await response.json();
+  console.log('isDocumentNullified', data);
+  return data.data;
+}
+
+function formatCSCAPem(cscaPem: string): string {
+  let cleanedPem = cscaPem.trim();
+
+  if (!cleanedPem.includes('-----BEGIN CERTIFICATE-----')) {
+    cleanedPem = cleanedPem.replace(/[^A-Za-z0-9+/=]/g, '');
+    try {
+      Buffer.from(cleanedPem, 'base64');
+    } catch (error) {
+      throw new Error(`Invalid base64 certificate data: ${error}`);
+    }
+    cleanedPem = `-----BEGIN CERTIFICATE-----\n${cleanedPem}\n-----END CERTIFICATE-----`;
+  }
+  return cleanedPem;
+}
+
+export function isPassportDataValid(passportData: PassportData) {
+  if (!passportData) {
+    trackEvent(DocumentEvents.VALIDATE_DOCUMENT_FAILED, {
+      error: 'Passport data is null',
+    });
+    return false;
+  }
+  if (!passportData.passportMetadata) {
+    trackEvent(DocumentEvents.VALIDATE_DOCUMENT_FAILED, {
+      error: 'Passport metadata is null',
+    });
+    return false;
+  }
+  if (!passportData.passportMetadata.dg1HashFunction) {
+    trackEvent(DocumentEvents.VALIDATE_DOCUMENT_FAILED, {
+      mock: passportData.mock,
+      dsc: passportData.dsc,
+      error: 'DG1 hash function is null',
+    });
+    return false;
+  }
+  if (!passportData.passportMetadata.eContentHashFunction) {
+    trackEvent(DocumentEvents.VALIDATE_DOCUMENT_FAILED, {
+      mock: passportData.mock,
+      dsc: passportData.dsc,
+      documentCategory: passportData.documentCategory,
+      error: 'EContent hash function is null',
+    });
+    return false;
+  }
+  if (!passportData.passportMetadata.signedAttrHashFunction) {
+    trackEvent(DocumentEvents.VALIDATE_DOCUMENT_FAILED, {
+      mock: passportData.mock,
+      dsc: passportData.dsc,
+      documentCategory: passportData.documentCategory,
+      error: 'Signed attribute hash function is null',
+    });
+    return false;
+  }
+  return true;
 }
 
 export async function isUserRegistered(
@@ -135,107 +401,22 @@ export async function isUserRegisteredWithAlternativeCSCA(
   return { isRegistered: false, csca: null };
 }
 
-export async function isPassportNullified(passportData: PassportData) {
-  const nullifier = generateNullifier(passportData);
-  const nullifierHex = `0x${BigInt(nullifier).toString(16)}`;
-  console.log('checking for nullifier', nullifierHex);
-  const response = await fetch(`${API_URL}/is-nullifier-onchain/`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ nullifier: nullifierHex }),
-  });
-  const data = await response.json();
-  console.log('isPassportNullified', data);
-  return data.data;
-}
-
-export async function checkIfPassportDscIsInTree(
-  passportData: PassportData,
-  dscTree: string,
-): Promise<boolean> {
-  const hashFunction = (a: any, b: any) => poseidon2([a, b]);
-  const tree = LeanIMT.import(hashFunction, dscTree);
-  const leaf = getLeafDscTree(
-    passportData.dsc_parsed!,
-    passportData.csca_parsed!,
-  );
-  const index = tree.indexOf(BigInt(leaf));
-  if (index === -1) {
-    console.log('DSC not found in the tree');
-    return false;
-  } else {
-    console.log('DSC found in the tree');
-    return true;
-  }
-}
-
-export function generateCommitmentInApp(
-  secret: string,
-  attestation_id: string,
-  passportData: PassportData,
-  alternativeCSCA: Record<string, string>,
-) {
-  const dg1_packed_hash = Hash.packBytesAndPoseidon(
-    formatMrz(passportData.mrz),
-  );
-  const eContent_packed_hash = Hash.packBytesAndPoseidon(
-    (
-      Hash.hash(
-        passportData.passportMetadata!.eContentHashFunction,
-        Array.from(passportData.eContent),
-        'bytes',
-      ) as number[]
-    )
-      // eslint-disable-next-line no-bitwise
-      .map(byte => byte & 0xff),
-  );
-
-  const csca_list: string[] = [];
-  const commitment_list: string[] = [];
-
-  for (const [cscaKey, cscaValue] of Object.entries(alternativeCSCA)) {
-    try {
-      const formattedCsca = formatCSCAPem(cscaValue);
-      const cscaParsed = parseCertificateSimple(formattedCsca);
-
-      const commitment = poseidon5([
-        secret,
-        attestation_id,
-        dg1_packed_hash,
-        eContent_packed_hash,
-        getLeafDscTree(passportData.dsc_parsed!, cscaParsed),
-      ]).toString();
-
-      csca_list.push(formatCSCAPem(cscaValue));
-      commitment_list.push(commitment);
-    } catch (error) {
-      console.warn(
-        `Failed to parse CSCA certificate for key ${cscaKey}:`,
-        error,
-      );
+export function migratePassportData(passportData: PassportData): PassportData {
+  const migratedData = { ...passportData } as any;
+  if (!('documentCategory' in migratedData) || !('mock' in migratedData)) {
+    if ('documentType' in migratedData && migratedData.documentType) {
+      migratedData.mock = migratedData.documentType.startsWith('mock');
+      migratedData.documentCategory = migratedData.documentType.includes(
+        'passport',
+      )
+        ? 'passport'
+        : 'id_card';
+    } else {
+      migratedData.documentType = 'passport';
+      migratedData.documentCategory = 'passport';
+      migratedData.mock = false;
     }
+    // console.log('Migrated passport data:', migratedData);
   }
-
-  if (commitment_list.length === 0) {
-    console.error('No valid CSCA certificates found in alternativeCSCA');
-  }
-
-  return { commitment_list, csca_list };
-}
-
-function formatCSCAPem(cscaPem: string): string {
-  let cleanedPem = cscaPem.trim();
-
-  if (!cleanedPem.includes('-----BEGIN CERTIFICATE-----')) {
-    cleanedPem = cleanedPem.replace(/[^A-Za-z0-9+/=]/g, '');
-    try {
-      Buffer.from(cleanedPem, 'base64');
-    } catch (error) {
-      throw new Error(`Invalid base64 certificate data: ${error}`);
-    }
-    cleanedPem = `-----BEGIN CERTIFICATE-----\n${cleanedPem}\n-----END CERTIFICATE-----`;
-  }
-  return cleanedPem;
+  return migratedData as PassportData;
 }

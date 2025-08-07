@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import Clipboard from '@react-native-clipboard/clipboard';
 import React, { useCallback, useState } from 'react';
 import { Button, Text, XStack, YStack } from 'tamagui';
 
@@ -15,6 +14,8 @@ import {
   white,
 } from '../utils/colors';
 import { confirmTap } from '../utils/haptic';
+
+import Clipboard from '@react-native-clipboard/clipboard';
 
 interface MnemonicProps {
   words?: string[];
@@ -63,7 +64,7 @@ const Mnemonic = ({ words = REDACTED, onRevealWords }: MnemonicProps) => {
     Clipboard.setString(words.join(' '));
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
-  }, [words, revealWords]);
+  }, [onRevealWords, revealWords, setHasViewedRecoveryPhrase, words]);
 
   return (
     <YStack position="relative" alignItems="stretch" gap={0}>
@@ -98,7 +99,7 @@ const Mnemonic = ({ words = REDACTED, onRevealWords }: MnemonicProps) => {
           borderTopWidth={0}
           borderBottomLeftRadius="$5"
           borderBottomRightRadius="$5"
-          py="$2"
+          paddingVertical={16}
           onPress={copyToClipboardOrReveal}
           width="100%"
           textAlign="center"

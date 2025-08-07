@@ -4,12 +4,14 @@ import React from 'react';
 import {
   Dimensions,
   PixelRatio,
+  Platform,
   ScrollView,
-  StatusBar,
   StyleSheet,
 } from 'react-native';
+import { SystemBars } from 'react-native-edge-to-edge';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { View, ViewProps } from 'tamagui';
+import type { ViewProps } from 'tamagui';
+import { View } from 'tamagui';
 
 import { black, white } from '../utils/colors';
 import { extraYPadding } from '../utils/constants';
@@ -41,10 +43,7 @@ const Layout: React.FC<ExpandableBottomLayoutProps> = ({
 }) => {
   return (
     <View flex={1} flexDirection="column" backgroundColor={backgroundColor}>
-      <StatusBar
-        barStyle={backgroundColor === black ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundColor}
-      />
+      <SystemBars style={backgroundColor === black ? 'light' : 'dark'} />
       {children}
     </View>
   );
@@ -56,14 +55,15 @@ const TopSection: React.FC<TopSectionProps> = ({
   ...props
 }) => {
   const { top } = useSafeAreaInsets();
+  const { roundTop, ...restProps } = props;
   return (
     <View
-      {...props}
+      {...restProps}
       backgroundColor={backgroundColor}
       style={[
         styles.topSection,
-        props.roundTop && styles.roundTop,
-        props.roundTop ? { marginTop: top } : { paddingTop: top },
+        roundTop && styles.roundTop,
+        roundTop ? { marginTop: top } : { paddingTop: top },
         { backgroundColor },
       ]}
     >
@@ -102,7 +102,7 @@ const BottomSection: React.FC<BottomSectionProps> = ({
   ...props
 }) => {
   const { bottom: safeAreaBottom } = useSafeAreaInsets();
-  const incomingBottom = props.paddingBottom ?? props.pb ?? 0;
+  const incomingBottom = props.paddingBottom ?? 0;
   const minBottom = safeAreaBottom + extraYPadding;
   const totalBottom =
     typeof incomingBottom === 'number' ? minBottom + incomingBottom : minBottom;
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   topSection: {
     alignSelf: 'stretch',
     flexGrow: 1,
-    flexShrink: 1,
+    flexShrink: Platform.select({ web: 0, default: 1 }),
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: black,

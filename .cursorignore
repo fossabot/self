@@ -38,13 +38,11 @@ app/android/dev-keystore
 
 # Deployment scripts and CI/CD
 circuits/scripts/server/*.sh
-**/*.sh
 !node_modules/**/*.sh
 
 # Fastlane configuration (may contain secrets)
 app/fastlane/Fastfile
 app/fastlane/helpers.rb
-app/Gemfile.lock
 
 # Test wallets and mock data
 app/ios/passport.json
@@ -71,10 +69,6 @@ app/android/build/
 app/ios/build/
 app/ios/Pods/
 app/ios/DerivedData/
-app/android/.gradle/
-app/android/gradle/
-app/android/gradlew
-app/android/gradlew.bat
 
 # Circuit build outputs
 circuits/build/
@@ -258,10 +252,6 @@ app/src/assets/fonts/
 # Yarn configuration
 .yarnrc.yml
 **/.yarn/
-
-# Ruby dependencies
-app/Gemfile
-app/Gemfile.lock
 
 # Certificate generation config
 common/src/scripts/extensions.cnf

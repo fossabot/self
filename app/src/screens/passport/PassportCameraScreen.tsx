@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import { useIsFocused, useNavigation } from '@react-navigation/native';
 import LottieView from 'lottie-react-native';
 import React, { useCallback, useRef } from 'react';
 import { Platform, StyleSheet } from 'react-native';
@@ -8,10 +7,8 @@ import { View, XStack, YStack } from 'tamagui';
 
 import passportScanAnimation from '../../assets/animations/passport_scan.json';
 import { SecondaryButton } from '../../components/buttons/SecondaryButton';
-import {
-  PassportCamera,
-  PassportCameraProps,
-} from '../../components/native/PassportCamera';
+import type { PassportCameraProps } from '../../components/native/PassportCamera';
+import { PassportCamera } from '../../components/native/PassportCamera';
 import Additional from '../../components/typography/Additional';
 import Description from '../../components/typography/Description';
 import { Title } from '../../components/typography/Title';
@@ -23,7 +20,10 @@ import useUserStore from '../../stores/userStore';
 import analytics from '../../utils/analytics';
 import { black, slate400, slate800, white } from '../../utils/colors';
 import { dinot } from '../../utils/fonts';
+import { hasAnyValidRegisteredDocument } from '../../utils/proving/validateDocument';
 import { checkScannedInfo, formatDateToYYMMDD } from '../../utils/utils';
+
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 
 interface PassportNFCScanScreen {}
 
@@ -113,9 +113,21 @@ const PassportCameraScreen: React.FC<PassportNFCScanScreen> = ({}) => {
     },
     [store, navigation],
   );
-  const onCancelPress = useHapticNavigation('Launch', {
+  const navigateToLaunch = useHapticNavigation('Launch', {
     action: 'cancel',
   });
+  const navigateToHome = useHapticNavigation('Home', {
+    action: 'cancel',
+  });
+
+  const onCancelPress = async () => {
+    const hasValidDocument = await hasAnyValidRegisteredDocument();
+    if (hasValidDocument) {
+      navigateToHome();
+    } else {
+      navigateToLaunch();
+    }
+  };
 
   return (
     <ExpandableBottomLayout.Layout backgroundColor={white}>
@@ -132,10 +144,10 @@ const PassportCameraScreen: React.FC<PassportNFCScanScreen> = ({}) => {
       </ExpandableBottomLayout.TopSection>
       <ExpandableBottomLayout.BottomSection backgroundColor={white}>
         <YStack alignItems="center" gap="$2.5">
-          <YStack alignItems="center" gap="$6" pb="$2.5">
+          <YStack alignItems="center" gap="$6" paddingBottom="$2.5">
             <Title>Scan your ID</Title>
             <XStack gap="$6" alignSelf="flex-start" alignItems="flex-start">
-              <View pt="$2">
+              <View paddingTop="$2">
                 <Scan height={40} width={40} color={slate800} />
               </View>
               <View maxWidth="75%">

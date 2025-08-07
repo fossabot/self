@@ -1,10 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import {
-  useFocusEffect,
-  useIsFocused,
-  useNavigation,
-} from '@react-navigation/native';
 import LottieView from 'lottie-react-native';
 import React, { useCallback, useState } from 'react';
 import { StyleSheet } from 'react-native';
@@ -12,10 +7,8 @@ import { View, XStack, YStack } from 'tamagui';
 
 import qrScanAnimation from '../../assets/animations/qr_scan.json';
 import { SecondaryButton } from '../../components/buttons/SecondaryButton';
-import {
-  QRCodeScannerView,
-  QRCodeScannerViewProps,
-} from '../../components/native/QRCodeScanner';
+import type { QRCodeScannerViewProps } from '../../components/native/QRCodeScanner';
+import { QRCodeScannerView } from '../../components/native/QRCodeScanner';
 import Additional from '../../components/typography/Additional';
 import Description from '../../components/typography/Description';
 import { Title } from '../../components/typography/Title';
@@ -27,24 +20,17 @@ import { ExpandableBottomLayout } from '../../layouts/ExpandableBottomLayout';
 import { useSelfAppStore } from '../../stores/selfAppStore';
 import analytics from '../../utils/analytics';
 import { black, slate800, white } from '../../utils/colors';
+import { parseAndValidateUrlParams } from '../../utils/deeplinks';
+
+import {
+  useFocusEffect,
+  useIsFocused,
+  useNavigation,
+} from '@react-navigation/native';
 
 interface QRCodeViewFinderScreenProps {}
 
 const { trackEvent } = analytics();
-
-// TODO: replace this with proper tested lib
-// or react-native-url-polyfill -> new URL(uri)
-const parseUrlParams = (url: string): Map<string, string> => {
-  const [, queryString] = url.split('?');
-  const params = new Map<string, string>();
-  if (queryString) {
-    queryString.split('&').forEach(pair => {
-      const [key, value] = pair.split('=');
-      params.set(key, decodeURIComponent(value));
-    });
-  }
-  return params;
-};
 
 const QRCodeViewFinderScreen: React.FC<QRCodeViewFinderScreenProps> = ({}) => {
   const { visible: connectionModalVisible } = useConnectionModal();
@@ -78,19 +64,32 @@ const QRCodeViewFinderScreen: React.FC<QRCodeViewFinderScreenProps> = ({}) => {
         navigation.navigate('QRCodeTrouble');
       } else {
         setDoneScanningQR(true);
-        const encodedData = parseUrlParams(uri!);
-        const sessionId = encodedData.get('sessionId');
-        const selfApp = encodedData.get('selfApp');
+        const validatedParams = parseAndValidateUrlParams(uri!);
+        const { sessionId, selfApp } = validatedParams;
         if (selfApp) {
-          trackEvent(ProofEvents.QR_SCAN_SUCCESS, {
-            scan_type: 'selfApp',
-          });
-          const selfAppJson = JSON.parse(selfApp);
-          useSelfAppStore.getState().setSelfApp(selfAppJson);
-          useSelfAppStore.getState().startAppListener(selfAppJson.sessionId);
-          setTimeout(() => {
-            navigateToProveScreen();
-          }, 100);
+          try {
+            trackEvent(ProofEvents.QR_SCAN_SUCCESS, {
+              scan_type: 'selfApp',
+            });
+            const selfAppJson = JSON.parse(selfApp);
+            useSelfAppStore.getState().setSelfApp(selfAppJson);
+            useSelfAppStore.getState().startAppListener(selfAppJson.sessionId);
+            setTimeout(() => {
+              navigateToProveScreen();
+            }, 100);
+          } catch (parseError) {
+            trackEvent(ProofEvents.QR_SCAN_FAILED, {
+              reason: 'invalid_selfApp_json',
+              error:
+                parseError instanceof Error
+                  ? parseError.message
+                  : 'JSON parse error',
+            });
+            console.error('Error parsing selfApp JSON:', parseError);
+            setDoneScanningQR(false); // Reset to allow another scan attempt
+            navigation.navigate('QRCodeTrouble');
+            return;
+          }
         } else if (sessionId) {
           trackEvent(ProofEvents.QR_SCAN_SUCCESS, {
             scan_type: 'sessionId',
@@ -138,10 +137,10 @@ const QRCodeViewFinderScreen: React.FC<QRCodeViewFinderScreenProps> = ({}) => {
         </ExpandableBottomLayout.TopSection>
         <ExpandableBottomLayout.BottomSection backgroundColor={white}>
           <YStack alignItems="center" gap="$2.5" paddingBottom={20}>
-            <YStack alignItems="center" gap="$6" pb="$2.5">
+            <YStack alignItems="center" gap="$6" paddingBottom="$2.5">
               <Title>Verify your ID</Title>
               <XStack gap="$6" alignSelf="flex-start" alignItems="flex-start">
-                <View pt="$2">
+                <View paddingTop="$2">
                   <QRScan height={40} width={40} color={slate800} />
                 </View>
                 <View maxWidth="75%">

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import { StaticScreenProps, useIsFocused } from '@react-navigation/native';
-import { PassportData } from '@selfxyz/common';
 import LottieView from 'lottie-react-native';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, YStack } from 'tamagui';
+
+import type { PassportData } from '@selfxyz/common/types';
 
 import failAnimation from '../../assets/animations/loading/fail.json';
 import proveLoadingAnimation from '../../assets/animations/loading/prove.json';
@@ -19,12 +19,23 @@ import { advercase, dinot } from '../../utils/fonts';
 import { loadingScreenProgress } from '../../utils/haptic';
 import { setupNotifications } from '../../utils/notifications/notificationService';
 import { getLoadingScreenText } from '../../utils/proving/loadingScreenStateText';
-import {
-  ProvingStateType,
-  useProvingStore,
-} from '../../utils/proving/provingMachine';
+import type { ProvingStateType } from '../../utils/proving/provingMachine';
+import { useProvingStore } from '../../utils/proving/provingMachine';
+
+import type { StaticScreenProps } from '@react-navigation/native';
+import { useIsFocused } from '@react-navigation/native';
 
 type LoadingScreenProps = StaticScreenProps<{}>;
+
+// Define all terminal states that should stop animations and haptics
+const terminalStates: ProvingStateType[] = [
+  'completed',
+  'error',
+  'failure',
+  'passport_not_supported',
+  'account_recovery_choice',
+  'passport_data_not_found',
+];
 
 const LoadingScreen: React.FC<LoadingScreenProps> = ({}) => {
   // Animation states
@@ -49,16 +60,6 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({}) => {
   const fcmToken = useProvingStore(state => state.fcmToken);
   const isFocused = useIsFocused();
   const { bottom } = useSafeAreaInsets();
-
-  // Define all terminal states that should stop animations and haptics
-  const terminalStates: ProvingStateType[] = [
-    'completed',
-    'error',
-    'failure',
-    'passport_not_supported',
-    'account_recovery_choice',
-    'passport_data_not_found',
-  ];
 
   // States where it's safe to close the app
   const safeToCloseStates = ['proving', 'post_proving', 'completed'];
@@ -99,6 +100,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({}) => {
     return () => {
       isMounted = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFocused]); // Only depend on isFocused
 
   // Handle UI updates and haptic feedback based on state changes
@@ -162,9 +164,9 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({}) => {
 
   return (
     <YStack
-      bg={black}
+      backgroundColor={black}
       gap={20}
-      jc="space-between"
+      justifyContent="space-between"
       flex={1}
       paddingHorizontal={20}
       paddingBottom={bottom + extraYPadding}

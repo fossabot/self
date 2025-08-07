@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { YStack } from 'tamagui';
 
-import Tips, { TipProps } from '../../components/Tips';
+import type { TipProps } from '../../components/Tips';
+import Tips from '../../components/Tips';
 import { Caption } from '../../components/typography/Caption';
 import useHapticNavigation from '../../hooks/useHapticNavigation';
 import SimpleScrolledTitleLayout from '../../layouts/SimpleScrolledTitleLayout';
@@ -47,7 +48,7 @@ const PassportNFCTrouble: React.FC = () => {
   );
 
   // error screen, flush analytics
-  React.useEffect(() => {
+  useEffect(() => {
     flushAnalytics();
   }, []);
 

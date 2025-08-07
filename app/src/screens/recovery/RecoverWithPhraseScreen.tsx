@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import Clipboard from '@react-native-clipboard/clipboard';
-import { useNavigation } from '@react-navigation/native';
 import { ethers } from 'ethers';
 import React, { useCallback, useState } from 'react';
 import { Keyboard, StyleSheet } from 'react-native';
@@ -26,6 +24,9 @@ import {
   white,
 } from '../../utils/colors';
 import { isUserRegisteredWithAlternativeCSCA } from '../../utils/proving/validateDocument';
+
+import Clipboard from '@react-native-clipboard/clipboard';
+import { useNavigation } from '@react-navigation/native';
 
 interface RecoverWithPhraseScreenProps {}
 
@@ -82,10 +83,15 @@ const RecoverWithPhraseScreen: React.FC<
     setRestoring(false);
     trackEvent(BackupEvents.ACCOUNT_RECOVERY_COMPLETED);
     navigation.navigate('AccountVerifiedSuccess');
-  }, [mnemonic, restoreAccountFromMnemonic]);
+  }, [mnemonic, navigation, restoreAccountFromMnemonic, trackEvent]);
 
   return (
-    <YStack alignItems="center" gap="$6" pb="$2.5" style={styles.layout}>
+    <YStack
+      alignItems="center"
+      gap="$6"
+      paddingBottom="$2.5"
+      style={styles.layout}
+    >
       <Description color={slate300}>
         Your recovery phrase has 24 words. Enter the words in the correct order,
         separated by spaces.
@@ -114,7 +120,7 @@ const RecoverWithPhraseScreen: React.FC<
           width="100%"
           alignItems="flex-end"
           justifyContent="center"
-          pb="$4"
+          paddingBottom="$4"
           onPress={onPaste}
         >
           <Paste color={white} height={20} width={20} />

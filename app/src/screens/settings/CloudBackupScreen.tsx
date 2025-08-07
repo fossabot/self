@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import { StaticScreenProps, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo, useState } from 'react';
 import { YStack } from 'tamagui';
 
@@ -14,13 +13,16 @@ import { BackupEvents } from '../../consts/analytics';
 import { useModal } from '../../hooks/useModal';
 import Cloud from '../../images/icons/logo_cloud_backup.svg';
 import { ExpandableBottomLayout } from '../../layouts/ExpandableBottomLayout';
-import { RootStackParamList } from '../../navigation';
+import type { RootStackParamList } from '../../navigation';
 import { useAuth } from '../../providers/authProvider';
 import { useSettingStore } from '../../stores/settingStore';
 import analytics from '../../utils/analytics';
 import { STORAGE_NAME, useBackupMnemonic } from '../../utils/cloudBackup';
 import { black, white } from '../../utils/colors';
 import { buttonTap, confirmTap } from '../../utils/haptic';
+
+import type { StaticScreenProps } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
 const { trackEvent } = analytics();
 
@@ -110,7 +112,7 @@ const CloudBackupScreen: React.FC<CloudBackupScreenProps> = ({
         flexGrow={1}
         backgroundColor={white}
       >
-        <YStack alignItems="center" gap="$2.5" pb="$2.5">
+        <YStack alignItems="center" gap="$2.5" paddingBottom="$2.5">
           <Title>
             {cloudBackupEnabled
               ? `${STORAGE_NAME} is enabled`
@@ -134,7 +136,7 @@ const CloudBackupScreen: React.FC<CloudBackupScreenProps> = ({
             )}
           </Caption>
 
-          <YStack gap="$2.5" width="100%" pt="$6">
+          <YStack gap="$2.5" width="100%" paddingTop="$6">
             {cloudBackupEnabled ? (
               <SecondaryButton
                 onPress={disableCloudBackups}

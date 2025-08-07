@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import { useFocusEffect } from '@react-navigation/native';
-import { PassportMetadata } from '@selfxyz/common';
 import React, { useCallback, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScrollView, Separator, XStack, YStack } from 'tamagui';
+
+import type { PassportMetadata } from '@selfxyz/common/types';
 
 import { Caption } from '../../components/typography/Caption';
 import { DocumentEvents } from '../../consts/analytics';
@@ -12,6 +12,8 @@ import { usePassport } from '../../providers/passportDataProvider';
 import analytics from '../../utils/analytics';
 import { black, slate200, white } from '../../utils/colors';
 import { extraYPadding } from '../../utils/constants';
+
+import { useFocusEffect } from '@react-navigation/native';
 
 const { trackEvent } = analytics();
 
@@ -48,7 +50,7 @@ const InfoRow: React.FC<{
   value: string | number;
 }> = ({ label, value }) => (
   <YStack>
-    <XStack py="$4" justifyContent="space-between">
+    <XStack paddingVertical="$4" justifyContent="space-between">
       <Caption size="large">{label}</Caption>
       <Caption color={black} size="large">
         {value}
@@ -88,13 +90,13 @@ const PassportDataInfoScreen: React.FC<PassportDataInfoScreenProps> = ({}) => {
 
   return (
     <YStack
-      f={1}
+      flex={1}
       gap="$2"
-      jc="flex-start"
+      justifyContent="flex-start"
       paddingBottom={bottom + extraYPadding}
       backgroundColor={white}
     >
-      <ScrollView backgroundColor={white} px="$4">
+      <ScrollView backgroundColor={white} paddingHorizontal="$4">
         {Object.entries(dataKeysToLabels).map(([key, label]) => (
           <InfoRow
             key={key}

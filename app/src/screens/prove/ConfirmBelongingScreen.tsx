@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import { StaticScreenProps, usePreventRemove } from '@react-navigation/native';
 import LottieView from 'lottie-react-native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
@@ -22,6 +21,9 @@ import {
 import { useProvingStore } from '../../utils/proving/provingMachine';
 import { styles } from './ProofRequestStatusScreen';
 
+import type { StaticScreenProps } from '@react-navigation/native';
+import { usePreventRemove } from '@react-navigation/native';
+
 type ConfirmBelongingScreenProps = StaticScreenProps<{}>;
 
 const { trackEvent } = analytics();
@@ -30,15 +32,17 @@ const ConfirmBelongingScreen: React.FC<ConfirmBelongingScreenProps> = ({}) => {
   const navigate = useHapticNavigation('LoadingScreen', {
     params: {},
   });
-  const provingStore = useProvingStore();
   const [_requestingPermission, setRequestingPermission] = useState(false);
   const currentState = useProvingStore(state => state.currentState);
+  const init = useProvingStore(state => state.init);
+  const setFcmToken = useProvingStore(state => state.setFcmToken);
+  const setUserConfirmed = useProvingStore(state => state.setUserConfirmed);
   const isReadyToProve = currentState === 'ready_to_prove';
 
   useEffect(() => {
     notificationSuccess();
-    provingStore.init('dsc');
-  }, []);
+    init('dsc');
+  }, [init]);
 
   const onOkPress = async () => {
     try {
@@ -50,14 +54,14 @@ const ConfirmBelongingScreen: React.FC<ConfirmBelongingScreenProps> = ({}) => {
       if (permissionGranted) {
         const token = await getFCMToken();
         if (token) {
-          provingStore.setFcmToken(token);
+          setFcmToken(token);
           trackEvent(ProofEvents.FCM_TOKEN_STORED);
           console.log('FCM token stored in proving store');
         }
       }
 
       // Mark as user confirmed - proving will start automatically when ready
-      provingStore.setUserConfirmed();
+      setUserConfirmed();
 
       // Navigate to loading screen
       navigate();

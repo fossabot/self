@@ -1,0 +1,53 @@
+name: Mobile Bundle Analysis
+
+env:
+  NODE_VERSION: 18
+  RUBY_VERSION: 3.2
+  JAVA_VERSION: 17
+  WORKSPACE: ${{ github.workspace }}
+  APP_PATH: ${{ github.workspace }}/app
+
+on:
+  pull_request:
+    paths:
+      - "app/**"
+      - ".github/workflows/mobile-bundle-analysis.yml"
+      - ".github/actions/**"
+  workflow_dispatch:
+
+jobs:
+  analyze-android:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Mobile Dependencies
+        uses: ./.github/actions/mobile-setup
+        with:
+          app_path: ${{ env.APP_PATH }}
+          node_version: ${{ env.NODE_VERSION }}
+          ruby_version: ${{ env.RUBY_VERSION }}
+          workspace: ${{ env.WORKSPACE }}
+      - name: Build dependencies
+        shell: bash
+        run: yarn workspace @selfxyz/common build
+      - name: Run Android analysis
+        run: yarn analyze:bundle:android
+        working-directory: ./app
+
+  analyze-ios:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Mobile Dependencies
+        uses: ./.github/actions/mobile-setup
+        with:
+          app_path: ${{ env.APP_PATH }}
+          node_version: ${{ env.NODE_VERSION }}
+          ruby_version: ${{ env.RUBY_VERSION }}
+          workspace: ${{ env.WORKSPACE }}
+      - name: Build dependencies
+        shell: bash
+        run: yarn workspace @selfxyz/common build
+      - name: Run iOS analysis
+        run: yarn analyze:bundle:ios
+        working-directory: ./app
