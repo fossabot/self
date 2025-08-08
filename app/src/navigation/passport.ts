@@ -24,6 +24,9 @@ const UnsupportedPassportScreen = lazy(
 const NFCMethodSelectionScreen = lazy(
   () => import('../screens/passport/NFCMethodSelectionScreen'),
 );
+const PassportLivenessCheckScreen = lazy(
+  () => import('../screens/passport/PassportLivenessCheckScreen'),
+);
 
 const passportScreens = {
   PassportCamera: {
@@ -77,6 +80,13 @@ const passportScreens = {
   },
   PassportNFCMethodSelection: {
     screen: NFCMethodSelectionScreen,
+    options: {
+      headerShown: false,
+      animation: 'slide_from_bottom',
+    } as NativeStackNavigationOptions,
+  },
+  PassportLivenessCheck: {
+    screen: PassportLivenessCheckScreen,
     options: {
       headerShown: false,
       animation: 'slide_from_bottom',

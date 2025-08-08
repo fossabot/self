@@ -121,6 +121,7 @@ const handleResponseIOS = (response: any) => {
     documentType: document_type,
     mock: false,
     documentCategory: document_type,
+    photo: passportPhoto,
   } as PassportData;
 };
 
@@ -129,7 +130,7 @@ const handleResponseAndroid = (response: any): PassportData => {
     mrz,
     eContent,
     encryptedDigest,
-    _photo,
+    photo,
     _digestAlgorithm,
     _signerInfoDigestAlgorithm,
     _digestEncryptionAlgorithm,
@@ -169,5 +170,6 @@ const handleResponseAndroid = (response: any): PassportData => {
     documentType: document_type,
     documentCategory: document_type,
     mock: false,
+    photo,
   };
 };

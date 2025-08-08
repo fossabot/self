@@ -237,7 +237,9 @@ const PassportNFCScanScreen: React.FC<PassportNFCScanScreenProps> = ({}) => {
           await storePassportData(parsedPassportData);
           // Feels better somehow
           await new Promise(resolve => setTimeout(resolve, 1000));
-          navigation.navigate('ConfirmBelongingScreen', {});
+          navigation.navigate('PassportLivenessCheck', {
+            passportPhoto: passportData.photo || '',
+          } as any);
         } catch (e: any) {
           console.error('Passport Parsed Failed:', e);
           trackEvent(PassportEvents.PASSPORT_PARSE_FAILED, {

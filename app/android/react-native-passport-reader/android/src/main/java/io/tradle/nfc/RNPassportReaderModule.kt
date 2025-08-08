@@ -400,9 +400,9 @@ class RNPassportReaderModule(private val reactContext: ReactApplicationContext) 
                 val dg1In = service.getInputStream(PassportService.EF_DG1)
                 dg1File = DG1File(dg1In)
                 eventMessageEmitter(Messages.READING_DG1_SUCCEEDED)
-                // eventMessageEmitter("Reading DG2.....")
-                // val dg2In = service.getInputStream(PassportService.EF_DG2)
-                // dg2File = DG2File(dg2In)
+                eventMessageEmitter("Reading DG2.....")
+                val dg2In = service.getInputStream(PassportService.EF_DG2)
+                dg2File = DG2File(dg2In)
                 eventMessageEmitter(Messages.READING_SOD)
                 val sodIn = service.getInputStream(PassportService.EF_SOD)
                 sodFile = SODFile(sodIn)
@@ -443,20 +443,20 @@ class RNPassportReaderModule(private val reactContext: ReactApplicationContext) 
                 // sendDataToJS(PassportData(dg1File, dg2File, sodFile))
                 // Log.d(TAG, "============DATA SENT TO JS=============")
 
-                // val allFaceImageInfo: MutableList<FaceImageInfo> = ArrayList()
-                // dg2File.faceInfos.forEach {
-                //     allFaceImageInfo.addAll(it.faceImageInfos)
-                // }
-                // if (allFaceImageInfo.isNotEmpty()) {
-                //     val faceImageInfo = allFaceImageInfo.first()
-                //     val imageLength = faceImageInfo.imageLength
-                //     val dataInputStream = DataInputStream(faceImageInfo.imageInputStream)
-                //     val buffer = ByteArray(imageLength)
-                //     dataInputStream.readFully(buffer, 0, imageLength)
-                //     val inputStream: InputStream = ByteArrayInputStream(buffer, 0, imageLength)
-                //     bitmap = decodeImage(reactContext, faceImageInfo.mimeType, inputStream)
-                //     imageBase64 = Base64.encodeToString(buffer, Base64.DEFAULT)
-                // }
+                val allFaceImageInfo: MutableList<FaceImageInfo> = ArrayList()
+                dg2File.faceInfos.forEach {
+                    allFaceImageInfo.addAll(it.faceImageInfos)
+                }
+                if (allFaceImageInfo.isNotEmpty()) {
+                    val faceImageInfo = allFaceImageInfo.first()
+                    val imageLength = faceImageInfo.imageLength
+                    val dataInputStream = DataInputStream(faceImageInfo.imageInputStream)
+                    val buffer = ByteArray(imageLength)
+                    dataInputStream.readFully(buffer, 0, imageLength)
+                    val inputStream: InputStream = ByteArrayInputStream(buffer, 0, imageLength)
+                    bitmap = decodeImage(reactContext, faceImageInfo.mimeType, inputStream)
+                    imageBase64 = Base64.encodeToString(buffer, Base64.DEFAULT)
+                }
             } catch (e: Exception) {
                 eventMessageEmitter(Messages.RESET)
                 return e
@@ -697,14 +697,10 @@ class RNPassportReaderModule(private val reactContext: ReactApplicationContext) 
             //   Log.d(TAG, "signedData.signerInfos: ${gson.toJson(signedData.signerInfos)}")
             //   Log.d(TAG, "signedData.certificates: ${gson.toJson(signedData.certificates)}")
             
-            // var quality = 100
-            // val base64 = bitmap?.let { toBase64(it, quality) }
-            // val photo = Arguments.createMap()
-            // photo.putString("base64", base64 ?: "")
-            // photo.putInt("width", bitmap?.width ?: 0)
-            // photo.putInt("height", bitmap?.height ?: 0)
-            // passport.putMap("photo", photo)
-            // passport.putString("dg2File", gson.toJson(dg2File))
+            var quality = 100
+            val base64 = bitmap?.let { toBase64(it, quality) }
+            passport.putString("photo", base64 ?: "")
+            passport.putString("dg2File", gson.toJson(dg2File))
             
             eventMessageEmitter(Messages.COMPLETED)
             scanPromise?.resolve(passport)

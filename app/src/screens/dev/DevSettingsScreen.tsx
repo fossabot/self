@@ -60,6 +60,7 @@ const items = [
   'PassportOnboarding',
   'PassportCamera',
   'PassportNFCScan',
+  'PassportLivenessCheck',
   'PassportDataInfo',
   'LoadingScreen',
   'AccountVerifiedSuccess',

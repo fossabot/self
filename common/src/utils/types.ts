@@ -6,6 +6,7 @@ export type PassportData = {
   dg1Hash?: number[];
   dg2Hash?: number[];
   dgPresents?: any[];
+  photo?: string;
   dsc: string;
   eContent: number[];
   signedAttr: number[];
