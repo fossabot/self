@@ -4121,6 +4121,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@regulaforensics/face-core-match@npm:^7.1.203":
+  version: 7.1.203
+  resolution: "@regulaforensics/face-core-match@npm:7.1.203"
+  checksum: 10c0/6186817d33971abf4b95191f610bdd7ce7141fb5e12489607d26e28d36034f67f4a8728f817dab3b91228244c895152166af7c767ec240dfc0935dd5a8927c4f
+  languageName: node
+  linkType: hard
+
+"@regulaforensics/face-sdk@npm:^7.1.378":
+  version: 7.1.378
+  resolution: "@regulaforensics/face-sdk@npm:7.1.378"
+  checksum: 10c0/e87ba7929afd5cbf8de6a88e3759c54534ad2748de0c6c3697eb6d16714ced9d56d0c2de799c9d852ea3d39f181e4f747d0aceb9d31cd4cc9ffa1ef87fb87da0
+  languageName: node
+  linkType: hard
+
 "@robinbobin/mimetype-constants@npm:^2.0.1":
   version: 2.0.1
   resolution: "@robinbobin/mimetype-constants@npm:2.0.1"
@@ -4627,6 +4641,8 @@ __metadata:
     "@react-native/typescript-config": "npm:0.75.4"
     "@react-navigation/native": "npm:^7.0.14"
     "@react-navigation/native-stack": "npm:^7.2.0"
+    "@regulaforensics/face-core-match": "npm:^7.1.203"
+    "@regulaforensics/face-sdk": "npm:^7.1.378"
     "@robinbobin/react-native-google-drive-api-wrapper": "npm:^2.2.3"
     "@segment/analytics-react-native": "npm:^2.21.0"
     "@segment/sovran-react-native": "npm:^1.1.3"

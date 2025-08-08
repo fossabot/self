@@ -55,10 +55,12 @@ const PassportLivenessCheckScreen: React.FC<
 
   const [isLoading, setIsLoading] = useState(false);
 
-  if (!passportPhoto || passportPhoto === '') {
-    console.warn('Passport photo not available, Skipping liveness check');
-    navigation.navigate('ConfirmBelongingScreen', {});
-  }
+  useEffect(() => {
+    if (!passportPhoto || passportPhoto === '') {
+      console.warn('Passport photo not available, Skipping liveness check');
+      // navigation.navigate('ConfirmBelongingScreen', {});
+    }
+  }, [passportPhoto, navigation]);
 
   useEffect(() => {
     async function init() {
@@ -112,6 +114,8 @@ const PassportLivenessCheckScreen: React.FC<
           matchFacesResponse.results[0].similarity > 0.8
         ) {
           feedbackSuccess();
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          navigation.navigate('ConfirmBelongingScreen', {});
         } else {
           console.warn('Face matching failed - similarity too low');
         }
@@ -120,7 +124,6 @@ const PassportLivenessCheckScreen: React.FC<
       console.error('Face capture error:', error);
     } finally {
       setIsLoading(false);
-      navigation.navigate('ConfirmBelongingScreen', {});
     }
   };
 
