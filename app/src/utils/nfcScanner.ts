@@ -1,11 +1,28 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { ENABLE_DEBUG_LOGS, MIXPANEL_NFC_PROJECT_TOKEN } from '@env';
-import { PassportData } from '@selfxyz/common';
 import { Buffer } from 'buffer';
 import { NativeModules, Platform } from 'react-native';
 import PassportReader from 'react-native-passport-reader';
+
+import type { PassportData } from '@selfxyz/common/types';
+
+import { ENABLE_DEBUG_LOGS, MIXPANEL_NFC_PROJECT_TOKEN } from '@env';
+
+interface AndroidScanResponse {
+  mrz: string;
+  eContent: string;
+  encryptedDigest: string;
+  _photo: string;
+  _digestAlgorithm: string;
+  _signerInfoDigestAlgorithm: string;
+  _digestEncryptionAlgorithm: string;
+  _LDSVersion: string;
+  _unicodeVersion: string;
+  encapContent: string;
+  documentSigningCertificate: string;
+  dataGroupHashes: string;
+}
 
 interface Inputs {
   passportNumber: string;
@@ -19,21 +36,10 @@ interface Inputs {
   usePacePolling?: boolean;
 }
 
-export const scan = async (inputs: Inputs) => {
-  if (MIXPANEL_NFC_PROJECT_TOKEN) {
-    if (Platform.OS === 'ios') {
-      const enableDebugLogs = JSON.parse(String(ENABLE_DEBUG_LOGS));
-      NativeModules.PassportReader.configure(
-        MIXPANEL_NFC_PROJECT_TOKEN,
-        enableDebugLogs,
-      );
-    } else {
-    }
-  }
-
+export const parseScanResponse = (response: unknown) => {
   return Platform.OS === 'android'
-    ? await scanAndroid(inputs)
-    : await scanIOS(inputs);
+    ? handleResponseAndroid(response as AndroidScanResponse)
+    : handleResponseIOS(response);
 };
 
 const scanAndroid = async (inputs: Inputs) => {
@@ -61,14 +67,25 @@ const scanIOS = async (inputs: Inputs) => {
   );
 };
 
-export const parseScanResponse = (response: any) => {
+export const scan = async (inputs: Inputs) => {
+  if (MIXPANEL_NFC_PROJECT_TOKEN) {
+    if (Platform.OS === 'ios') {
+      const enableDebugLogs = JSON.parse(String(ENABLE_DEBUG_LOGS));
+      NativeModules.PassportReader.configure(
+        MIXPANEL_NFC_PROJECT_TOKEN,
+        enableDebugLogs,
+      );
+    } else {
+    }
+  }
+
   return Platform.OS === 'android'
-    ? handleResponseAndroid(response)
-    : handleResponseIOS(response);
+    ? await scanAndroid(inputs)
+    : await scanIOS(inputs);
 };
 
-const handleResponseIOS = (response: any) => {
-  const parsed = JSON.parse(response);
+const handleResponseIOS = (response: unknown) => {
+  const parsed = JSON.parse(String(response));
   const dgHashesObj = JSON.parse(parsed?.dataGroupHashes);
   const dg1HashString = dgHashesObj?.DG1?.sodHash;
   const dg1Hash = Array.from(Buffer.from(dg1HashString, 'hex'));
@@ -125,7 +142,7 @@ const handleResponseIOS = (response: any) => {
   } as PassportData;
 };
 
-const handleResponseAndroid = (response: any): PassportData => {
+const handleResponseAndroid = (response: AndroidScanResponse): PassportData => {
   const {
     mrz,
     eContent,

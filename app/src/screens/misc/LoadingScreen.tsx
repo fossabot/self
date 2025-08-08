@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import { StaticScreenProps, useIsFocused } from '@react-navigation/native';
-import { PassportData } from '@selfxyz/common';
 import LottieView from 'lottie-react-native';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, YStack } from 'tamagui';
+
+import type { PassportData } from '@selfxyz/common/types';
 
 import failAnimation from '../../assets/animations/loading/fail.json';
 import proveLoadingAnimation from '../../assets/animations/loading/prove.json';
@@ -19,10 +19,11 @@ import { advercase, dinot } from '../../utils/fonts';
 import { loadingScreenProgress } from '../../utils/haptic';
 import { setupNotifications } from '../../utils/notifications/notificationService';
 import { getLoadingScreenText } from '../../utils/proving/loadingScreenStateText';
-import {
-  ProvingStateType,
-  useProvingStore,
-} from '../../utils/proving/provingMachine';
+import type { ProvingStateType } from '../../utils/proving/provingMachine';
+import { useProvingStore } from '../../utils/proving/provingMachine';
+
+import type { StaticScreenProps } from '@react-navigation/native';
+import { useIsFocused } from '@react-navigation/native';
 
 type LoadingScreenProps = StaticScreenProps<{}>;
 
@@ -38,9 +39,9 @@ const terminalStates: ProvingStateType[] = [
 
 const LoadingScreen: React.FC<LoadingScreenProps> = ({}) => {
   // Animation states
-  const [animationSource, setAnimationSource] = useState<any>(
-    proveLoadingAnimation,
-  );
+  const [animationSource, setAnimationSource] = useState<
+    LottieView['props']['source']
+  >(proveLoadingAnimation);
 
   // Passport data state
   const [passportData, setPassportData] = useState<PassportData | null>(null);
@@ -82,7 +83,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({}) => {
             const { passportData: _passportData } = JSON.parse(result);
             setPassportData(_passportData);
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error('Error loading passport data:', error);
         }
       }
@@ -109,9 +110,6 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({}) => {
       loadingScreenProgress(false);
       return;
     }
-
-    console.log('[LoadingScreen] Current proving state:', currentState);
-    console.log('[LoadingScreen] FCM token available:', !!fcmToken);
 
     // Update UI if passport data is available
     if (passportData?.passportMetadata) {

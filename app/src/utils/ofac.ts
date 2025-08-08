@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import { TREE_URL, TREE_URL_STAGING } from '@selfxyz/common';
-
-export type OfacVariant = 'passport' | 'id_card';
+import { TREE_URL, TREE_URL_STAGING } from '@selfxyz/common/constants';
 
 export interface OfacTrees {
   passportNoAndNationality: any;
   nameAndDob: any;
   nameAndYob: any;
 }
+
+export type OfacVariant = 'passport' | 'id_card';
 
 // Generic helper to fetch a single OFAC tree and validate the response shape.
 const fetchTree = async (url: string): Promise<any> => {

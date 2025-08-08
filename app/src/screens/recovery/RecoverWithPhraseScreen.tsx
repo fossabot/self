@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import Clipboard from '@react-native-clipboard/clipboard';
-import { useNavigation } from '@react-navigation/native';
 import { ethers } from 'ethers';
 import React, { useCallback, useState } from 'react';
 import { Keyboard, StyleSheet } from 'react-native';
@@ -27,6 +25,9 @@ import {
 } from '../../utils/colors';
 import { isUserRegisteredWithAlternativeCSCA } from '../../utils/proving/validateDocument';
 
+import Clipboard from '@react-native-clipboard/clipboard';
+import { useNavigation } from '@react-navigation/native';
+
 interface RecoverWithPhraseScreenProps {}
 
 const RecoverWithPhraseScreen: React.FC<
@@ -49,7 +50,6 @@ const RecoverWithPhraseScreen: React.FC<
     setRestoring(true);
     const slimMnemonic = mnemonic?.trim();
     if (!slimMnemonic || !ethers.Mnemonic.isValidMnemonic(slimMnemonic)) {
-      console.log('Invalid mnemonic');
       setRestoring(false);
       return;
     }
@@ -68,9 +68,8 @@ const RecoverWithPhraseScreen: React.FC<
       passportData,
       secret as string,
     );
-    console.log('User is registered:', isRegistered);
     if (!isRegistered) {
-      console.log(
+      console.warn(
         'Secret provided did not match a registered passport. Please try again.',
       );
       reStorePassportDataWithRightCSCA(passportData, csca as string);

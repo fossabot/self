@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import { useIsFocused } from '@react-navigation/native';
 import LottieView from 'lottie-react-native';
 import React, { useEffect, useState } from 'react';
-import { Linking, StatusBar, StyleSheet, View } from 'react-native';
+import { Linking, StyleSheet, View } from 'react-native';
+import { SystemBars } from 'react-native-edge-to-edge';
 import { ScrollView, Spinner } from 'tamagui';
 
 import loadingAnimation from '../../assets/animations/loading/misc.json';
@@ -28,6 +28,8 @@ import {
   notificationSuccess,
 } from '../../utils/haptic';
 import { useProvingStore } from '../../utils/proving/provingMachine';
+
+import { useIsFocused } from '@react-navigation/native';
 
 const { trackEvent } = analytics();
 
@@ -63,7 +65,6 @@ const SuccessScreen: React.FC = () => {
   }
 
   function cancelCountdown() {
-    console.log('[ProofRequestStatusScreen] Cancelling countdown');
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
@@ -73,10 +74,6 @@ const SuccessScreen: React.FC = () => {
 
   useEffect(() => {
     if (isFocused) {
-      console.log(
-        '[ProofRequestStatusScreen] State update while focused:',
-        currentState,
-      );
     }
     if (currentState === 'completed') {
       notificationSuccess();
@@ -93,10 +90,6 @@ const SuccessScreen: React.FC = () => {
             new URL(selfApp.deeplinkCallback);
             setCountdown(5);
             setCountdownStarted(true);
-            console.log(
-              '[ProofRequestStatusScreen] Countdown started:',
-              countdown,
-            );
           } catch (error) {
             console.warn(
               'Invalid deep link URL provided:',
@@ -169,7 +162,7 @@ const SuccessScreen: React.FC = () => {
 
   return (
     <ExpandableBottomLayout.Layout backgroundColor={white}>
-      <StatusBar barStyle="dark-content" backgroundColor={white} />
+      <SystemBars style="dark" />
       <ExpandableBottomLayout.TopSection
         roundTop
         marginTop={20}

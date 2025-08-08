@@ -1,4 +1,4 @@
-name: Self Circuits CI/CD
+name: Circuits CI
 on:
   push:
     branches:
@@ -6,16 +6,16 @@ on:
       - main
       - openpassportv2
     paths:
-      - 'circuits/**'
-      - 'common/**'
+      - "circuits/**"
+      - "common/**"
   pull_request:
     branches:
       - dev
       - main
       - openpassportv2
     paths:
-      - 'circuits/**'
-      - 'common/**'
+      - "circuits/**"
+      - "common/**"
 jobs:
   run_circuit_tests:
     if: github.event.pull_request.draft == false
@@ -35,10 +35,10 @@ jobs:
             nasm \
             nlohmann-json3-dev
 
-      - name: Set Node.js 18.x
+      - name: Set Node.js 22.x
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 

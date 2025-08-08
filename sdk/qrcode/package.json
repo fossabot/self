@@ -7,6 +7,13 @@
   },
   "license": "MIT",
   "author": "turnoffthiscomputer",
+  "sideEffects": [
+    "**/websocket.js",
+    "**/websocket.cjs",
+    "**/SelfQRcode.js",
+    "**/SelfQRcode.cjs",
+    "**/animations/*.json"
+  ],
   "type": "module",
   "exports": {
     ".": {
@@ -68,6 +75,9 @@
     "ts-node": "^10.9.2",
     "tsup": "^8.5.0",
     "typescript": "^5.4.5"
+  },
+  "engines": {
+    "node": ">=22 <23"
   },
   "peerDependencies": {
     "lottie-react": "^2.4.0",

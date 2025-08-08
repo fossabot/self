@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import React, { lazy } from 'react';
-import { StatusBar } from 'react-native';
+import { SystemBars } from 'react-native-edge-to-edge';
 
 // Important: SplashScreen is imported directly and not lazy-loaded.
 // This is because it's used as a fallback for the Suspense boundary in the root navigator,
 // ensuring it's immediately available at startup.
 import SplashScreen from '../screens/misc/SplashScreen';
 import { black } from '../utils/colors';
+
+import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 
 const LaunchScreen = lazy(() => import('../screens/misc/LaunchScreen'));
 const LoadingScreen = lazy(() => import('../screens/misc/LoadingScreen'));
@@ -18,9 +19,7 @@ const miscScreens = {
   Launch: {
     screen: LaunchScreen,
     options: {
-      header: () => (
-        <StatusBar barStyle="light-content" backgroundColor={black} />
-      ),
+      header: () => <SystemBars style="light" />,
       navigationBarColor: black,
     },
   },
@@ -43,9 +42,7 @@ const miscScreens = {
   Splash: {
     screen: SplashScreen,
     options: {
-      header: () => (
-        <StatusBar barStyle="light-content" backgroundColor={black} />
-      ),
+      header: () => <SystemBars style="light" />,
       navigationBarColor: black,
     },
   },

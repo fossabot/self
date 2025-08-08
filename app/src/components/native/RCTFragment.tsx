@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
 import React, { useEffect, useRef } from 'react';
-import {
-  findNodeHandle,
+import type {
   NativeSyntheticEvent,
   requireNativeComponent,
-  UIManager,
 } from 'react-native';
+import { findNodeHandle, UIManager } from 'react-native';
+
+export interface FragmentProps {
+  isMounted: boolean;
+}
 
 export interface RCTFragmentViewManagerProps {
   RCTFragmentViewManager: ReturnType<typeof requireNativeComponent>;
@@ -25,10 +28,6 @@ export interface RCTFragmentViewManagerProps {
   ) => void;
 }
 
-export interface FragmentProps {
-  isMounted: boolean;
-}
-
 function dispatchCommand(
   fragmentComponentName: string,
   viewId: number,
@@ -45,7 +44,7 @@ function dispatchCommand(
   } catch (e) {
     // Error creatingthe fragment
     // TODO: assert this only happens in dev mode when the fragment is already mounted
-    console.log(e);
+    console.warn(e);
     if (command === 'create') {
       dispatchCommand(fragmentComponentName, viewId, 'destroy');
     }

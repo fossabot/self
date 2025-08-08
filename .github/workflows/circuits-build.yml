@@ -1,4 +1,4 @@
-name: OpenPassport CI/CD
+name: Circuits Build
 on:
   push:
     branches:
@@ -16,7 +16,7 @@ on:
 
 jobs:
   build:
-    runs-on: ['self-hosted', 'selfxyz-org', 'ubuntu-22-04', '128ram']
+    runs-on: ["self-hosted", "selfxyz-org", "ubuntu-22-04", "128ram"]
 
     steps:
       - name: Checkout Repository
@@ -36,7 +36,7 @@ jobs:
       # TODO(): Use caching
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install dependencies
         run: |

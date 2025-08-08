@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import { useNavigation } from '@react-navigation/native';
 import LottieView from 'lottie-react-native';
 import React, { useEffect, useRef } from 'react';
-import { StatusBar, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { SystemBars } from 'react-native-edge-to-edge';
 
 import passportOnboardingAnimation from '../../assets/animations/passport_onboarding.json';
 import { PrimaryButton } from '../../components/buttons/PrimaryButton';
@@ -18,6 +18,8 @@ import useHapticNavigation from '../../hooks/useHapticNavigation';
 import { ExpandableBottomLayout } from '../../layouts/ExpandableBottomLayout';
 import { black, slate100, white } from '../../utils/colors';
 import { impactLight } from '../../utils/haptic';
+
+import { useNavigation } from '@react-navigation/native';
 
 interface PassportOnboardingScreenProps {}
 
@@ -39,7 +41,7 @@ const PassportOnboardingScreen: React.FC<
 
   return (
     <ExpandableBottomLayout.Layout backgroundColor={black}>
-      <StatusBar barStyle="light-content" backgroundColor={black} />
+      <SystemBars style="light" />
       <ExpandableBottomLayout.TopSection roundTop backgroundColor={black}>
         <LottieView
           ref={animationRef}
