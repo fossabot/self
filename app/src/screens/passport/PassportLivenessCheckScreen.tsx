@@ -1,14 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
 
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import {
-  FaceSDK,
-  ImageType,
-  LivenessStatus,
-  MatchFacesImage,
-  MatchFacesRequest,
-  ProcessingMode,
-} from '@regulaforensics/face-sdk';
 import LottieView from 'lottie-react-native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
@@ -27,6 +18,17 @@ import { ExpandableBottomLayout } from '../../layouts/ExpandableBottomLayout';
 import { black, white } from '../../utils/colors';
 import { feedbackSuccess } from '../../utils/haptic';
 import { hasAnyValidRegisteredDocument } from '../../utils/proving';
+
+import type { RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  FaceSDK,
+  ImageType,
+  LivenessStatus,
+  MatchFacesImage,
+  MatchFacesRequest,
+  ProcessingMode,
+} from '@regulaforensics/face-sdk';
 
 type PassportLivenessCheckRouteProp = RouteProp<
   {
