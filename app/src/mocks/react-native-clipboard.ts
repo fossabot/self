@@ -17,6 +17,8 @@ export default {
   setString(content: string): void {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(content);
+
+      return;
     }
 
     console.error('Clipboard is not supported in this browser');
