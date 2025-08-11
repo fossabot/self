@@ -40,6 +40,10 @@ export default defineConfig({
         __dirname,
         'src/mocks/react-native-gesture-handler.ts',
       ),
+      '@react-native-clipboard/clipboard': path.resolve(
+        __dirname,
+        'src/mocks/react-native-clipboard.ts',
+      ),
     },
   },
   plugins: [

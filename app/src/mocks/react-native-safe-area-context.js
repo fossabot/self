@@ -2,7 +2,22 @@
 
 import { createContext, createElement, Fragment } from 'react';
 
-export const SafeAreaContext = createContext(initialWindowMetrics);
+const safeAreaInitialWindowMetrics = {
+  insets: {
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  frame: {
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+  },
+};
+
+export const SafeAreaContext = createContext(safeAreaInitialWindowMetrics);
 
 export const SafeAreaInsetsContext = createContext({
   top: 0,
@@ -20,20 +35,7 @@ export function SafeAreaView(props) {
   return createElement('div', props, props.children);
 }
 
-export const initialWindowMetrics = {
-  insets: {
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  frame: {
-    x: 0,
-    y: 0,
-    width: 0,
-    height: 0,
-  },
-};
+export const initialWindowMetrics = safeAreaInitialWindowMetrics;
 
 export function useSafeAreaFrame() {
   return { x: 0, y: 0, width: 0, height: 0 };
