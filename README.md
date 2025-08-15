@@ -71,6 +71,8 @@ Everything we write is MIT licensed. Circom and circomlib are GPL tho.
 
 We are actively looking for contributors. Please check the [open issues](https://github.com/selfxyz/self/issues) if you don't know were to start! We offer bounties for any significant contribution.
 
+We work from [dev](https://github.com/selfxyz/self/tree/dev) branch so please base your changes on it and open your PRs against it. 
+
 ## Contact us
 
 Contact me [@FlorentTavernier](https://t.me/FlorentTavernier) on telegram for any feedback or questions.
