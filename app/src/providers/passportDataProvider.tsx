@@ -43,7 +43,7 @@ import type { PropsWithChildren } from 'react';
 import React, { createContext, useCallback, useContext, useMemo } from 'react';
 import Keychain from 'react-native-keychain';
 
-import type { DocumentCategory, PassportData } from '@selfxyz/common/types';
+import type { DocumentCategory, PassportData, DocumentMetadata } from '@selfxyz/common/utils/types';
 import type {
   PublicKeyDetailsECDSA,
   PublicKeyDetailsRSA,
@@ -80,15 +80,6 @@ const safeGetAllDocuments = async () => {
     return {};
   }
 };
-
-export interface DocumentMetadata {
-  id: string; // contentHash as ID for deduplication
-  documentType: string; // passport, mock_passport, id_card, etc.
-  documentCategory: DocumentCategory; // passport, id_card, aadhaar
-  data: string; // DG1/MRZ data for passports/IDs, relevant data for aadhaar
-  mock: boolean; // whether this is a mock document
-  isRegistered?: boolean; // whether the document is registered onChain
-}
 
 export interface DocumentCatalog {
   documents: DocumentMetadata[];

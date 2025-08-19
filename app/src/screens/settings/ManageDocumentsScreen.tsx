@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, ScrollView, Spinner, Text, XStack, YStack } from 'tamagui';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { DocumentMetadata } from '@selfxyz/common/utils/types';
 import { Check, Eraser } from '@tamagui/lucide-icons';
 
 import { PrimaryButton } from '@/components/buttons/PrimaryButton';
@@ -15,7 +16,6 @@ import { DocumentEvents } from '@/consts/analytics';
 import type { RootStackParamList } from '@/navigation';
 import {
   type DocumentCatalog,
-  type DocumentMetadata,
   usePassport,
 } from '@/providers/passportDataProvider';
 import analytics from '@/utils/analytics';

@@ -65,3 +65,5 @@ export { reactNativeScannerAdapter } from './adapters/react-native/scanner';
 export { scanQRProof } from './qr';
 // Error handling
 export { webScannerShim } from './adapters/web/shims';
+
+export { SelfMobileSdk } from './entry';
