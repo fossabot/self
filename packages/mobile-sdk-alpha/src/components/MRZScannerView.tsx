@@ -9,17 +9,19 @@ interface SelfMRZScannerViewProps extends ViewProps {
 
 const SelfMRZScannerView = requireNativeComponent<SelfMRZScannerViewProps>('SelfMRZScannerView');
 
+export interface MRZData {
+  documentNumber: string;
+  birthDate: string;
+  expiryDate: string;
+  countryCode: string;
+}
+
 interface MRZScannerViewProps {
   style?: ViewStyle;
   height?: DimensionValue;
   width?: DimensionValue;
   aspectRatio?: number;
-  onMRZDetected?: (data: {
-    documentNumber: string;
-    birthDate: string;
-    expiryDate: string;
-    countryCode: string;
-  }) => void;
+  onMRZDetected?: (data: MRZData) => void;
   onError?: (error: string) => void;
 }
 

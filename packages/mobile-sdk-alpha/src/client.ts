@@ -65,6 +65,8 @@ export function createSelfClient({ config, adapters }: { config: Config; adapter
     }
   }
 
+  // TODO: probably no need to expose this, because there will be a view utilizing native modules
+  // to handle this
   async function scanDocument(opts: ScanOpts & { signal?: AbortSignal }): Promise<ScanResult> {
     return _adapters.scanner.scan(opts);
   }
@@ -73,6 +75,7 @@ export function createSelfClient({ config, adapters }: { config: Config; adapter
     return { ok: false, reason: 'SELF_ERR_VALIDATION_STUB' };
   }
 
+  // TODO: what is the flow here?
   async function checkRegistration(_input: RegistrationInput): Promise<RegistrationStatus> {
     return { registered: false, reason: 'SELF_REG_STATUS_STUB' };
   }
@@ -97,11 +100,16 @@ export function createSelfClient({ config, adapters }: { config: Config; adapter
     };
   }
 
+  async function registerDocument(_input: RegistrationInput): Promise<RegistrationStatus> {
+    return { registered: false, reason: 'SELF_REG_STATUS_STUB' };
+  }
+
   return {
     scanDocument,
     validateDocument,
     checkRegistration,
     generateProof,
+    registerDocument,
     on,
     emit,
   };
