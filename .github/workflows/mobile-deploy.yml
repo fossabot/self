@@ -520,12 +520,17 @@ jobs:
         with:
           app_path: ${{ env.APP_PATH }}
 
-      - name: Commit updated build number
+      - name: Open PR for iOS build number bump
         if: ${{ !env.ACT && success() }}
-        uses: ./.github/actions/push-changes
+        uses: peter-evans/create-pull-request@v6
         with:
-          commit_message: "incrementing ios build number for version ${{ env.VERSION }}"
-          commit_paths: "./app/version.json"
+          title: "chore: bump iOS build for ${{ env.VERSION }}"
+          body: "Automated bump of iOS build number by CI"
+          commit-message: "chore: incrementing ios build number for version ${{ env.VERSION }} [github action]"
+          branch: ci/bump-ios-build-${{ github.run_id }}
+          base: staging
+          add-paths: |
+            app/version.json
 
       - name: Monitor cache usage
         if: always()
@@ -785,12 +790,17 @@ jobs:
         with:
           app_path: ${{ env.APP_PATH }}
 
-      - name: Commit updated build version
+      - name: Open PR for Android build number bump
         if: ${{ !env.ACT && success() }}
-        uses: ./.github/actions/push-changes
+        uses: peter-evans/create-pull-request@v6
         with:
-          commit_message: "incrementing android build version for version ${{ env.VERSION }}"
-          commit_paths: "./app/version.json"
+          title: "chore: bump Android build for ${{ env.VERSION }}"
+          body: "Automated bump of Android build number by CI"
+          commit-message: "chore: incrementing android build version for version ${{ env.VERSION }} [github action]"
+          branch: ci/bump-android-build-${{ github.run_id }}
+          base: staging
+          add-paths: |
+            app/version.json
 
       - name: Monitor cache usage
         if: always()
@@ -882,37 +892,20 @@ jobs:
             echo "ℹ️ Version already up to date or no version field in version.json"
           fi
 
-      - name: Commit and push version files
-        run: |
-          cd ${{ github.workspace }}
-
-          # Configure git
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Check if there are any changes to commit
-          if git diff --quiet app/version.json app/package.json yarn.lock 2>/dev/null; then
-            echo "No changes to version files, skipping commit"
-          else
-            # Stage the changes
-            git add app/version.json app/package.json yarn.lock 2>/dev/null || true
-
-            # Create commit message based on which platforms were deployed
-            COMMIT_MSG="chore: update version files after"
-            if [ "${{ needs.build-ios.result }}" = "success" ] && [ "${{ needs.build-android.result }}" = "success" ]; then
-              COMMIT_MSG="$COMMIT_MSG iOS and Android deployment"
-            elif [ "${{ needs.build-ios.result }}" = "success" ]; then
-              COMMIT_MSG="$COMMIT_MSG iOS deployment"
-            else
-              COMMIT_MSG="$COMMIT_MSG Android deployment"
-            fi
-            COMMIT_MSG="$COMMIT_MSG [skip ci]"
-
-            # Commit and push
-            git commit -m "$COMMIT_MSG"
-            git push
-            echo "✅ Committed version file changes"
-          fi
+      - name: Open PR to update version files
+        uses: peter-evans/create-pull-request@v6
+        with:
+          title: "chore: update version files after deployment"
+          body: |
+            Automated update of version files after successful deployment.
+            Includes updates to `app/version.json`, `app/package.json`, and `yarn.lock`.
+          commit-message: "chore: update version files after deployment [skip ci]"
+          branch: ci/update-version-${{ github.run_id }}
+          base: staging
+          add-paths: |
+            app/version.json
+            app/package.json
+            yarn.lock
 
   # Create git tags after successful deployment
   create-release-tags:
