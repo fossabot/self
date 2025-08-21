@@ -618,6 +618,21 @@ jobs:
             echo "❌ Error: Invalid key password"
             exit 1
           fi
+
+          # Detect keystore type and export for later steps
+          KEYSTORE_TYPE=$(keytool -list -v -keystore "${{ env.APP_PATH }}${{ env.ANDROID_KEYSTORE_PATH }}" -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" 2>/dev/null | awk -F': ' '/Keystore type:/ {print $2; exit}')
+          if [ -z "$KEYSTORE_TYPE" ]; then
+            echo "❌ Error: Unable to determine keystore type"
+            exit 1
+          fi
+          echo "ANDROID_KEYSTORE_TYPE=$KEYSTORE_TYPE" >> "$GITHUB_ENV"
+          echo "Detected keystore type: $KEYSTORE_TYPE"
+
+          # Ensure the alias holds a PrivateKeyEntry (required for signing)
+          if ! keytool -list -v -keystore "${{ env.APP_PATH }}${{ env.ANDROID_KEYSTORE_PATH }}" -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" -alias "${{ secrets.ANDROID_KEY_ALIAS }}" -keypass "${{ secrets.ANDROID_KEY_PASSWORD }}" | grep -q "Entry type: PrivateKeyEntry"; then
+            echo "❌ Error: Alias '${{ secrets.ANDROID_KEY_ALIAS }}' is not a PrivateKeyEntry"
+            exit 1
+          fi
           echo "✅ All Android secrets verified successfully!"
       - name: Read and sanitize Node.js version
         shell: bash
