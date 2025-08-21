@@ -355,8 +355,9 @@ platform :android do
       "ANDROID_KEY_ALIAS",
       "ANDROID_KEY_PASSWORD",
       "ANDROID_PACKAGE_NAME",
-      "ANDROID_PLAY_STORE_JSON_KEY_PATH",
     ]
+    # Only require JSON key path when not running in CI (local development)
+    required_env_vars << "ANDROID_PLAY_STORE_JSON_KEY_PATH" if local_development
 
     Fastlane::Helpers.verify_env_vars(required_env_vars)
 
@@ -375,9 +376,12 @@ platform :android do
     target_platform = options[:track] == "production" ? "Google Play" : "Internal Testing"
     should_upload = Fastlane::Helpers.should_upload_app(target_platform)
 
-    validate_play_store_json_key(
-      json_key: ENV["ANDROID_PLAY_STORE_JSON_KEY_PATH"],
-    )
+    # Validate JSON key only in local development; CI uses Workload Identity Federation (ADC)
+    if local_development
+      validate_play_store_json_key(
+        json_key: ENV["ANDROID_PLAY_STORE_JSON_KEY_PATH"],
+      )
+    end
 
     Fastlane::Helpers.with_retry(max_retries: 3, delay: 10) do
       gradle(
@@ -399,16 +403,19 @@ platform :android do
     else
       if should_upload
         begin
-          upload_to_play_store(
+          upload_options = {
             track: options[:track],
-            json_key: ENV["ANDROID_PLAY_STORE_JSON_KEY_PATH"],
             package_name: ENV["ANDROID_PACKAGE_NAME"],
             skip_upload_changelogs: true,
             skip_upload_images: true,
             skip_upload_screenshots: true,
             track_promote_release_status: "completed",
             aab: android_aab_path,
-          )
+          }
+          # In local development, use the JSON key file; in CI rely on ADC via google-github-actions/auth
+          upload_options[:json_key] = ENV["ANDROID_PLAY_STORE_JSON_KEY_PATH"] if local_development
+
+          upload_to_play_store(upload_options)
         rescue => e
           if e.message.include?("forbidden") || e.message.include?("403") || e.message.include?("insufficientPermissions")
             UI.error("❌ Play Store upload failed: Insufficient permissions")
