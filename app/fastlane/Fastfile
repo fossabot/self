@@ -412,12 +412,11 @@ platform :android do
             track_promote_release_status: "completed",
             aab: android_aab_path,
           }
-          # In local development, use the JSON key file; in CI use ADC credentials
+          # In local development, use the JSON key file; in CI rely on ADC
           if local_development
             upload_options[:json_key] = ENV["ANDROID_PLAY_STORE_JSON_KEY_PATH"]
-          elsif ENV["GOOGLE_APPLICATION_CREDENTIALS"]
-            upload_options[:json_key] = ENV["GOOGLE_APPLICATION_CREDENTIALS"]
           end
+          # In CI, don't set json_key - let supply use ADC automatically
 
           upload_to_play_store(upload_options)
         rescue => e
