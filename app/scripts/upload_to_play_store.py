@@ -25,28 +25,45 @@ def get_credentials():
     """Get credentials using ADC (Workload Identity Federation)"""
     print("🔑 Authenticating using Application Default Credentials...")
     try:
-        # Try direct ADC first (no impersonation)
-        credentials, project = default(scopes=['https://www.googleapis.com/auth/androidpublisher'])
-        print(f"✅ Authenticated successfully. Project: {project}")
-        return credentials
-    except Exception as e:
-        print(f"❌ Direct ADC authentication failed: {e}")
+        import google.auth.external_account
+        import google.oauth2.credentials
 
-        # Fallback: Try to use service account from environment
-        try:
-            creds_file = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
-            if creds_file and os.path.exists(creds_file):
-                print(f"🔄 Trying service account from: {creds_file}")
+        # Force direct credential loading from environment
+        creds_file = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
+        if creds_file and os.path.exists(creds_file):
+            print(f"🔄 Loading WIF credentials directly from: {creds_file}")
+
+            # Read the WIF configuration
+            with open(creds_file, 'r') as f:
+                creds_info = json.load(f)
+
+            # Check if it's an external account (WIF)
+            if creds_info.get('type') == 'external_account':
+                print("🔗 Detected Workload Identity Federation credentials")
+                credentials = google.auth.external_account.Credentials.from_file(
+                    creds_file,
+                    scopes=['https://www.googleapis.com/auth/androidpublisher']
+                )
+                print("✅ WIF credentials loaded successfully")
+                return credentials
+            else:
+                # Regular service account file
                 credentials = service_account.Credentials.from_service_account_file(
                     creds_file,
                     scopes=['https://www.googleapis.com/auth/androidpublisher']
                 )
-                print("✅ Service account authentication successful")
+                print("✅ Service account credentials loaded successfully")
                 return credentials
-        except Exception as e2:
-            print(f"❌ Service account authentication failed: {e2}")
 
-        print(f"❌ All authentication methods failed")
+        # Fallback to default ADC
+        print("🔄 Trying default ADC...")
+        credentials, project = default(scopes=['https://www.googleapis.com/auth/androidpublisher'])
+        print(f"✅ Default ADC successful. Project: {project}")
+        return credentials
+
+    except Exception as e:
+        print(f"❌ Authentication failed: {e}")
+        print(f"❌ Error type: {type(e).__name__}")
         sys.exit(1)
 
 
