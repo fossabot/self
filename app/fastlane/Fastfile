@@ -415,8 +415,24 @@ platform :android do
           # In local development, use the JSON key file; in CI rely on ADC
           if local_development
             upload_options[:json_key] = ENV["ANDROID_PLAY_STORE_JSON_KEY_PATH"]
+          else
+            # In CI, try to use ADC credentials file directly
+            adc_creds_path = ENV["GOOGLE_APPLICATION_CREDENTIALS"]
+            if adc_creds_path && File.exist?(adc_creds_path)
+              UI.message("🔑 Using ADC credentials file: #{adc_creds_path}")
+              begin
+                # Try passing the credentials file content as json_key_data
+                creds_content = File.read(adc_creds_path)
+                upload_options[:json_key_data] = creds_content
+              rescue => e
+                UI.error("Failed to read ADC credentials: #{e.message}")
+                # Fallback: let supply try to use ADC automatically
+                UI.message("🔄 Falling back to automatic ADC detection")
+              end
+            else
+              UI.error("❌ ADC credentials not found at: #{adc_creds_path}")
+            end
           end
-          # In CI, don't set json_key - let supply use ADC automatically
 
           upload_to_play_store(upload_options)
         rescue => e
