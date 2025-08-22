@@ -115,10 +115,12 @@ def upload_to_play_store(aab_path, package_name, track, credentials):
         print("💾 Committing changes...")
         commit_request = service.edits().commit(
             packageName=package_name,
-            editId=edit_id
+            editId=edit_id,
+            changesNotSentForReview=True  # Required for internal testing
         )
         commit_response = commit_request.execute()
         print(f"✅ Upload completed successfully! Edit ID: {commit_response['id']}")
+        print(f"📝 Note: Changes committed but not sent for review (as required for internal testing)")
 
         return True
 
