@@ -297,6 +297,18 @@ platform :android do
     upload_android_build(track: "production")
   end
 
+  desc "Build Android app without uploading"
+  lane :build_only do |options|
+    deployment_track = options[:deployment_track] || "internal"
+    version_bump = options[:version_bump] || "build"
+
+    UI.message("🔨 Building Android app (build only)")
+    UI.message("  Track: #{deployment_track}")
+    UI.message("  Version bump: #{version_bump}")
+
+    upload_android_build(options.merge(skip_upload: true))
+  end
+
   desc "Deploy Android app with automatic version management"
   lane :deploy_auto do |options|
     deployment_track = options[:deployment_track] || "internal"
@@ -338,6 +350,7 @@ platform :android do
 
   private_lane :upload_android_build do |options|
     test_mode = options[:test_mode] == true || options[:test_mode] == "true"
+    skip_upload = options[:skip_upload] == true || options[:skip_upload] == "true"
     if local_development
       if ENV["ANDROID_KEYSTORE_PATH"].nil?
         ENV["ANDROID_KEYSTORE_PATH"] = Fastlane::Helpers.android_create_keystore(android_keystore_path)
@@ -396,8 +409,12 @@ platform :android do
       )
     end
 
-    if test_mode
-      UI.important("🧪 TEST MODE: Skipping Play Store upload")
+    if test_mode || skip_upload
+      if skip_upload
+        UI.important("🔨 BUILD ONLY: Skipping Play Store upload")
+      else
+        UI.important("🧪 TEST MODE: Skipping Play Store upload")
+      end
       UI.success("✅ Build completed successfully!")
       UI.message("📦 AAB path: #{android_aab_path}")
     else

@@ -759,7 +759,13 @@ jobs:
 
 
 
-      - name: Build and upload to Google Play Internal Testing
+      - name: Install Python dependencies for Play Store upload
+        if: inputs.platform != 'ios'
+        run: |
+          python -m pip install --upgrade pip
+          pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
+
+      - name: Build AAB with Fastlane
         if: inputs.platform != 'ios'
         env:
           ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
@@ -769,9 +775,6 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
           NODE_OPTIONS: "--max-old-space-size=8192"
-          SLACK_API_TOKEN: ${{ secrets.SLACK_API_TOKEN }}
-          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
-          SLACK_ANNOUNCE_CHANNEL_NAME: ${{ secrets.SLACK_ANNOUNCE_CHANNEL_NAME }}
         run: |
           cd ${{ env.APP_PATH }}
 
@@ -780,25 +783,34 @@ jobs:
           VERSION_BUMP="${{ inputs.version_bump || 'build' }}"
           TEST_MODE="${{ inputs.test_mode || false }}"
 
-          echo "🤖 Deployment Configuration:"
+          echo "🤖 Build Configuration:"
           echo "  - Track: $DEPLOYMENT_TRACK"
           echo "  - Version Bump: $VERSION_BUMP"
           echo "  - Test Mode: $TEST_MODE"
 
-          if [ "$TEST_MODE" = "true" ]; then
-            echo "🧪 Running in TEST MODE - will skip upload to Play Store"
-            bundle exec fastlane android deploy_auto \
-              deployment_track:$DEPLOYMENT_TRACK \
-              version_bump:$VERSION_BUMP \
-              test_mode:true \
-              --verbose
-          else
-            echo "🚀 Deploying to Google Play Store..."
-            bundle exec fastlane android deploy_auto \
-              deployment_track:$DEPLOYMENT_TRACK \
-              version_bump:$VERSION_BUMP \
-              --verbose
-          fi
+          echo "🔨 Building AAB with Fastlane..."
+          bundle exec fastlane android build_only \
+            deployment_track:$DEPLOYMENT_TRACK \
+            version_bump:$VERSION_BUMP \
+            --verbose
+
+      - name: Upload to Google Play Store using WIF
+        if: inputs.platform != 'ios' && inputs.test_mode != true
+        env:
+          SLACK_API_TOKEN: ${{ secrets.SLACK_API_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+          SLACK_ANNOUNCE_CHANNEL_NAME: ${{ secrets.SLACK_ANNOUNCE_CHANNEL_NAME }}
+        run: |
+          cd ${{ env.APP_PATH }}
+
+          # Determine deployment track
+          DEPLOYMENT_TRACK="${{ inputs.deployment_track || 'internal' }}"
+
+          echo "🚀 Uploading to Google Play Store using Workload Identity Federation..."
+          python scripts/upload_to_play_store.py \
+            --aab "android/app/build/outputs/bundle/release/app-release.aab" \
+            --package-name "${{ secrets.ANDROID_PACKAGE_NAME }}" \
+            --track "$DEPLOYMENT_TRACK"
 
       # Version updates moved to separate job to avoid race conditions
 
