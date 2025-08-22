@@ -25,11 +25,28 @@ def get_credentials():
     """Get credentials using ADC (Workload Identity Federation)"""
     print("🔑 Authenticating using Application Default Credentials...")
     try:
+        # Try direct ADC first (no impersonation)
         credentials, project = default(scopes=['https://www.googleapis.com/auth/androidpublisher'])
         print(f"✅ Authenticated successfully. Project: {project}")
         return credentials
     except Exception as e:
-        print(f"❌ Authentication failed: {e}")
+        print(f"❌ Direct ADC authentication failed: {e}")
+
+        # Fallback: Try to use service account from environment
+        try:
+            creds_file = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
+            if creds_file and os.path.exists(creds_file):
+                print(f"🔄 Trying service account from: {creds_file}")
+                credentials = service_account.Credentials.from_service_account_file(
+                    creds_file,
+                    scopes=['https://www.googleapis.com/auth/androidpublisher']
+                )
+                print("✅ Service account authentication successful")
+                return credentials
+        except Exception as e2:
+            print(f"❌ Service account authentication failed: {e2}")
+
+        print(f"❌ All authentication methods failed")
         sys.exit(1)
 
 
