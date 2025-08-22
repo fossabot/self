@@ -412,8 +412,12 @@ platform :android do
             track_promote_release_status: "completed",
             aab: android_aab_path,
           }
-          # In local development, use the JSON key file; in CI rely on ADC via google-github-actions/auth
-          upload_options[:json_key] = ENV["ANDROID_PLAY_STORE_JSON_KEY_PATH"] if local_development
+          # In local development, use the JSON key file; in CI use ADC credentials
+          if local_development
+            upload_options[:json_key] = ENV["ANDROID_PLAY_STORE_JSON_KEY_PATH"]
+          elsif ENV["GOOGLE_APPLICATION_CREDENTIALS"]
+            upload_options[:json_key] = ENV["GOOGLE_APPLICATION_CREDENTIALS"]
+          end
 
           upload_to_play_store(upload_options)
         rescue => e
