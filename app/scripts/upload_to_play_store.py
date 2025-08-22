@@ -25,45 +25,45 @@ def get_credentials():
     """Get credentials using ADC (Workload Identity Federation)"""
     print("🔑 Authenticating using Application Default Credentials...")
     try:
-        import google.auth.external_account
-        import google.oauth2.credentials
-
-        # Force direct credential loading from environment
-        creds_file = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
-        if creds_file and os.path.exists(creds_file):
-            print(f"🔄 Loading WIF credentials directly from: {creds_file}")
-
-            # Read the WIF configuration
-            with open(creds_file, 'r') as f:
-                creds_info = json.load(f)
-
-            # Check if it's an external account (WIF)
-            if creds_info.get('type') == 'external_account':
-                print("🔗 Detected Workload Identity Federation credentials")
-                credentials = google.auth.external_account.Credentials.from_file(
-                    creds_file,
-                    scopes=['https://www.googleapis.com/auth/androidpublisher']
-                )
-                print("✅ WIF credentials loaded successfully")
-                return credentials
-            else:
-                # Regular service account file
-                credentials = service_account.Credentials.from_service_account_file(
-                    creds_file,
-                    scopes=['https://www.googleapis.com/auth/androidpublisher']
-                )
-                print("✅ Service account credentials loaded successfully")
-                return credentials
-
-        # Fallback to default ADC
-        print("🔄 Trying default ADC...")
+        # Use the default() function which properly handles WIF
+        # This should work now that the audience is configured correctly
+        print("🔄 Using Google's default credential chain...")
         credentials, project = default(scopes=['https://www.googleapis.com/auth/androidpublisher'])
-        print(f"✅ Default ADC successful. Project: {project}")
+        print(f"✅ Authentication successful! Project: {project}")
+        print(f"🔍 Credential type: {type(credentials).__name__}")
+
+        # Ensure credentials are ready for use
+        if hasattr(credentials, 'refresh') and hasattr(credentials, 'valid') and not credentials.valid:
+            print("🔄 Refreshing credentials...")
+            import google.auth.transport.requests
+            request = google.auth.transport.requests.Request()
+            credentials.refresh(request)
+            print("✅ Credentials refreshed successfully")
+
         return credentials
 
     except Exception as e:
         print(f"❌ Authentication failed: {e}")
         print(f"❌ Error type: {type(e).__name__}")
+
+        # Debug information
+        creds_file = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
+        if creds_file:
+            print(f"🔍 Credentials file: {creds_file}")
+            if os.path.exists(creds_file):
+                try:
+                    with open(creds_file, 'r') as f:
+                        creds_info = json.load(f)
+                    print(f"🔍 Credential type in file: {creds_info.get('type', 'unknown')}")
+                    if 'audience' in creds_info:
+                        print(f"🔍 Credential audience: {creds_info['audience']}")
+                except:
+                    print("🔍 Could not read credentials file content")
+            else:
+                print("🔍 Credentials file does not exist")
+        else:
+            print("🔍 GOOGLE_APPLICATION_CREDENTIALS not set")
+
         sys.exit(1)
 
 
