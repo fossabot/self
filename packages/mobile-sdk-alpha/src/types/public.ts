@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 Social Connect Labs, Inc.
+// SPDX-License-Identifier: BUSL-1.1
+// NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
+
 export type { PassportData } from '@selfxyz/common/utils/types';
 export type { PassportValidationCallbacks } from '../validation/document';
 export interface Config {
@@ -23,10 +27,6 @@ export interface MRZInfo {
   passportNumber: string;
   dateOfBirth: string;
   dateOfExpiry: string;
-  surname: string;
-  givenNames: string;
-  sex: string;
-  nationality: string;
   issuingCountry: string;
   documentType: string;
   validation: MRZValidation;

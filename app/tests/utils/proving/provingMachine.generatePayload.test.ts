@@ -1,4 +1,6 @@
-// SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
+// SPDX-FileCopyrightText: 2025 Social Connect Labs, Inc.
+// SPDX-License-Identifier: BUSL-1.1
+// NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
 import { useProtocolStore } from '@/stores/protocolStore';
 import { useSelfAppStore } from '@/stores/selfAppStore';
@@ -37,8 +39,8 @@ jest.mock('@/utils/proving/provingInputs', () => ({
 }));
 
 // Mock the proving utils
-jest.mock('@/utils/proving/provingUtils', () => {
-  const actual = jest.requireActual('@/utils/proving/provingUtils') as any;
+jest.mock('@selfxyz/common/utils/proving', () => {
+  const actual = jest.requireActual('@selfxyz/common/utils/proving') as any;
   return {
     ...actual,
     getPayload: jest.fn(() => ({ mocked: true })),
@@ -53,7 +55,7 @@ jest.mock('@/utils/proving/provingUtils', () => {
 const {
   getPayload,
   encryptAES256GCM,
-} = require('@/utils/proving/provingUtils');
+} = require('@selfxyz/common/utils/proving');
 const {
   generateTEEInputsRegister,
   generateTEEInputsDSC,
