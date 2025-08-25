@@ -8,6 +8,7 @@
     "packages/*",
     "prover/tests",
     "sdk/*",
+    "sdk/tests/*",
     "scripts/tests"
   ],
   "scripts": {
