@@ -336,9 +336,11 @@
     "test-base": "yarn ts-mocha -n import=tsx --max-old-space-size=8192 --paths -p tsconfig.json",
     "test:exports": "node scripts/validateExports.js && node scripts/testExports.js",
     "test:scope": "NODE_OPTIONS='--loader ts-node/esm' ts-mocha tests/scope.test.ts --exit",
+    "test:mock-gen-proof": "NODE_OPTIONS='--loader ts-node/esm' ts-mocha tests/genAndGetMockPassportProof.test.ts --exit",
     "types": "tsc -p tsconfig.json"
   },
   "dependencies": {
+    "@fidm/x509": "^1.2.1",
     "@openpassport/zk-kit-imt": "^0.0.5",
     "@openpassport/zk-kit-lean-imt": "^0.0.6",
     "@openpassport/zk-kit-smt": "^0.0.1",
@@ -346,6 +348,7 @@
     "asn1js": "^3.0.5",
     "axios": "^1.7.2",
     "buffer": "^6.0.3",
+    "cose-js": "^0.9.0",
     "country-emoji": "^1.5.6",
     "country-iso-3-to-2": "^1.1.1",
     "elliptic": "^6.5.5",
@@ -367,6 +370,7 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@types/cose-js": "^0",
     "@types/js-sha1": "^0.6.3",
     "@types/node": "^22.0.0",
     "@types/node-forge": "^1.3.10",
