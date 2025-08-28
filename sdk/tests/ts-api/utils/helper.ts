@@ -16,6 +16,18 @@ import { LeanIMT } from "@openpassport/zk-kit-lean-imt";
 import { SMT } from "@openpassport/zk-kit-smt";
 import { CircuitSignals, groth16, Groth16Proof, PublicSignals } from "snarkjs";
 import { generateCircuitInputsVCandDisclose } from "@selfxyz/common/utils/circuits/generateInputs";
+import * as fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import { poseidon2, poseidon3 } from "poseidon-lite";
+import { ChildNodes } from "@openpassport/zk-kit-smt";
+import { generateCommitment } from "@selfxyz/common/utils/passports/passport";
+// @ts-ignore
+import passportNojson from "@selfxyz/circuits/tests/consts/ofac/passportNoAndNationalitySMT.json";
+// @ts-ignore
+import nameAndDobjson from "@selfxyz/circuits/tests/consts/ofac/nameAndDobSMT.json";
+// @ts-ignore
+import nameAndYobjson from "@selfxyz/circuits/tests/consts/ofac/nameAndYobSMT.json";
 
 const { ec: EC } = elliptic;
 const ec = new EC("p256");
@@ -28,20 +40,28 @@ export async function generateVcAndDiscloseRawProof(
   attestationId: string,
   passportData: PassportData,
   scope: string,
-  selectorDg1: string[] = new Array(93).fill("1"),
+  selectorDg1: string[] = new Array(88).fill("1"),
   selectorOlderThan: string | number = "1",
   merkletree: LeanIMT<bigint>,
-  majority: string = "20",
+  majority: string = "18",
   passportNo_smt: SMT,
   nameAndDob_smt: SMT,
   nameAndYob_smt: SMT,
   selectorOfac: string | number = "1",
-  forbiddenCountriesList: string[] = ["AAA"],
+  forbiddenCountriesList: string[] = ['PAK', 'IRN'],
   userIdentifier: string = "0000000000000000000000000000000000000000",
 ): Promise<{
   proof: Groth16Proof;
   publicSignals: PublicSignals;
 }> {
+
+  // Ensure selector length matches circuit expectation (selector_dg1[88])
+  if (selectorDg1.length !== 88) {
+    selectorDg1 = selectorDg1.slice(0, 88);
+    if (selectorDg1.length < 88) {
+      selectorDg1 = selectorDg1.concat(new Array(88 - selectorDg1.length).fill("0"));
+    }
+  }
 
   const vcAndDiscloseCircuitInputs: CircuitSignals = generateCircuitInputsVCandDisclose(
     secret,
@@ -60,19 +80,27 @@ export async function generateVcAndDiscloseRawProof(
     userIdentifier,
   );
 
+  const __filenameHelper = fileURLToPath(import.meta.url);
+  const __dirnameHelper = path.dirname(__filenameHelper);
+  const wasmPath = path.resolve(__dirnameHelper, "assests/vc_and_disclose.wasm");
+  const zkeyPath = path.resolve(__dirnameHelper, "assests/vc_and_disclose_00008.zkey");
+
+  console.log("wasmPath", wasmPath);
+  console.log("zkeyPath", zkeyPath);
+
   const vcAndDiscloseProof = await groth16.fullProve(
     vcAndDiscloseCircuitInputs,
-    "./assests/vc_and_disclose.wasm",
-    "./assests/vc_and_disclose.zkey",
+    wasmPath,
+    zkeyPath,
   );
 
-  // Verify the proof
-  // const vKey = JSON.parse(fs.readFileSync(vcAndDiscloseCircuits["vc_and_disclose"].vkey, "utf8"));
-  // const isValid = await groth16.verify(vKey, vcAndDiscloseProof.publicSignals, vcAndDiscloseProof.proof);
-  // if (!isValid) {
-  //   throw new Error("Generated VC and Disclose proof verification failed");
-  // }
 
+  fs.writeFileSync(
+    `vc_and_disclose_proof.json`,
+    JSON.stringify(vcAndDiscloseProof, null, 2)
+  );
+
+  console.log("DONE!!!!!!");
   return vcAndDiscloseProof;
 }
 
@@ -383,3 +411,61 @@ export const createRandomString = (length: number) => {
   }
   return result;
 };
+
+export async function runGenerateVcAndDiscloseRawProof(
+  secret: string,
+  attestationId: string,
+  passportData: PassportData,
+  scope: string,
+  options?: {
+    selectorDg1?: string[];
+    selectorOlderThan?: string | number;
+    majority?: string;
+    selectorOfac?: string | number;
+    forbiddenCountriesList?: string[];
+    userIdentifier?: string;
+  },
+) {
+  const selectorDg1 = (options?.selectorDg1 && options.selectorDg1.length === 88)
+    ? options.selectorDg1
+    : new Array(88).fill("1");
+  const selectorOlderThan = options?.selectorOlderThan ?? "1";
+  const majority = options?.majority ?? "18";
+  const selectorOfac = options?.selectorOfac ?? "1";
+  const forbiddenCountriesList = options?.forbiddenCountriesList ?? ["PAK", "IRN"];
+  const userIdentifier = options?.userIdentifier ?? "0000000000000000000000000000000000000000";
+
+  const hashFunction = (a: bigint, b: bigint) => poseidon2([a, b]);
+  const merkletree = new LeanIMT<bigint>(hashFunction);
+
+  const commitment = generateCommitment(secret, attestationId, passportData);
+  merkletree.insert(BigInt(commitment));
+
+  const hash2 = (childNodes: ChildNodes) =>
+    childNodes.length === 2 ? poseidon2(childNodes) : poseidon3(childNodes);
+
+  const passportNo_smt = new SMT(hash2, true);
+  const nameAndDob_smt = new SMT(hash2, true);
+  const nameAndYob_smt = new SMT(hash2, true);
+
+  passportNo_smt.import(passportNojson as any);
+  nameAndDob_smt.import(nameAndDobjson as any);
+  nameAndYob_smt.import(nameAndYobjson as any);
+
+  return await generateVcAndDiscloseRawProof(
+    secret,
+    attestationId,
+    passportData,
+    scope,
+    selectorDg1,
+    selectorOlderThan,
+    merkletree,
+    majority,
+    passportNo_smt,
+    nameAndDob_smt,
+    nameAndYob_smt,
+    selectorOfac,
+    forbiddenCountriesList,
+    userIdentifier,
+  );
+}

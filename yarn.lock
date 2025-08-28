@@ -5109,7 +5109,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@selfxyz/core@workspace:sdk/core":
+"@selfxyz/core@workspace:^, @selfxyz/core@workspace:sdk/core":
   version: 0.0.0-use.local
   resolution: "@selfxyz/core@workspace:sdk/core"
   dependencies:
@@ -5348,6 +5348,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@selfxyz/ts-api-test@workspace:sdk/tests/ts-api"
   dependencies:
+    "@openpassport/zk-kit-lean-imt": "npm:^0.0.6"
+    "@openpassport/zk-kit-smt": "npm:^0.0.1"
+    "@selfxyz/common": "workspace:^"
+    "@selfxyz/core": "workspace:^"
     "@types/cors": "npm:^2.8.17"
     "@types/express": "npm:^4.17.21"
     "@types/node": "npm:^22.0.0"

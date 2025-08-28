@@ -9,12 +9,11 @@ import {
 } from "@selfxyz/core";
 import { getOptions } from "./save-options.js";
 
-//TODO: figure out how to use relative imports rather than @selfxyz/common
 
 // In-memory storage for testing purposes (replaces Redis/Upstash)
 const configStore = new Map<string, string>();
 
-export class InMemoryConfigStore implements IConfigStorage {
+export class KVConfigStore implements IConfigStorage {
   async getActionId(userIdentifier: string, data: string): Promise<string> {
     return userIdentifier;
   }
@@ -51,11 +50,11 @@ export const verifyHandler = async (
       });
     }
 
-    const configStoreInstance = new InMemoryConfigStore();
+    const configStoreInstance = new KVConfigStore();
 
     const selfBackendVerifier = new SelfBackendVerifier(
       "self-playground",
-      "http://localhost:3000/api/verify", // Updated for local testing
+      "http://localhost:3000",
       false,
       AllIds,
       configStoreInstance,

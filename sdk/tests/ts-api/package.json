@@ -9,6 +9,7 @@
     "dev": "tsx watch server.ts",
     "start": "node dist/server.js",
     "test": "./test-api.sh",
+    "run:vc-disclose": "tsx run-vc-disclose.ts",
     "docker:build": "./docker-build.sh",
     "docker:run": "docker run -p 3000:3000 selfxyz-ts-api:latest",
     "docker:compose": "docker-compose up --build",
@@ -18,6 +19,7 @@
     "@openpassport/zk-kit-lean-imt": "^0.0.6",
     "@openpassport/zk-kit-smt": "^0.0.1",
     "@selfxyz/common": "workspace:^",
+    "@selfxyz/core": "workspace:^",
     "cors": "^2.8.5",
     "ethers": "^6.13.5",
     "express": "^4.18.2"
