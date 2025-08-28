@@ -67,6 +67,18 @@ def get_credentials():
         sys.exit(1)
 
 
+def should_hold_for_manual_review(track):
+    """
+    Determine if changes should be held for manual review based on track type.
+
+    Returns True only for production releases or when you need manual control.
+    For internal, alpha, beta tracks, changes are automatically sent for review.
+    """
+    # Only hold for manual review on production track
+    # For other tracks (internal, alpha, beta), let changes go for automatic review
+    return track == 'production'
+
+
 def upload_to_play_store(aab_path, package_name, track, credentials):
     """Upload AAB to Google Play Store"""
     print(f"📤 Uploading {aab_path} to Play Store...")
@@ -113,14 +125,29 @@ def upload_to_play_store(aab_path, package_name, track, credentials):
 
         # Commit the edit
         print("💾 Committing changes...")
-        commit_request = service.edits().commit(
-            packageName=package_name,
-            editId=edit_id,
-            changesNotSentForReview=True  # Required for internal testing
-        )
-        commit_response = commit_request.execute()
-        print(f"✅ Upload completed successfully! Edit ID: {commit_response['id']}")
-        print(f"📝 Note: Changes committed but not sent for review (as required for internal testing)")
+
+        # Determine if we should hold changes for manual review
+        hold_for_manual_review = should_hold_for_manual_review(track)
+
+        if hold_for_manual_review:
+            # For production or when manual review is needed
+            commit_request = service.edits().commit(
+                packageName=package_name,
+                editId=edit_id,
+                changesNotSentForReview=True
+            )
+            commit_response = commit_request.execute()
+            print(f"✅ Upload completed successfully! Edit ID: {commit_response['id']}")
+            print(f"📝 Note: Changes committed but held for manual review (production track)")
+        else:
+            # For internal, alpha, beta tracks - let changes go for automatic review
+            commit_request = service.edits().commit(
+                packageName=package_name,
+                editId=edit_id
+            )
+            commit_response = commit_request.execute()
+            print(f"✅ Upload completed successfully! Edit ID: {commit_response['id']}")
+            print(f"📝 Note: Changes committed and sent for automatic review ({track} track)")
 
         return True
 
