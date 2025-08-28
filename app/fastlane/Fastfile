@@ -119,6 +119,10 @@ platform :ios do
         # VersionManager doesn't handle semantic versions, use npm
         sh("cd .. && npm version #{version_bump} --no-git-tag-version")
         UI.success("✅ Bumped #{version_bump} version")
+
+        # Sync the new version to iOS project files
+        sync_version
+        UI.success("✅ Synced MARKETING_VERSION to iOS project")
       when "build"
         # Build number is handled in prepare_ios_build
         UI.message("📦 Build number will be incremented during build")
