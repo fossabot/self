@@ -435,6 +435,14 @@ jobs:
 
           echo "✅ Provisioning profile installation steps completed."
 
+      - name: Build Dependencies (iOS)
+        if: inputs.platform != 'android'
+        run: |
+          echo "🏗️ Building SDK dependencies..."
+          cd ${{ env.APP_PATH }}
+          yarn workspace @selfxyz/mobile-app run build:deps --silent || { echo "❌ Dependency build failed"; exit 1; }
+          echo "✅ Dependencies built successfully"
+
       # act won't work with macos, but you can test with `bundle exec fastlane ios ...`
       - name: Build and upload to App Store Connect/TestFlight
         if: inputs.platform != 'android' && !env.ACT
@@ -806,6 +814,14 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
+
+      - name: Build Dependencies (Android)
+        if: inputs.platform != 'ios'
+        run: |
+          echo "🏗️ Building SDK dependencies..."
+          cd ${{ env.APP_PATH }}
+          yarn workspace @selfxyz/mobile-app run build:deps --silent || { echo "❌ Dependency build failed"; exit 1; }
+          echo "✅ Dependencies built successfully"
 
       - name: Build AAB with Fastlane
         if: inputs.platform != 'ios'
