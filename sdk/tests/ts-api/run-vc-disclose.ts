@@ -22,6 +22,7 @@ async function main() {
     attestationId,
     passportData,
     scope,
+    "",
   );
 
   console.log("Saved proof JSON to vc_and_disclose_proof.json");

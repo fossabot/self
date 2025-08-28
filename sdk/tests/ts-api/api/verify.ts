@@ -52,6 +52,14 @@ export const verifyHandler = async (
 
     const configStoreInstance = new KVConfigStore();
 
+    const verificationConfig: VerificationConfig = {
+      minimumAge: 18,
+      excludedCountries: ["PAK", "IRN"],
+      ofac: true,
+    }
+
+    await configStoreInstance.setConfig("1", verificationConfig);
+
     const selfBackendVerifier = new SelfBackendVerifier(
       "self-playground",
       "http://localhost:3000",

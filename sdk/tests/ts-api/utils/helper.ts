@@ -28,6 +28,7 @@ import passportNojson from "@selfxyz/circuits/tests/consts/ofac/passportNoAndNat
 import nameAndDobjson from "@selfxyz/circuits/tests/consts/ofac/nameAndDobSMT.json";
 // @ts-ignore
 import nameAndYobjson from "@selfxyz/circuits/tests/consts/ofac/nameAndYobSMT.json";
+import { calculateUserIdentifierHash } from "@selfxyz/common";
 
 const { ec: EC } = elliptic;
 const ec = new EC("p256");
@@ -417,13 +418,13 @@ export async function runGenerateVcAndDiscloseRawProof(
   attestationId: string,
   passportData: PassportData,
   scope: string,
+  userContextData: string,
   options?: {
     selectorDg1?: string[];
     selectorOlderThan?: string | number;
     majority?: string;
     selectorOfac?: string | number;
     forbiddenCountriesList?: string[];
-    userIdentifier?: string;
   },
 ) {
   const selectorDg1 = (options?.selectorDg1 && options.selectorDg1.length === 88)
@@ -433,7 +434,7 @@ export async function runGenerateVcAndDiscloseRawProof(
   const majority = options?.majority ?? "18";
   const selectorOfac = options?.selectorOfac ?? "1";
   const forbiddenCountriesList = options?.forbiddenCountriesList ?? ["PAK", "IRN"];
-  const userIdentifier = options?.userIdentifier ?? "0000000000000000000000000000000000000000";
+  const userIdentifier= calculateUserIdentifierHash(42220, "94ba0DB8A9Db66979905784A9d6B2D286e55Bd27", userContextData);
 
   const hashFunction = (a: bigint, b: bigint) => poseidon2([a, b]);
   const merkletree = new LeanIMT<bigint>(hashFunction);
@@ -466,6 +467,6 @@ export async function runGenerateVcAndDiscloseRawProof(
     nameAndYob_smt,
     selectorOfac,
     forbiddenCountriesList,
-    userIdentifier,
+    userIdentifier.toString(),
   );
 }
