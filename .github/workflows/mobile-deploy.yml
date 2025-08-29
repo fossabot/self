@@ -443,6 +443,26 @@ jobs:
           yarn workspace @selfxyz/mobile-app run build:deps --silent || { echo "❌ Dependency build failed"; exit 1; }
           echo "✅ Dependencies built successfully"
 
+      - name: Configure Metro for Production Bundle (iOS)
+        if: inputs.platform != 'android'
+        run: |
+          echo "⚙️ Configuring Metro bundler for production lazy loading compatibility..."
+          cd ${{ env.APP_PATH }}
+          # Create production-specific metro config to fix lazy loading issues
+          cp metro.config.cjs metro.config.ci.cjs
+          # Disable inlineRequires to prevent lazy loading issues with Hermes
+          sed -i '' 's/inlineRequires: true,/inlineRequires: false,/' metro.config.ci.cjs
+          # Verify the change was applied
+          if grep -q "inlineRequires: false" metro.config.ci.cjs; then
+            echo "✅ inlineRequires disabled in CI config"
+          else
+            echo "❌ Failed to disable inlineRequires"
+            exit 1
+          fi
+          # Update Hermes flags to ensure proper optimization without breaking lazy imports
+          echo "export METRO_CONFIG_PATH=./metro.config.ci.cjs" >> $GITHUB_ENV
+          echo "✅ Metro configuration updated for CI"
+
       # act won't work with macos, but you can test with `bundle exec fastlane ios ...`
       - name: Build and upload to App Store Connect/TestFlight
         if: inputs.platform != 'android' && !env.ACT
@@ -463,6 +483,7 @@ jobs:
           IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
           IOS_TEAM_NAME: ${{ secrets.IOS_TEAM_NAME }}
           NODE_OPTIONS: "--max-old-space-size=8192"
+          RN_BUNDLE_CONFIG: "./metro.config.ci.cjs"
           SLACK_API_TOKEN: ${{ secrets.SLACK_API_TOKEN }}
           SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
           SLACK_ANNOUNCE_CHANNEL_NAME: ${{ secrets.SLACK_ANNOUNCE_CHANNEL_NAME }}
@@ -489,6 +510,8 @@ jobs:
 
           if [ "$TEST_MODE" = "true" ]; then
             echo "🧪 Running in TEST MODE - will skip upload to TestFlight"
+            # Set Metro config path for React Native bundle generation
+            export METRO_CONFIG_PATH="./metro.config.ci.cjs"
             bundle exec fastlane ios deploy_auto \
               deployment_track:$DEPLOYMENT_TRACK \
               version_bump:$VERSION_BUMP \
@@ -496,6 +519,8 @@ jobs:
               --verbose
           else
             echo "🚀 Deploying to App Store Connect..."
+            # Set Metro config path for React Native bundle generation
+            export METRO_CONFIG_PATH="./metro.config.ci.cjs"
             bundle exec fastlane ios deploy_auto \
               deployment_track:$DEPLOYMENT_TRACK \
               version_bump:$VERSION_BUMP \
@@ -846,6 +871,26 @@ jobs:
           yarn workspace @selfxyz/mobile-app run build:deps --silent || { echo "❌ Dependency build failed"; exit 1; }
           echo "✅ Dependencies built successfully"
 
+      - name: Configure Metro for Production Bundle (Android)
+        if: inputs.platform != 'ios'
+        run: |
+          echo "⚙️ Configuring Metro bundler for production lazy loading compatibility..."
+          cd ${{ env.APP_PATH }}
+          # Create production-specific metro config to fix lazy loading issues
+          cp metro.config.cjs metro.config.ci.cjs
+          # Disable inlineRequires to prevent lazy loading issues with Hermes
+          sed -i 's/inlineRequires: true,/inlineRequires: false,/' metro.config.ci.cjs
+          # Verify the change was applied
+          if grep -q "inlineRequires: false" metro.config.ci.cjs; then
+            echo "✅ inlineRequires disabled in CI config"
+          else
+            echo "❌ Failed to disable inlineRequires"
+            exit 1
+          fi
+          # Update Hermes flags to ensure proper optimization without breaking lazy imports
+          echo "export METRO_CONFIG_PATH=./metro.config.ci.cjs" >> $GITHUB_ENV
+          echo "✅ Metro configuration updated for CI"
+
       - name: Build AAB with Fastlane
         if: inputs.platform != 'ios'
         env:
@@ -856,6 +901,7 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
           NODE_OPTIONS: "--max-old-space-size=8192"
+          RN_BUNDLE_CONFIG: "./metro.config.ci.cjs"
         run: |
           cd ${{ env.APP_PATH }}
 
@@ -870,6 +916,8 @@ jobs:
           echo "  - Test Mode: $TEST_MODE"
 
           echo "🔨 Building AAB with Fastlane..."
+          # Set Metro config path for React Native bundle generation
+          export METRO_CONFIG_PATH="./metro.config.ci.cjs"
           bundle exec fastlane android build_only \
             deployment_track:$DEPLOYMENT_TRACK \
             version_bump:$VERSION_BUMP \
