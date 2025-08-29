@@ -18,54 +18,54 @@ async function main() {
     "000101",
     "300101",
   );
-  console.log("passportData DONE");
-  const dscTree = await fetch(DSC_TREE_URL_STAGING);
-  const serialized_dsc_tree: any = await dscTree.json();
-  console.log("serialized_dsc_tree DONE");
+  // console.log("passportData DONE");
+  // const dscTree = await fetch(DSC_TREE_URL_STAGING);
+  // const serialized_dsc_tree: any = await dscTree.json();
+  // console.log("serialized_dsc_tree DONE");
 
-  const registerInputs = generateCircuitInputsRegister(
-    secret,
-    passportData,
-    serialized_dsc_tree.data as string
-  );
-  console.log("registerInputs DONE");
-  const registerCircuitName = getCircuitNameFromPassportData(
-    passportData,
-    "register"
-  );
-  console.log("registerCircuitName DONE");
-  //keyLength === 384 ? REGISTER_MEDIUM_URL : REGISTER_URL,
-  const registerUuid = await handshakeAndGetUuid(
-    REGISTER_URL,
-    registerInputs,
-    "register",
-    registerCircuitName
-  );
-  console.log("handshakeAndGetUuid DONE");
-  const registerData = await getProofGeneratedUpdate(registerUuid);
-  console.log("\x1b[34m%s\x1b[0m", "register uuid:", registerUuid);
-  console.log("\x1b[34m%s\x1b[0m", "circuit:", registerCircuitName);
-  console.log(
-    "\x1b[34m%s\x1b[0m",
-    "witness generation duration:",
-    //@ts-ignore
-    (new Date(registerData.witness_generated_at) -
-      //@ts-ignore
-      new Date(registerData.created_at)) /
-      1000,
-    " seconds"
-  );
-  console.log(
-    "\x1b[34m%s\x1b[0m",
-    "proof   generation duration:",
-    //@ts-ignore
-    (new Date(registerData.proof_generated_at) -
-      //@ts-ignore
-      new Date(registerData.witness_generated_at)) /
-      1000,
-    " seconds"
-  );
-  console.log("registerData DONE");
+  // const registerInputs = generateCircuitInputsRegister(
+  //   secret,
+  //   passportData,
+  //   serialized_dsc_tree.data as string
+  // );
+  // console.log("registerInputs DONE");
+  // const registerCircuitName = getCircuitNameFromPassportData(
+  //   passportData,
+  //   "register"
+  // );
+  // console.log("registerCircuitName DONE");
+  // //keyLength === 384 ? REGISTER_MEDIUM_URL : REGISTER_URL,
+  // const registerUuid = await handshakeAndGetUuid(
+  //   REGISTER_URL,
+  //   registerInputs,
+  //   "register",
+  //   registerCircuitName
+  // );
+  // console.log("handshakeAndGetUuid DONE");
+  // const registerData = await getProofGeneratedUpdate(registerUuid);
+  // console.log("\x1b[34m%s\x1b[0m", "register uuid:", registerUuid);
+  // console.log("\x1b[34m%s\x1b[0m", "circuit:", registerCircuitName);
+  // console.log(
+  //   "\x1b[34m%s\x1b[0m",
+  //   "witness generation duration:",
+  //   //@ts-ignore
+  //   (new Date(registerData.witness_generated_at) -
+  //     //@ts-ignore
+  //     new Date(registerData.created_at)) /
+  //     1000,
+  //   " seconds"
+  // );
+  // console.log(
+  //   "\x1b[34m%s\x1b[0m",
+  //   "proof   generation duration:",
+  //   //@ts-ignore
+  //   (new Date(registerData.proof_generated_at) -
+  //     //@ts-ignore
+  //     new Date(registerData.witness_generated_at)) /
+  //     1000,
+  //   " seconds"
+  // );
+  // console.log("registerData DONE");
   await runGenerateVcAndDiscloseRawProof(
     secret,
     attestationId,

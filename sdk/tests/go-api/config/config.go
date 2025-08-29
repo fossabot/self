@@ -2,8 +2,6 @@ package config
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"sync"
 	"time"
 
@@ -46,47 +44,11 @@ func NewInMemoryConfigStore() *InMemoryConfigStore {
 	}
 }
 
-// SetWithExpiration stores a key-value pair with expiration (like Redis SET with EX)
-func (store *InMemoryConfigStore) SetWithExpiration(ctx context.Context, key, value string, expiration time.Duration) error {
-	store.mu.Lock()
-	defer store.mu.Unlock()
-
-	store.options[key] = OptionStore{
-		Data:   value,
-		Expiry: time.Now().Add(expiration),
-	}
-
-	return nil
-}
-
-// Get retrieves a value by key, returns empty string if not found or expired
-func (store *InMemoryConfigStore) Get(ctx context.Context, key string) (string, error) {
-	store.mu.RLock()
-	defer store.mu.RUnlock()
-
-	// Clean expired entries
-	store.cleanExpiredUnsafe()
-
-	if option, exists := store.options[key]; exists && time.Now().Before(option.Expiry) {
-		return option.Data, nil
-	}
-
-	return "", fmt.Errorf("key not found or expired: %s", key)
-}
-
-// cleanExpiredUnsafe removes expired entries (must be called with lock held)
-func (store *InMemoryConfigStore) cleanExpiredUnsafe() {
-	now := time.Now()
-	for key, option := range store.options {
-		if now.After(option.Expiry) {
-			delete(store.options, key)
-		}
-	}
-}
 
 // GetActionId implements the ConfigStore interface
+//TODO: Implement this
 func (store *InMemoryConfigStore) GetActionId(ctx context.Context, userIdentifier string, userDefinedData string) (string, error) {
-	return userIdentifier, nil
+	return "1", nil
 }
 
 // SetConfig implements the ConfigStore interface
@@ -114,34 +76,6 @@ func (store *InMemoryConfigStore) GetConfig(ctx context.Context, id string) (sel
 	return self.VerificationConfig{}, nil
 }
 
-// GetSelfAppDisclosureConfig gets the SelfAppDisclosureConfig for user options
-func (store *InMemoryConfigStore) GetSelfAppDisclosureConfig(ctx context.Context, id string) (SelfAppDisclosureConfig, error) {
-	// Try to get from options store (for user options)
-	optionsData, err := store.Get(ctx, id)
-	if err == nil {
-		var disclosureConfig SelfAppDisclosureConfig
-		if err := json.Unmarshal([]byte(optionsData), &disclosureConfig); err != nil {
-			return SelfAppDisclosureConfig{}, fmt.Errorf("failed to unmarshal disclosure config: %v", err)
-		}
-		return disclosureConfig, nil
-	}
-
-	// If not found in options, try regular config store
-	store.mu.RLock()
-	defer store.mu.RUnlock()
-
-	if config, exists := store.configs[id]; exists {
-		// Convert VerificationConfig to SelfAppDisclosureConfig
-		disclosureConfig := SelfAppDisclosureConfig{
-			MinimumAge:        &config.MinimumAge,
-			Ofac:              &config.Ofac,
-			ExcludedCountries: config.ExcludedCountries,
-		}
-		return disclosureConfig, nil
-	}
-
-	return SelfAppDisclosureConfig{}, fmt.Errorf("config not found for id: %s", id)
-}
 
 // Close cleans up resources (no-op for in-memory store)
 func (store *InMemoryConfigStore) Close() error {
