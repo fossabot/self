@@ -781,20 +781,43 @@ jobs:
         with:
           accept-android-sdk-licenses: true
 
-      - name: Install NDK
+      - name: Install NDK and CMake
         if: inputs.platform != 'ios' && steps.ndk-cache.outputs.cache-hit != 'true'
         run: |
           max_attempts=5
           attempt=1
+
+          # Install NDK
           while [ $attempt -le $max_attempts ]; do
             echo "Attempt $attempt of $max_attempts to install NDK..."
             if sdkmanager "ndk;${{ env.ANDROID_NDK_VERSION }}"; then
               echo "Successfully installed NDK"
-              exit 0
+              break
             fi
             echo "Failed to install NDK on attempt $attempt"
             if [ $attempt -eq $max_attempts ]; then
               echo "All attempts to install NDK failed"
+              exit 1
+            fi
+            # Exponential backoff: 2^attempt seconds
+            wait_time=$((2 ** attempt))
+            echo "Waiting $wait_time seconds before retrying..."
+            sleep $wait_time
+            attempt=$((attempt + 1))
+          done
+
+          # Install CMake (required for native module builds)
+          echo "Installing CMake..."
+          attempt=1
+          while [ $attempt -le $max_attempts ]; do
+            echo "Attempt $attempt of $max_attempts to install CMake..."
+            if sdkmanager "cmake;3.22.1"; then
+              echo "Successfully installed CMake"
+              break
+            fi
+            echo "Failed to install CMake on attempt $attempt"
+            if [ $attempt -eq $max_attempts ]; then
+              echo "All attempts to install CMake failed"
               exit 1
             fi
             # Exponential backoff: 2^attempt seconds
