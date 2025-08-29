@@ -49,7 +49,6 @@ func main() {
 
 	// Register routes
 	mux.HandleFunc("/health", healthHandler)
-	mux.HandleFunc("/api/save-options", api.SaveOptionsHandler)
 	mux.HandleFunc("/api/verify", api.VerifyHandler)
 
 	// Handle 404 for all other routes
@@ -66,7 +65,6 @@ func main() {
 
 	log.Printf("Go API server starting on port %s", port)
 	log.Printf("Health check: http://localhost:%s/health", port)
-	log.Printf("Save options: POST http://localhost:%s/api/save-options", port)
 	log.Printf("Verify: POST http://localhost:%s/api/verify", port)
 
 	if err := server.ListenAndServe(); err != nil {

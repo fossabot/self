@@ -3,12 +3,12 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 
 	self "github.com/selfxyz/self/sdk/sdk-go"
+	"github.com/selfxyz/self/sdk/sdk-go/common"
 	"github.com/selfxyz/self/sdk/tests/go-api/config"
 )
 
@@ -155,21 +155,35 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer configStore.Close()
 
+	ctx := context.Background()
+
+	// Set verification config like TypeScript version
+	verificationConfig := self.VerificationConfig{
+		MinimumAge:        18,
+		ExcludedCountries: []common.Country3LetterCode{common.PAK, common.IRN},
+		Ofac:              true,
+	}
+
+	_, err = configStore.SetConfig(ctx, "1", verificationConfig)
+	if err != nil {
+		log.Printf("Failed to set verification config: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(VerifyResponse{
+			Status:  "error",
+			Result:  false,
+			Message: "Internal server error",
+		})
+		return
+	}
+
 	// Define allowed attestation types
 	allowedIds := map[self.AttestationId]bool{
 		self.Passport: true,
 		self.EUCard:   true,
 	}
 
-	// Get the host from the request to match the QR code endpoint
-	scheme := "http" // Default to http for local testing
-	if r.Header.Get("X-Forwarded-Proto") != "" {
-		scheme = r.Header.Get("X-Forwarded-Proto")
-	} else if r.TLS != nil {
-		scheme = "https"
-	}
-	host := r.Host
-	verifyEndpoint := fmt.Sprintf("%s://%s/api/verify", scheme, host)
+	// Use the same verifyEndpoint as TypeScript API to match scope calculation
+	verifyEndpoint := "http://localhost:3000"
 
 	verifier, err := self.NewBackendVerifier(
 		"self-playground",
@@ -189,8 +203,6 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-
-	ctx := context.Background()
 
 	result, err := verifier.Verify(
 		ctx,
@@ -222,12 +234,19 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get saved options from in-memory store
-	saveOptions, err := configStore.GetSelfAppDisclosureConfig(ctx, result.UserData.UserIdentifier)
-	if err != nil {
-		log.Printf("Failed to get saved options: %v", err)
-		// Continue with default options if not found
-		saveOptions = config.SelfAppDisclosureConfig{}
+	// Default disclosure configuration (show all fields) like TypeScript version
+	trueVal := true
+	saveOptions := config.SelfAppDisclosureConfig{
+		IssuingState:      &trueVal,
+		Name:              &trueVal,
+		Nationality:       &trueVal,
+		DateOfBirth:       &trueVal,
+		PassportNumber:    &trueVal,
+		Gender:            &trueVal,
+		ExpiryDate:        &trueVal,
+		MinimumAge:        &verificationConfig.MinimumAge,
+		Ofac:              &verificationConfig.Ofac,
+		ExcludedCountries: verificationConfig.ExcludedCountries,
 	}
 
 	// Check if verification is valid

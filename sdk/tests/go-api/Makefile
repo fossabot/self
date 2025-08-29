@@ -35,7 +35,18 @@ clean:
 # Test the running API endpoints
 test:
 	@echo "Testing Go API endpoints..."
-	./test-api.sh
+	./run-test.sh
+
+# Build test binary directly
+build-test:
+	@echo "Building test binary..."
+	cd cmd/test && go build -o ../../test-verify-endpoint .
+
+# Run test without shell script
+run-test: build-test
+	@echo "Running test directly..."
+	./test-verify-endpoint
+	@rm -f test-verify-endpoint
 
 # Build Docker image
 docker-build:
@@ -57,4 +68,4 @@ docker-test:
 	@echo "Testing dockerized Go API..."
 	@echo "Waiting for container to start..."
 	@sleep 5
-	./test-api.sh
+	./run-test.sh

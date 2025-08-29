@@ -32,28 +32,6 @@ GET /health
 ```
 Returns server status and timestamp.
 
-### Save Options
-```
-POST /api/save-options
-Content-Type: application/json
-
-{
-  "userId": "user123",
-  "options": {
-    "minimumAge": 18,
-    "ofac": true,
-    "excludedCountries": ["Country1", "Country2"],
-    "issuing_state": true,
-    "name": true,
-    "nationality": true,
-    "date_of_birth": false,
-    "passport_number": false,
-    "gender": true,
-    "expiry_date": true
-  }
-}
-```
-
 ### Verify Attestation
 ```
 POST /api/verify
@@ -73,11 +51,11 @@ Content-Type: application/json
 
 ## Features
 
-- **In-memory storage**: Options stored with 30-minute expiration
 - **CORS enabled**: Supports cross-origin requests
 - **Error handling**: Comprehensive error responses
 - **Health monitoring**: Built-in health check endpoint
 - **Self SDK integration**: Uses Go SDK for verification
+- **Default configuration**: Hard-coded verification settings matching TypeScript API
 
 ## Configuration
 
@@ -88,7 +66,7 @@ Content-Type: application/json
 ### Storage
 
 This API uses in-memory storage for testing purposes:
-- Options are stored with 30-minute expiration
+- Verification configuration is hard-coded (minimum age: 18, excludes PAK/IRN, OFAC enabled)
 - Configuration data is stored in memory
 - Data is lost when server restarts
 
@@ -97,12 +75,14 @@ This API uses in-memory storage for testing purposes:
 ```
 go-api/
 ├── api/
-│   ├── save-options.go    # Save options endpoint handler
 │   └── verify.go          # Verification endpoint handler
 ├── config/
 │   └── config.go          # In-memory storage and configuration
 ├── main.go                # HTTP server setup and routing
+├── test-verify-endpoint.go  # Test script for verification endpoint
+├── run-test.sh           # Shell script to run tests
 ├── go.mod                 # Go module dependencies
+├── Makefile              # Build and test commands
 └── README.md              # This file
 ```
 
@@ -133,24 +113,21 @@ air
 # Health check
 curl http://localhost:8080/health
 
-# Save options
-curl -X POST http://localhost:8080/api/save-options \
-  -H "Content-Type: application/json" \
-  -d '{"userId":"test123","options":{"minimumAge":21}}'
-
-# Test verification (with mock data)
-curl -X POST http://localhost:8080/api/verify \
-  -H "Content-Type: application/json" \
-  -d '{"attestationId":1,"proof":{},"publicSignals":[],"userContextData":""}'
+# Test verification (with real proof data)
+make test
+# or
+./run-test.sh
+# or manually build and run
+go run test-verify-endpoint.go
 ```
 
 ## Comparison with TypeScript API
 
 This Go API provides identical functionality to the TypeScript version:
 
-- **Same endpoints**: `/health`, `/api/save-options`, `/api/verify`
+- **Same endpoints**: `/health`, `/api/verify`
 - **Same request/response formats**: JSON API compatibility
-- **Same storage behavior**: 30-minute expiration for options
+- **Same verification configuration**: Hard-coded settings (age 18+, exclude PAK/IRN, OFAC enabled)
 - **Same error handling**: HTTP status codes and messages
 - **Same verification logic**: Uses Self protocol SDK
 
@@ -212,15 +189,19 @@ go build -o go-api  # Compiles Go binary
 
 ### API Testing Script
 ```bash
-# Test the running API
-./test-api.sh
+# Test the running API with real proof data
+make test
+# or directly
+./run-test.sh
+# or manually
+go run test-verify-endpoint.go
 ```
 
-This script tests:
-- Health endpoint functionality
-- Save options endpoint with sample data
-- Verify endpoint structure (with mock data)
-- 404 error handling
+The test script:
+- Uses real proof data from `vc_and_disclose_proof.json`
+- Tests the complete verification flow
+- Provides detailed output and error handling
+- Automatically handles JSON parsing and pretty printing
 
 ## Environment
 
