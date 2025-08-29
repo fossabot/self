@@ -828,9 +828,9 @@ jobs:
           done
 
       - name: Set Gradle JVM options
-        if: inputs.platform != 'ios' && env.ACT
+        if: inputs.platform != 'ios'  # Apply to CI builds (not just ACT)
         run: |
-          echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=1024m -Dfile.encoding=UTF-8" >> ${{ env.APP_PATH }}/android/gradle.properties
+          echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m -Dfile.encoding=UTF-8" >> ${{ env.APP_PATH }}/android/gradle.properties
 
       - name: Install Python dependencies for Play Store upload
         if: inputs.platform != 'ios'
@@ -855,7 +855,7 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
-          NODE_OPTIONS: "--max-old-space-size=8192"
+          NODE_OPTIONS: "--max-old-space-size=6144"
         run: |
           cd ${{ env.APP_PATH }}
 
