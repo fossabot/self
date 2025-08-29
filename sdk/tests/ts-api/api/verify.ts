@@ -7,7 +7,6 @@ import {
   SelfBackendVerifier,
   AllIds,
 } from "@selfxyz/core";
-import { getOptions } from "./save-options.js";
 
 
 // In-memory storage for testing purposes (replaces Redis/Upstash)
@@ -85,8 +84,19 @@ export const verifyHandler = async (
       });
     }
 
-    // Get saved options from in-memory store instead of Redis
-    const saveOptions = getOptions(result.userData.userIdentifier) as SelfAppDisclosureConfig;
+    // Default disclosure configuration (show all fields)
+    const saveOptions: SelfAppDisclosureConfig = {
+      issuing_state: true,
+      name: true,
+      nationality: true,
+      date_of_birth: true,
+      passport_number: true,
+      gender: true,
+      expiry_date: true,
+      minimumAge: 18,
+      ofac: true,
+      excludedCountries: ["PAK", "IRN"]
+    };
 
     if (result.isValidDetails.isValid) {
       const filteredSubject = { ...result.discloseOutput };

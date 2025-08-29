@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import { saveOptionsHandler } from './api/save-options.js';
 import { verifyHandler } from './api/verify.js';
 
 const app = express();
@@ -17,7 +16,6 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
-app.post('/api/save-options', saveOptionsHandler);
 app.post('/api/verify', verifyHandler);
 
 // Error handling middleware
@@ -41,7 +39,6 @@ app.use('*', (req, res) => {
 app.listen(PORT, () => {
   console.log(`TypeScript API server running on port ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
-  console.log(`Save options: POST http://localhost:${PORT}/api/save-options`);
   console.log(`Verify: POST http://localhost:${PORT}/api/verify`);
 });
 

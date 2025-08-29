@@ -95,13 +95,19 @@ export async function generateVcAndDiscloseRawProof(
     zkeyPath,
   );
 
+  const vKey = JSON.parse(fs.readFileSync(path.resolve(__dirnameHelper, "assests/verification_key.json"), "utf8"));
+  const isValid = await groth16.verify(vKey, vcAndDiscloseProof.publicSignals, vcAndDiscloseProof.proof);
+  if (!isValid) {
+    throw new Error("Generated register proof verification failed");
+  }
+  console.log("PROOF VERIFIED");
+
 
   fs.writeFileSync(
     `vc_and_disclose_proof.json`,
     JSON.stringify(vcAndDiscloseProof, null, 2)
   );
 
-  console.log("DONE!!!!!!");
   return vcAndDiscloseProof;
 }
 

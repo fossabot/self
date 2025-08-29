@@ -32,28 +32,6 @@ GET /health
 ```
 Returns server status and timestamp.
 
-### Save Options
-```
-POST /api/save-options
-Content-Type: application/json
-
-{
-  "userId": "user123",
-  "options": {
-    "minimumAge": 18,
-    "ofac": true,
-    "excludedCountries": ["Country1", "Country2"],
-    "issuing_state": true,
-    "name": true,
-    "nationality": true,
-    "date_of_birth": false,
-    "passport_number": false,
-    "gender": true,
-    "expiry_date": true
-  }
-}
-```
-
 ### Verify Attestation
 ```
 POST /api/verify
@@ -71,10 +49,15 @@ Content-Type: application/json
 }
 ```
 
+This endpoint verifies attestations using a default disclosure configuration that shows all fields:
+- Minimum age: 18
+- OFAC checking: enabled
+- Excluded countries: Pakistan (PAK), Iran (IRN)
+- All passport fields disclosed by default
+
 ## Storage
 
 This API uses in-memory storage for testing purposes:
-- Options are stored with 30-minute expiration
 - Configuration data is stored in memory
 - Data is lost when server restarts
 
