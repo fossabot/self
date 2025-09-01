@@ -55,9 +55,7 @@ COPY --from=builder --chown=apiuser:nodejs /app/node_modules ./node_modules
 # Set working directory to the API
 WORKDIR /app/sdk/tests/ts-api
 
-# Set environment and user
-ENV NODE_ENV=production
-ENV PORT=3000
+
 USER apiuser
 
 EXPOSE 3000
