@@ -14,9 +14,13 @@ COPY sdk/tests/ts-api/package.json ./sdk/tests/ts-api/
 COPY sdk/core/package.json ./sdk/core/
 COPY common/package.json ./common/
 
-# Install dependencies using yarn workspaces 
+# Install dependencies using yarn workspaces
 # Force Yarn to use node_modules instead of PnP mode
 RUN yarn config set nodeLinker node-modules
+
+# Create .yarnrc.yml with proper configuration
+RUN echo 'nodeLinker: node-modules' > .yarnrc.yml
+
 RUN yarn install
 
 # Build stage
@@ -28,29 +32,26 @@ RUN corepack enable
 # Configure Yarn for workspaces (same as deps stage)
 RUN yarn config set nodeLinker node-modules
 
+# Create .yarnrc.yml with proper configuration
+RUN echo 'nodeLinker: node-modules' > .yarnrc.yml
+
 # Copy workspace configuration files first
 COPY package.json yarn.lock* ./
 COPY sdk/tests/ts-api/package.json ./sdk/tests/ts-api/
 COPY sdk/core/package.json ./sdk/core/
 COPY common/package.json ./common/
 
-# Copy installed dependencies (Yarn workspaces use single root node_modules)
-COPY --from=deps /app/node_modules ./node_modules
-
 # Copy source code for workspace dependencies
 COPY common/ ./common/
 COPY sdk/core/ ./sdk/core/
 COPY sdk/tests/ts-api/ ./sdk/tests/ts-api/
 
-# Re-run yarn install to establish proper workspace links (fast since deps are cached)
+# Fresh install to establish proper workspace state (cached from deps stage)
 RUN yarn install
 
 # Build workspace dependencies using correct workspace names
-RUN yarn workspaces list
 RUN yarn workspace @selfxyz/common run build
-RUN yarn install   # Refresh and validate state
-RUN yarn workspace @selfxyz/core run build  
-RUN yarn install   # Refresh and validate state
+RUN yarn workspace @selfxyz/core run build
 
 # Build the TypeScript API (correct name from workspaces list)
 RUN yarn workspace @selfxyz/ts-api-test run build
@@ -62,6 +63,9 @@ WORKDIR /app
 # Enable Corepack for production dependencies
 RUN corepack enable
 
+# Create .yarnrc.yml for production
+RUN echo 'nodeLinker: node-modules' > .yarnrc.yml
+
 ENV NODE_ENV=production
 ENV PORT=3000
 
@@ -69,12 +73,25 @@ ENV PORT=3000
 RUN addgroup --system --gid 1001 nodejs && \
   adduser --system --uid 1001 apiuser
 
-# Copy built files
-COPY --from=builder --chown=apiuser:nodejs /app/sdk/tests/ts-api/dist ./dist
-COPY --from=builder --chown=apiuser:nodejs /app/sdk/tests/ts-api/package.json ./package.json
+# Copy workspace configuration
+COPY --from=builder --chown=apiuser:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=apiuser:nodejs /app/yarn.lock ./yarn.lock
 
-# Install only production dependencies
-RUN yarn install --production && yarn cache clean
+# Copy built workspace dependencies
+COPY --from=builder --chown=apiuser:nodejs /app/common/dist ./common/dist
+COPY --from=builder --chown=apiuser:nodejs /app/common/package.json ./common/package.json
+COPY --from=builder --chown=apiuser:nodejs /app/sdk/core/dist ./sdk/core/dist
+COPY --from=builder --chown=apiuser:nodejs /app/sdk/core/package.json ./sdk/core/package.json
+
+# Copy the API application
+COPY --from=builder --chown=apiuser:nodejs /app/sdk/tests/ts-api/dist ./sdk/tests/ts-api/dist
+COPY --from=builder --chown=apiuser:nodejs /app/sdk/tests/ts-api/package.json ./sdk/tests/ts-api/package.json
+
+# Copy node_modules with all workspace links intact
+COPY --from=builder --chown=apiuser:nodejs /app/node_modules ./node_modules
+
+# Set working directory to the API
+WORKDIR /app/sdk/tests/ts-api
 
 USER apiuser
 

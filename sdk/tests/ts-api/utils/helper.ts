@@ -388,19 +388,30 @@ export const getProofGeneratedUpdate = async (
   socket2.on("connect", () => {
     socket2.emit("subscribe", uuid);
   });
-  socket2.on("error", (err) => {
+  socket2.on("error", (err: Error) => {
     console.error("Socket.IO error:", err);
   });
 
   return new Promise((resolve, reject) => {
-    socket2.on("status", (data) => {
+    socket2.on("status", (data: {
+      status: number;
+      created_at?: string;
+      witness_generated_at?: string;
+      proof_generated_at?: string;
+      request_id?: string;
+      [key: string]: any;
+    }) => {
       try {
         if (data.status === 3 || data.status === 5) {
           socket2.close();
           reject(`Proof generation failed:  ${data.request_id}`);
         } else if (data.status === 4) {
           socket2.close();
-          resolve(data);
+          resolve({
+            created_at: data.created_at || "",
+            witness_generated_at: data.witness_generated_at || "",
+            proof_generated_at: data.proof_generated_at || ""
+          });
         }
       } catch (e) {
         console.error("Error parsing message:", e);
