@@ -3,10 +3,9 @@ import { hashEndpointWithScope } from "@selfxyz/common/utils/scope";
 import { genAndInitMockPassportData } from "@selfxyz/common/utils/passports/genMockPassportData";
 import { getProofGeneratedUpdate, handshakeAndGetUuid, runGenerateVcAndDiscloseRawProof } from "./utils/helper.js";
 import { generateCircuitInputsDSC, generateCircuitInputsRegister, getCircuitNameFromPassportData } from "@selfxyz/common";
-import { REGISTER_URL } from "./utils/constant.js";
+import { REGISTER_URL ,DSC_URL} from "./utils/constant.js";
 
-// const REGISTER_URL = "tree.staging.self.xyz/identity";
-const DSC_TREE_URL_STAGING = "https://tree.staging.self.xyz/dsc";
+
 
 async function main() {
   const secret = "1234";
@@ -22,7 +21,7 @@ async function main() {
     "300101",
   );
 
-  const dscTree = await fetch(DSC_TREE_URL_STAGING);
+  const dscTree = await fetch(DSC_URL);
   const serialized_dsc_tree: any = await dscTree.json();
 
   const response = await fetch("http://tree.staging.self.xyz/csca");
@@ -34,7 +33,7 @@ async function main() {
   const dscInputs = generateCircuitInputsDSC(passportData, cscaTree);
   const dscCircuitName = getCircuitNameFromPassportData(passportData, "dsc");
   const dscUuid = await handshakeAndGetUuid(
-    DSC_TREE_URL_STAGING,
+    DSC_URL,
     dscInputs,
     "dsc",
     dscCircuitName
