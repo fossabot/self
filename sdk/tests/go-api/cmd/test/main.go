@@ -39,38 +39,8 @@ func main() {
 	apiURL := "http://localhost:8080"
 	endpoint := fmt.Sprintf("%s/api/verify", apiURL)
 
-	// Get the directory of this script
-	execPath, err := os.Executable()
-	if err != nil {
-		fmt.Printf("❌ Error getting executable path: %v\n", err)
-		os.Exit(1)
-	}
-	scriptDir := filepath.Dir(execPath)
-
-	// Try to find the proof data file (check multiple possible locations)
-	proofFilePaths := []string{
-		filepath.Join(scriptDir, "..", "ts-api", "vc_and_disclose_proof.json"),
-		filepath.Join(scriptDir, "vc_and_disclose_proof.json"),
-		filepath.Join("sdk", "tests", "ts-api", "vc_and_disclose_proof.json"),
-		filepath.Join("..", "ts-api", "vc_and_disclose_proof.json"),
-	}
-
-	var proofFilePath string
-	for _, path := range proofFilePaths {
-		if _, err := os.Stat(path); err == nil {
-			proofFilePath = path
-			break
-		}
-	}
-
-	if proofFilePath == "" {
-		fmt.Println("❌ Could not find vc_and_disclose_proof.json file")
-		fmt.Println("   Looked in the following locations:")
-		for _, path := range proofFilePaths {
-			fmt.Printf("   - %s\n", path)
-		}
-		os.Exit(1)
-	}
+	// Set the proof data file path using relative path
+	proofFilePath := filepath.Join("..", "ts-api", "vc_and_disclose_proof.json")
 
 	fmt.Printf("📄 Using proof file: %s\n", proofFilePath)
 
