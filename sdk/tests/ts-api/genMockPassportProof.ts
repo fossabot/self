@@ -3,9 +3,9 @@ import { hashEndpointWithScope } from "@selfxyz/common/utils/scope";
 import { genAndInitMockPassportData } from "@selfxyz/common/utils/passports/genMockPassportData";
 import { getProofGeneratedUpdate, handshakeAndGetUuid, runGenerateVcAndDiscloseRawProof } from "./utils/helper.js";
 import { generateCircuitInputsDSC, generateCircuitInputsRegister, getCircuitNameFromPassportData } from "@selfxyz/common";
-//import { REGISTER_URL } from "./utils/constant.js";
+import { REGISTER_URL } from "./utils/constant.js";
 
-const REGISTER_URL = "tree.staging.self.xyz/identity";
+// const REGISTER_URL = "tree.staging.self.xyz/identity";
 const DSC_TREE_URL_STAGING = "https://tree.staging.self.xyz/dsc";
 
 async function main() {
@@ -68,7 +68,7 @@ async function main() {
     passportData,
     serialized_dsc_tree.data as string
   );
-  console.log("registerInputs DONE");
+
   const registerCircuitName = getCircuitNameFromPassportData(
     passportData,
     "register"
