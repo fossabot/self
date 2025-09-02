@@ -2,7 +2,7 @@
 import { hashEndpointWithScope } from "@selfxyz/common/utils/scope";
 import { genAndInitMockPassportData } from "@selfxyz/common/utils/passports/genMockPassportData";
 import { getProofGeneratedUpdate, handshakeAndGetUuid, runGenerateVcAndDiscloseRawProof } from "./utils/helper.js";
-import { generateCircuitInputsRegister, getCircuitNameFromPassportData } from "@selfxyz/common";
+import { generateCircuitInputsDSC, generateCircuitInputsRegister, getCircuitNameFromPassportData } from "@selfxyz/common";
 //import { REGISTER_URL } from "./utils/constant.js";
 
 const REGISTER_URL = "tree.staging.self.xyz/identity";
@@ -25,7 +25,44 @@ async function main() {
   const dscTree = await fetch(DSC_TREE_URL_STAGING);
   const serialized_dsc_tree: any = await dscTree.json();
 
+  const response = await fetch("http://tree.staging.self.xyz/csca");
+  const data : any = await response.json();
 
+
+  //DSC proof generation
+  const cscaTree = JSON.parse(data.data);
+  const dscInputs = generateCircuitInputsDSC(passportData, cscaTree);
+  const dscCircuitName = getCircuitNameFromPassportData(passportData, "dsc");
+  const dscUuid = await handshakeAndGetUuid(
+    DSC_TREE_URL_STAGING,
+    dscInputs,
+    "dsc",
+    dscCircuitName
+  );
+  const dscData = await getProofGeneratedUpdate(dscUuid);
+  //pretty print the circuit name
+  console.log("\x1b[34m%s\x1b[0m", "dsc uuid:", dscUuid);
+  console.log("\x1b[34m%s\x1b[0m", "circuit:", dscCircuitName);
+  console.log(
+    "\x1b[34m%s\x1b[0m",
+    "witness generation duration:",
+    //@ts-ignore
+    (new Date(dscData.witness_generated_at) - new Date(dscData.created_at)) /
+      1000,
+    " seconds"
+  );
+  console.log(
+    "\x1b[34m%s\x1b[0m",
+    "proof   generation duration:",
+    //@ts-ignore
+    (new Date(dscData.proof_generated_at) -
+      //@ts-ignore
+      new Date(dscData.witness_generated_at)) /
+      1000,
+    " seconds"
+  );
+
+  //Register proof generation
   const registerInputs = generateCircuitInputsRegister(
     secret,
     passportData,
