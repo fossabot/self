@@ -2,8 +2,11 @@
 import { hashEndpointWithScope } from "@selfxyz/common/utils/scope";
 import { genAndInitMockPassportData } from "@selfxyz/common/utils/passports/genMockPassportData";
 import { getProofGeneratedUpdate, handshakeAndGetUuid, runGenerateVcAndDiscloseRawProof } from "./utils/helper.js";
-import { generateCircuitInputsRegister, getCircuitNameFromPassportData, DSC_TREE_URL_STAGING } from "@selfxyz/common";
-import { REGISTER_URL } from "./utils/constant.js";
+import { generateCircuitInputsRegister, getCircuitNameFromPassportData } from "@selfxyz/common";
+//import { REGISTER_URL } from "./utils/constant.js";
+
+const REGISTER_URL = "tree.staging.self.xyz/identity";
+const DSC_TREE_URL_STAGING = "https://tree.staging.self.xyz/dsc";
 
 async function main() {
   const secret = "1234";
