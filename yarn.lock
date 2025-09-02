@@ -2085,7 +2085,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fidm/x509@npm:^1.2.1":
+"@fidm/x509@npm:1.2.1, @fidm/x509@npm:^1.2.1":
   version: 1.2.1
   resolution: "@fidm/x509@npm:1.2.1"
   dependencies:
@@ -5348,18 +5348,28 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@selfxyz/ts-api-test@workspace:sdk/tests/ts-api"
   dependencies:
+    "@fidm/x509": "npm:1.2.1"
     "@openpassport/zk-kit-lean-imt": "npm:^0.0.6"
     "@openpassport/zk-kit-smt": "npm:^0.0.1"
     "@selfxyz/common": "workspace:^"
     "@selfxyz/core": "workspace:^"
     "@types/cors": "npm:^2.8.17"
+    "@types/cose-js": "npm:^0"
+    "@types/elliptic": "npm:^6.4.18"
     "@types/express": "npm:^4.17.21"
     "@types/node": "npm:^22.0.0"
+    "@types/ws": "npm:^8"
+    asn1.js: "npm:5.4.1"
+    cbor: "npm:10.0.11"
     cors: "npm:^2.8.5"
+    cose-js: "npm:0.9.0"
+    elliptic: "npm:^6.5.7"
     ethers: "npm:^6.13.5"
     express: "npm:^4.18.2"
+    socket.io-client: "npm:^4.8.1"
     tsx: "npm:^4.7.0"
     typescript: "npm:^5.9.2"
+    ws: "npm:8.18.3"
   languageName: unknown
   linkType: soft
 
@@ -9773,7 +9783,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/elliptic@npm:^6":
+"@types/elliptic@npm:^6, @types/elliptic@npm:^6.4.18":
   version: 6.4.18
   resolution: "@types/elliptic@npm:6.4.18"
   dependencies:
@@ -10235,6 +10245,15 @@ __metadata:
   version: 10.0.0
   resolution: "@types/uuid@npm:10.0.0"
   checksum: 10c0/9a1404bf287164481cb9b97f6bb638f78f955be57c40c6513b7655160beb29df6f84c915aaf4089a1559c216557dc4d2f79b48d978742d3ae10b937420ddac60
+  languageName: node
+  linkType: hard
+
+"@types/ws@npm:^8":
+  version: 8.18.1
+  resolution: "@types/ws@npm:8.18.1"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/61aff1129143fcc4312f083bc9e9e168aa3026b7dd6e70796276dcfb2c8211c4292603f9c4864fae702f2ed86e4abd4d38aa421831c2fd7f856c931a481afbab
   languageName: node
   linkType: hard
 
@@ -11722,7 +11741,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"asn1.js@npm:^5.4.1":
+"asn1.js@npm:5.4.1, asn1.js@npm:^5.4.1":
   version: 5.4.1
   resolution: "asn1.js@npm:5.4.1"
   dependencies:
@@ -12648,6 +12667,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cbor@npm:10.0.11":
+  version: 10.0.11
+  resolution: "cbor@npm:10.0.11"
+  dependencies:
+    nofilter: "npm:^3.0.2"
+  checksum: 10c0/0cb6fb3d5e98c7af4443200ff107049f6132b5649b8a0e586940ca811e5ab5622bf3d0a36f154f43107acfd9685cc462e6eac77876ef4c060bcec96c71b90d8a
+  languageName: node
+  linkType: hard
+
 "cbor@npm:^8.1.0":
   version: 8.1.0
   resolution: "cbor@npm:8.1.0"
@@ -13513,7 +13541,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cose-js@npm:^0.9.0":
+"cose-js@npm:0.9.0, cose-js@npm:^0.9.0":
   version: 0.9.0
   resolution: "cose-js@npm:0.9.0"
   dependencies:
@@ -21047,7 +21075,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nofilter@npm:^3.1.0":
+"nofilter@npm:^3.0.2, nofilter@npm:^3.1.0":
   version: 3.1.0
   resolution: "nofilter@npm:3.1.0"
   checksum: 10c0/92459f3864a067b347032263f0b536223cbfc98153913b5dce350cb39c8470bc1813366e41993f22c33cc6400c0f392aa324a4b51e24c22040635c1cdb046499
@@ -27401,6 +27429,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ws@npm:8.18.3, ws@npm:^8.18.0":
+  version: 8.18.3
+  resolution: "ws@npm:8.18.3"
+  peerDependencies:
+    bufferutil: ^4.0.1
+    utf-8-validate: ">=5.0.2"
+  peerDependenciesMeta:
+    bufferutil:
+      optional: true
+    utf-8-validate:
+      optional: true
+  checksum: 10c0/eac918213de265ef7cb3d4ca348b891a51a520d839aa51cdb8ca93d4fa7ff9f6ccb339ccee89e4075324097f0a55157c89fa3f7147bde9d8d7e90335dc087b53
+  languageName: node
+  linkType: hard
+
 "ws@npm:^6.2.2, ws@npm:^6.2.3":
   version: 6.2.3
   resolution: "ws@npm:6.2.3"
@@ -27422,21 +27465,6 @@ __metadata:
     utf-8-validate:
       optional: true
   checksum: 10c0/bd7d5f4aaf04fae7960c23dcb6c6375d525e00f795dd20b9385902bd008c40a94d3db3ce97d878acc7573df852056ca546328b27b39f47609f80fb22a0a9b61d
-  languageName: node
-  linkType: hard
-
-"ws@npm:^8.18.0":
-  version: 8.18.3
-  resolution: "ws@npm:8.18.3"
-  peerDependencies:
-    bufferutil: ^4.0.1
-    utf-8-validate: ">=5.0.2"
-  peerDependenciesMeta:
-    bufferutil:
-      optional: true
-    utf-8-validate:
-      optional: true
-  checksum: 10c0/eac918213de265ef7cb3d4ca348b891a51a520d839aa51cdb8ca93d4fa7ff9f6ccb339ccee89e4075324097f0a55157c89fa3f7147bde9d8d7e90335dc087b53
   languageName: node
   linkType: hard
 

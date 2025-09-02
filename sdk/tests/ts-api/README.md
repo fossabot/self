@@ -49,17 +49,6 @@ Content-Type: application/json
 }
 ```
 
-This endpoint verifies attestations using a default disclosure configuration that shows all fields:
-- Minimum age: 18
-- OFAC checking: enabled
-- Excluded countries: Pakistan (PAK), Iran (IRN)
-- All passport fields disclosed by default
-
-## Storage
-
-This API uses in-memory storage for testing purposes:
-- Configuration data is stored in memory
-- Data is lost when server restarts
 
 ## Docker Setup
 
@@ -90,16 +79,6 @@ cd sdk/tests/ts-api
 docker-compose up --build
 ```
 
-The Docker container includes:
-- Health check endpoint at `/health`
-- Automatic restart policy
-- Non-root user for security
-- Production optimizations
-
-### Docker Environment Variables
-
-- `PORT`: Server port (default: 3000)
-- `NODE_ENV`: Environment (set to 'production' in Docker)
 
 ## Development vs Docker
 
@@ -113,10 +92,3 @@ yarn dev        # Uses tsx with hot reload
 yarn build      # Compiles TypeScript
 yarn start      # Runs compiled JavaScript
 ```
-
-## Environment
-
-- Default port: 3000
-- Node.js version: 22.x
-- TypeScript with ES modules
-- Docker support with multi-stage builds
