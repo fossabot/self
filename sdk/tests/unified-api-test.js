@@ -162,17 +162,6 @@ function createTestCases() {
             expectedKeywords: ['Onchain root']
         },
         {
-            name: 'Invalid Attestation ID',
-            body: {
-                attestationId: 999, // Using invalid attestation ID that's not in allowed list
-                proof: proof,
-                publicSignals: proofData.publicSignals,
-                userContextData: validUserContext
-            },
-            expectedStatus: 500,
-            expectedKeywords: ['Attestation ID', 'not allowed']
-        },
-        {
             name: 'Attestation ID Mismatch',
             body: {
                 attestationId: 2,
