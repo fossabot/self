@@ -34,7 +34,6 @@ async function main() {
   const cscaTree = JSON.parse(data.data);
 
   const dscInputs = generateCircuitInputsDSC(passportData, cscaTree);
-
   const dscCircuitName = getCircuitNameFromPassportData(passportData, "dsc");
 
   const dscUuid = await handshakeAndGetUuid(

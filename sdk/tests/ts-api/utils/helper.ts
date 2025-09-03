@@ -462,11 +462,16 @@ export async function runGenerateVcAndDiscloseRawProof(
   const forbiddenCountriesList = options?.forbiddenCountriesList ?? ["PAK", "IRN"];
   const userIdentifier= calculateUserIdentifierHash(42220, "94ba0DB8A9Db66979905784A9d6B2D286e55Bd27", userContextData);
 
-  const hashFunction = (a: bigint, b: bigint) => poseidon2([a, b]);
-  const merkletree = new LeanIMT<bigint>(hashFunction);
+  const merkleTree: any = new LeanIMT<bigint>((a, b) => poseidon2([a, b]), []);
 
-  const commitment = generateCommitment(secret, attestationId, passportData);
-  merkletree.insert(BigInt(commitment));
+  const identityTreeHeader = await fetch(
+    "http://tree.staging.self.xyz/identity"
+  );
+  const identityTree = JSON.parse((await identityTreeHeader.json() as any).data).map(
+    (x: string[]) => x.map((y: string) => BigInt(y))
+  );
+
+  merkleTree.insertMany(identityTree[0]);
 
   const hash2 = (childNodes: ChildNodes) =>
     childNodes.length === 2 ? poseidon2(childNodes) : poseidon3(childNodes);
@@ -486,7 +491,7 @@ export async function runGenerateVcAndDiscloseRawProof(
     scope,
     selectorDg1,
     selectorOlderThan,
-    merkletree,
+    merkleTree,
     majority,
     passportNo_smt,
     nameAndDob_smt,
