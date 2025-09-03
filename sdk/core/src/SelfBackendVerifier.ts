@@ -293,7 +293,6 @@ export class SelfBackendVerifier {
     } catch (error) {
       throw new VerifierContractError('Verifier contract not found');
     }
-    console.log("verifierContract", verifierContract);
     let isValid = false;
     try {
       isValid = await verifierContract.verifyProof(

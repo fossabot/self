@@ -14,10 +14,15 @@ const proofData = JSON.parse(fs.readFileSync(path.join(__dirname, 'vc_and_disclo
 const API_URL = "http://localhost:3000";
 const endpoint = `${API_URL}/api/verify`;
 
+const proof = {
+    a: proofData.proof.pi_a.slice(0, 2),
+    b: proofData.proof.pi_b.map(b => b.slice(0, 2)),
+    c: proofData.proof.pi_c.slice(0, 2),
+};
 
 const requestBody = {
     attestationId: 1,
-    proof: proofData.proof,
+    proof: proof,
     publicSignals: proofData.publicSignals,
     userContextData: "000000000000000000000000000000000000000000000000000000000000a4ec00000000000000000000000094ba0db8a9db66979905784a9d6b2d286e55bd27"
 };

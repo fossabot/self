@@ -6,8 +6,6 @@ import { generateCircuitInputsDSC, generateCircuitInputsRegister, getCircuitName
 import { REGISTER_URL ,DSC_URL} from "./utils/constant.js";
 import axios from "axios";
 
-
-
 async function main() {
   const secret = "1234";
   const attestationId = "1";
@@ -15,9 +13,9 @@ async function main() {
   const scope = hashEndpointWithScope("http://localhost:3000", "self-playground");
 
   const passportData = genAndInitMockPassportData(
-    "sha256",
-    "sha256",
-    "rsa_sha256_65537_4096" as any,
+    "sha1",
+    "sha1",
+    "rsa_sha1_65537_4096" as any,
     "FRA",
     "000101",
     "300101",
@@ -29,20 +27,7 @@ async function main() {
   const response = await axios.get("http://tree.staging.self.xyz/csca");
   const data : any = response.data;
 
-
   //DSC proof generation
-  const cscaTree = JSON.parse(data.data);
-
-  const dscInputs = generateCircuitInputsDSC(passportData, cscaTree);
-  const dscCircuitName = getCircuitNameFromPassportData(passportData, "dsc");
-
-  const dscUuid = await handshakeAndGetUuid(
-    DSC_URL,
-    dscInputs,
-    "dsc",
-    dscCircuitName
-  );
-
 
   //Register proof generation
   const registerInputs = generateCircuitInputsRegister(
