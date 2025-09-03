@@ -99,25 +99,31 @@ function loadTestData() {
 
 function createTestCases() {
     const proofData = loadTestData();
+    const proof = {
+        a: proofData.proof.pi_a.slice(0, 2),
+        b: proofData.proof.pi_b.map(b => b.slice(0, 2)),
+        c: proofData.proof.pi_c.slice(0, 2),
+    };
+
     const validUserContext = "000000000000000000000000000000000000000000000000000000000000a4ec00000000000000000000000094ba0db8a9db66979905784a9d6b2d286e55bd27";
     const invalidUserContext = "000000000000000000000000000000000000000000000000000000000000a4ec00000000000000000000000094ba0db8a9db66979905784a9d6b2d286e55bd28";
 
     return [
         {
             name: 'Valid Proof Verification',
-            body: { attestationId: 1, proof: proofData.proof, publicSignals: proofData.publicSignals, userContextData: validUserContext },
+            body: { attestationId: 1, proof: proof, publicSignals: proofData.publicSignals, userContextData: validUserContext },
             expectedStatus: 200
         },
         {
             name: 'Invalid User Context',
-            body: { attestationId: 1, proof: proofData.proof, publicSignals: proofData.publicSignals, userContextData: invalidUserContext },
+            body: { attestationId: 1, proof: proof, publicSignals: proofData.publicSignals, userContextData: invalidUserContext },
             expectedStatus: 500
         },
         {
             name: 'Invalid Scope',
             body: {
                 attestationId: 1,
-                proof: proofData.proof,
+                proof: proof,
                 publicSignals: proofData.publicSignals.map((sig, i) => i === 19 ? "17121382998761176299335602807450250650083579600718579431641003529012841023067" : sig),
                 userContextData: validUserContext
             },
