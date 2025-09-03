@@ -86,8 +86,6 @@ export async function generateVcAndDiscloseRawProof(
   const wasmPath = path.resolve(__dirnameHelper, "assests/vc_and_disclose.wasm");
   const zkeyPath = path.resolve(__dirnameHelper, "assests/vc_and_disclose_00008.zkey");
 
-  console.log("wasmPath", wasmPath);
-  console.log("zkeyPath", zkeyPath);
 
   const vcAndDiscloseProof = await groth16.fullProve(
     vcAndDiscloseCircuitInputs,
@@ -100,7 +98,6 @@ export async function generateVcAndDiscloseRawProof(
   if (!isValid) {
     throw new Error("Generated register proof verification failed");
   }
-  console.log("PROOF VERIFIED");
 
 
   fs.writeFileSync(
