@@ -5,8 +5,8 @@
 import { lazy } from 'react';
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 
-import { HomeNavBar } from '@/components/NavBar';
-import { black } from '@/utils/colors';
+import { HomeNavBar, IdDetailsNavBar } from '@/components/NavBar';
+import { black, white } from '@/utils/colors';
 
 const DisclaimerScreen = lazy(() => import('@/screens/home/DisclaimerScreen'));
 const HomeScreen = lazy(() => import('@/screens/home/HomeScreen'));
@@ -16,6 +16,7 @@ const ProofHistoryDetailScreen = lazy(
 const ProofHistoryScreen = lazy(
   () => import('@/screens/home/ProofHistoryScreen'),
 );
+const IdDetailsScreen = lazy(() => import('@/screens/home/IdDetailsScreen'));
 const homeScreens = {
   Disclaimer: {
     screen: DisclaimerScreen,
@@ -45,6 +46,14 @@ const homeScreens = {
     screen: ProofHistoryDetailScreen,
     options: {
       title: 'Approval',
+    },
+  },
+  IdDetails: {
+    screen: IdDetailsScreen,
+    options: {
+      title: '',
+      header: IdDetailsNavBar, // Use custom header
+      headerBackVisible: false, // Hide default back button
     },
   },
 };

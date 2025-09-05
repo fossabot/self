@@ -30,7 +30,10 @@ import { BodyText } from '@/components/typography/BodyText';
 import { Caption } from '@/components/typography/Caption';
 import { ProofEvents } from '@/consts/analytics';
 import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
-import { setDefaultDocumentTypeIfNeeded } from '@/providers/passportDataProvider';
+import {
+  setDefaultDocumentTypeIfNeeded,
+  usePassport,
+} from '@/providers/passportDataProvider';
 import { ProofStatus } from '@/stores/proof-types';
 import { useProofHistoryStore } from '@/stores/proofHistoryStore';
 import { useSelfAppStore } from '@/stores/selfAppStore';
@@ -64,21 +67,29 @@ const ProveScreen: React.FC = () => {
   const isReadyToProve = currentState === 'ready_to_prove';
 
   const { addProofHistory } = useProofHistoryStore();
+  const { loadDocumentCatalog } = usePassport();
 
   useEffect(() => {
-    if (provingStore.uuid && selectedApp) {
-      addProofHistory({
-        appName: selectedApp.appName,
-        sessionId: provingStore.uuid!,
-        userId: selectedApp.userId,
-        userIdType: selectedApp.userIdType,
-        endpointType: selectedApp.endpointType,
-        status: ProofStatus.PENDING,
-        logoBase64: selectedApp.logoBase64,
-        disclosures: JSON.stringify(selectedApp.disclosures),
-      });
-    }
-  }, [addProofHistory, provingStore.uuid, selectedApp]);
+    const addHistory = async () => {
+      if (provingStore.uuid && selectedApp) {
+        const catalog = await loadDocumentCatalog();
+        const selectedDocumentId = catalog.selectedDocumentId;
+
+        addProofHistory({
+          appName: selectedApp.appName,
+          sessionId: provingStore.uuid!,
+          userId: selectedApp.userId,
+          userIdType: selectedApp.userIdType,
+          endpointType: selectedApp.endpointType,
+          status: ProofStatus.PENDING,
+          logoBase64: selectedApp.logoBase64,
+          disclosures: JSON.stringify(selectedApp.disclosures),
+          documentId: selectedDocumentId || '', // Fallback to empty if none selected
+        });
+      }
+    };
+    addHistory();
+  }, [addProofHistory, provingStore.uuid, selectedApp, loadDocumentCatalog]);
 
   useEffect(() => {
     if (isContentShorterThanScrollView) {
@@ -148,7 +159,7 @@ const ProveScreen: React.FC = () => {
       userIdType: selectedApp?.userIdType,
     });
     setTimeout(() => {
-      navigate('ProofRequestStatusScreen');
+      navigate('ProofRequestStatusScreen' as never);
     }, 100);
   }
 
