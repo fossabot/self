@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-// Simplified API comparison test for TypeScript vs Go APIs
-import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { hashEndpointWithScope } from "@selfxyz/common/utils/scope";
+import { registerMockPassport, discloseProof } from './utils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,6 +11,10 @@ const __dirname = path.dirname(__filename);
 const TS_API_URL = "http://localhost:3000";
 const GO_API_URL = "http://localhost:8080";
 const VERIFY_ENDPOINT = "/api/verify";
+
+// Global test data
+let globalProofData = null;
+let globalPassportData = null;
 
 // Simple API call function
 async function callAPI(url, requestBody) {
@@ -83,45 +87,43 @@ function compareAPIs(testName, tsResponse, goResponse, expectedStatus = 200, exp
     return { passed: issues.length === 0, issues };
 }
 
-// Run a single test
-async function runTest(testName, requestBody, expectedStatus = 200, expectedKeywords = []) {
-    console.log(`\n🧪 ${testName}`);
 
-    const [tsResponse, goResponse] = await Promise.all([
-        callAPI(TS_API_URL, requestBody),
-        callAPI(GO_API_URL, requestBody)
-    ]);
+// Setup function to register passport and generate proof
+async function setupTestData() {
+    console.log('🔧 Setting up test data...');
 
-    const result = compareAPIs(testName, tsResponse, goResponse, expectedStatus, expectedKeywords);
+    const secret = "1234";
+    const attestationId = "1";
+    const scope = hashEndpointWithScope("http://localhost:3000", "self-playground");
 
-    if (result.passed) {
-        console.log(`✅ PASS`);
-    } else {
-        console.log(`❌ FAIL:`);
-        result.issues.forEach(issue => console.log(`   - ${issue}`));
-    }
+    // Register mock passport and get passport data
+    console.log('📋 Registering mock passport...');
+    globalPassportData = await registerMockPassport(secret);
 
-    return result.passed;
-}
+    // Generate disclose proof using the same passport data
+    console.log('🔑 Generating disclose proof...');
+    const rawProofData = await discloseProof(secret, attestationId, globalPassportData, scope);
 
-// Load test data and create test cases
-function loadTestData() {
-    try {
-        const proofDataPath = path.join(__dirname, 'ts-api', 'vc_and_disclose_proof.json');
-        return JSON.parse(fs.readFileSync(proofDataPath, 'utf8'));
-    } catch (error) {
-        console.error(`❌ Error loading test data: ${error.message}`);
-        process.exit(1);
-    }
+    // Convert proof format from pi_a/pi_b/pi_c to a/b/c
+    globalProofData = {
+        proof: {
+            a: rawProofData.proof.pi_a.slice(0, 2),
+            b: rawProofData.proof.pi_b.map(b => b.slice(0, 2)),
+            c: rawProofData.proof.pi_c.slice(0, 2),
+        },
+        publicSignals: rawProofData.publicSignals
+    };
+
+    console.log(' Test data setup complete');
 }
 
 function createTestCases() {
-    const proofData = loadTestData();
-    const proof = {
-        a: proofData.proof.pi_a.slice(0, 2),
-        b: proofData.proof.pi_b.map(b => b.slice(0, 2)),
-        c: proofData.proof.pi_c.slice(0, 2),
-    };
+    if (!globalProofData) {
+        throw new Error('Test data not initialized. Call setupTestData() first.');
+    }
+
+    const proof = globalProofData.proof;
+    const publicSignals = globalProofData.publicSignals;
 
     const validUserContext = "000000000000000000000000000000000000000000000000000000000000a4ec00000000000000000000000094ba0db8a9db66979905784a9d6b2d286e55bd27";
     const invalidUserContext = "000000000000000000000000000000000000000000000000000000000000a4ec00000000000000000000000094ba0db8a9db66979905784a9d6b2d286e55bd28";
@@ -129,13 +131,13 @@ function createTestCases() {
     return [
         {
             name: 'Valid Proof Verification',
-            body: { attestationId: 1, proof: proof, publicSignals: proofData.publicSignals, userContextData: validUserContext },
+            body: { attestationId: 1, proof: proof, publicSignals: publicSignals, userContextData: validUserContext },
             expectedStatus: 200,
             expectedKeywords: []
         },
         {
             name: 'Invalid User Context',
-            body: { attestationId: 1, proof: proof, publicSignals: proofData.publicSignals, userContextData: invalidUserContext },
+            body: { attestationId: 1, proof: proof, publicSignals: publicSignals, userContextData: invalidUserContext },
             expectedStatus: 500,
             expectedKeywords: ['context hash']
         },
@@ -144,7 +146,7 @@ function createTestCases() {
             body: {
                 attestationId: 1,
                 proof: proof,
-                publicSignals: proofData.publicSignals.map((sig, i) => i === 19 ? "17121382998761176299335602807450250650083579600718579431641003529012841023067" : sig),
+                publicSignals: publicSignals.map((sig, i) => i === 19 ? "17121382998761176299335602807450250650083579600718579431641003529012841023067" : sig),
                 userContextData: validUserContext
             },
             expectedStatus: 500,
@@ -155,7 +157,7 @@ function createTestCases() {
             body: {
                 attestationId: 1,
                 proof: proof,
-                publicSignals: proofData.publicSignals.map((sig, i) => i === 9 ? "9656656992379025128519272376477139373854042233370909906627112932049610896732" : sig),
+                publicSignals: publicSignals.map((sig, i) => i === 9 ? "9656656992379025128519272376477139373854042233370909906627112932049610896732" : sig),
                 userContextData: validUserContext
             },
             expectedStatus: 500,
@@ -166,7 +168,7 @@ function createTestCases() {
             body: {
                 attestationId: 2,
                 proof: proof,
-                publicSignals: proofData.publicSignals,
+                publicSignals: publicSignals,
                 userContextData: validUserContext
             },
             expectedStatus: 500,
@@ -175,10 +177,32 @@ function createTestCases() {
     ];
 }
 
+// Run a single test
+async function runTest(testName, requestBody, expectedStatus = 200, expectedKeywords = []) {
+    console.log(`\n ${testName}`);
+
+    const [tsResponse, goResponse] = await Promise.all([
+        callAPI(TS_API_URL, requestBody),
+        callAPI(GO_API_URL, requestBody)
+    ]);
+
+    const result = compareAPIs(testName, tsResponse, goResponse, expectedStatus, expectedKeywords);
+
+    if (result.passed) {
+        console.log(` PASS`);
+    } else {
+        console.log(` FAIL:`);
+        result.issues.forEach(issue => console.log(`   - ${issue}`));
+    }
+
+    return result.passed;
+}
+
 // Main execution
 async function main() {
     console.log('Self SDK API Comparison Test\n');
 
+    await setupTestData();
     const testCases = createTestCases();
     let passed = 0, failed = 0;
 

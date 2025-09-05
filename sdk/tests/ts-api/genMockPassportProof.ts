@@ -6,6 +6,67 @@ import { generateCircuitInputsDSC, generateCircuitInputsRegister, getCircuitName
 import { REGISTER_URL ,DSC_URL} from "./utils/constant.js";
 import axios from "axios";
 
+
+async function registerMockPassport(secret: string) {
+
+  const passportData = genAndInitMockPassportData(
+    "sha1",
+    "sha1",
+    "rsa_sha1_65537_4096" as any,
+    "FRA",
+    "000101",
+    "300101",
+  );
+
+  const dscTree = await axios.get("http://tree.staging.self.xyz/dsc");
+  const serialized_dsc_tree: any = dscTree.data;
+
+  //Register proof generation
+  const registerInputs = generateCircuitInputsRegister(
+    secret,
+    passportData,
+    serialized_dsc_tree.data as string
+  );
+
+  const registerCircuitName = getCircuitNameFromPassportData(
+    passportData,
+    "register"
+  );
+
+  //keyLength === 384 ? REGISTER_MEDIUM_URL : REGISTER_URL,
+  const registerUuid = await handshakeAndGetUuid(
+    REGISTER_URL,
+    registerInputs,
+    "register",
+    registerCircuitName
+  );
+
+  const registerData = await getProofGeneratedUpdate(registerUuid);
+  console.log(" Got register proof generated update:", registerData ? "SUCCESS" : "FAILED");
+  console.log("\x1b[34m%s\x1b[0m", "register uuid:", registerUuid);
+  console.log("\x1b[34m%s\x1b[0m", "circuit:", registerCircuitName);
+  console.log(
+    "\x1b[34m%s\x1b[0m",
+    "witness generation duration:",
+    //@ts-ignore
+    (new Date(registerData.witness_generated_at) -
+      //@ts-ignore
+      new Date(registerData.created_at)) /
+      1000,
+    " seconds"
+  );
+  console.log(
+    "\x1b[34m%s\x1b[0m",
+    "proof   generation duration:",
+    //@ts-ignore
+    (new Date(registerData.proof_generated_at) -
+      //@ts-ignore
+      new Date(registerData.witness_generated_at)) /
+      1000,
+    " seconds"
+  );
+}
+
 async function main() {
   const secret = "1234";
   const attestationId = "1";

@@ -99,12 +99,6 @@ export async function generateVcAndDiscloseRawProof(
     throw new Error("Generated register proof verification failed");
   }
 
-
-  fs.writeFileSync(
-    `vc_and_disclose_proof.json`,
-    JSON.stringify(vcAndDiscloseProof, null, 2)
-  );
-
   return vcAndDiscloseProof;
 }
 
