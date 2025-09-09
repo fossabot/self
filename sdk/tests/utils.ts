@@ -79,17 +79,6 @@ async function registerMockPassport(secret: string): Promise<PassportData> {
 }
 
 
-async function discloseProof(secret: string, attestationId: string, passportData: PassportData, scope: string) {
-    const userDefinedData = "hello from the playground";
-
-    return await runGenerateVcAndDiscloseRawProof(
-        secret,
-        attestationId,
-        passportData,
-        scope,
-        userDefinedData,
-    );
-}
 
 // API testing utilities
 export async function callAPI(url: string, requestBody: any): Promise<APIResponse> {
@@ -167,7 +156,7 @@ export async function setupTestData(): Promise<void> {
     const scope = hashEndpointWithScope("http://localhost:3000", "self-playground");
 
     globalPassportData = await registerMockPassport(secret);
-    const rawProofData = await discloseProof(secret, attestationId, globalPassportData, scope);
+    const rawProofData = await runGenerateVcAndDiscloseRawProof(secret, attestationId, globalPassportData, scope,"hello from the playground");
 
     globalProofData = {
         proof: {
@@ -184,15 +173,26 @@ export function getTestData() {
     if (!globalProofData) {
         throw new Error('Test data not initialized. Call setupTestData() first.');
     }
-
     const proof = globalProofData.proof;
     const publicSignals = globalProofData.publicSignals;
+
+    return { proof, publicSignals };
+}
     // Format: destChainId(32 bytes) + userIdentifier(32 bytes) + userDefinedData
     // userDefinedData: "hello from the playground" = 68656c6c6f2066726f6d2074686520706c617967726f756e64
-    const validUserContext = "000000000000000000000000000000000000000000000000000000000000a4ec00000000000000000000000094ba0db8a9db66979905784a9d6b2d286e55bd2768656c6c6f2066726f6d2074686520706c617967726f756e64";
-    const invalidUserContext = "000000000000000000000000000000000000000000000000000000000000a4ec00000000000000000000000094ba0db8a9db66979905784a9d6b2d286e55bd2868656c6c6f2066726f6d2074686520706c617967726f756e64";
-
-    return { proof, publicSignals, validUserContext, invalidUserContext };
+export function getUserContextData() {
+    return "000000000000000000000000000000000000000000000000000000000000a4ec00000000000000000000000094ba0db8a9db66979905784a9d6b2d286e55bd2768656c6c6f2066726f6d2074686520706c617967726f756e64";
 }
 
-export { registerMockPassport, discloseProof };
+export function getInvalidUserContextData() {
+    return "000000000000000000000000000000000000000000000000000000000000a4ec00000000000000000000000094ba0db8a9db66979905784a9d6b2d286e55bd2868656c6c6f2066726f6d2074686520706c617967726f756e64";
+}
+
+export function getGlobalPassportData() {
+    if (!globalPassportData) {
+        throw new Error('Test data not initialized. Call setupTestData() first.');
+    }
+    return globalPassportData;
+}
+
+export { registerMockPassport };

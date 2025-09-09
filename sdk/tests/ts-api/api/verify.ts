@@ -57,13 +57,12 @@ export const verifyHandler = async (
 
     const configStoreInstance = new KVConfigStore();
     const userDefinedData = userContextData.slice(128);
-    console.log('userDefinedData', userDefinedData);
     const configId = await configStoreInstance.getActionId("", userDefinedData);
 
     const verificationConfig: VerificationConfig = {
       minimumAge: 18,
       excludedCountries: ["PAK", "IRN"],
-      ofac: true,
+      ofac: false,
     }
 
     await configStoreInstance.setConfig(configId, verificationConfig);
@@ -103,7 +102,7 @@ export const verifyHandler = async (
       gender: true,
       expiry_date: true,
       minimumAge: 18,
-      ofac: true,
+      ofac: false,
       excludedCountries: ["PAK", "IRN"]
     };
 

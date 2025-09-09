@@ -21,7 +21,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { poseidon2, poseidon3 } from "poseidon-lite";
 import { ChildNodes } from "@openpassport/zk-kit-smt";
-import { generateCommitment } from "@selfxyz/common/utils/passports/passport";
 // @ts-ignore
 import passportNojson from "@selfxyz/circuits/tests/consts/ofac/passportNoAndNationalitySMT.json";
 // @ts-ignore
@@ -439,6 +438,8 @@ export async function runGenerateVcAndDiscloseRawProof(
   );
 
   merkleTree.insertMany(identityTree[0]);
+
+  console.log("identityTree fetched");
 
   const hash2 = (childNodes: ChildNodes) =>
     childNodes.length === 2 ? poseidon2(childNodes) : poseidon3(childNodes);
