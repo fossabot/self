@@ -161,10 +161,9 @@ func VerifyHandler(w http.ResponseWriter, r *http.Request) {
 	verificationConfig := self.VerificationConfig{
 		MinimumAge:        18,
 		ExcludedCountries: []common.Country3LetterCode{common.PAK, common.IRN},
-		Ofac:              true,
+		Ofac:              false,
 	}
 
-	
 	var userDefinedData string
 	if len(userContextDataStr) > 128 {
 		userDefinedData = userContextDataStr[128:]

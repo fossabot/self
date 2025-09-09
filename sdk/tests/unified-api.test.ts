@@ -3,6 +3,8 @@ import { describe } from 'mocha';
 import { callAPI, compareAPIs, setupTestData, getTestData, getGlobalPassportData, getUserContextData, getInvalidUserContextData } from './utils.ts';
 import { getRevealedDataBytes } from '../core/src/utils/proof.js';
 import { packBytes } from '../../common/src/utils/bytes.js';
+import { runGenerateVcAndDiscloseRawProof } from './ts-api/utils/helper.ts';
+import { hashEndpointWithScope } from '@selfxyz/common';
 
 
 const TS_API_URL = "http://localhost:3000";
@@ -136,6 +138,20 @@ describe('Self SDK API Comparison Tests', function () {
             };
 
             await runTest(body, 500, ['Minimum age', 'does not match', 'circuit', '25']);
+        });
+
+        it('should reject OFAC mismatch', async function () {
+            const scope = hashEndpointWithScope("http://localhost:3000", "self-playground");
+            const rawProofData = await runGenerateVcAndDiscloseRawProof("1234", "1", getGlobalPassportData(), scope, "hello from the playground", {
+                selectorOfac: "1"
+            });
+            const body = {
+                attestationId: 1,
+                proof: rawProofData.proof,
+                publicSignals: rawProofData.publicSignals,
+                userContextData: validUserContext
+            };
+            await runTest(body, 500, ['OFAC check is not allowed', 'Passport number', 'Name and DOB', 'Name and YOB']);
         });
 
 

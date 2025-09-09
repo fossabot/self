@@ -156,7 +156,9 @@ export async function setupTestData(): Promise<void> {
     const scope = hashEndpointWithScope("http://localhost:3000", "self-playground");
 
     globalPassportData = await registerMockPassport(secret);
-    const rawProofData = await runGenerateVcAndDiscloseRawProof(secret, attestationId, globalPassportData, scope,"hello from the playground");
+    const rawProofData = await runGenerateVcAndDiscloseRawProof(secret, attestationId, globalPassportData, scope, "hello from the playground", {
+        selectorOfac: "0"
+    });
 
     globalProofData = {
         proof: {
