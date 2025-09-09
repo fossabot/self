@@ -147,7 +147,7 @@ abstract class CameraFragment : androidx.fragment.app.Fragment(), ActivityCompat
         buildCamera(cameraPreview!!, initialLensPosition)
 
         hasCameraPermission = hasCameraPermission()
-        if (hasCameraPermission) {
+        if (!hasCameraPermission) {
             checkPermissions(requestedPermissions)
         } else {
             fotoapparat?.start()
@@ -157,7 +157,7 @@ abstract class CameraFragment : androidx.fragment.app.Fragment(), ActivityCompat
 
     override fun onPause() {
         hasCameraPermission = hasCameraPermission()
-        if (!hasCameraPermission) {
+        if (hasCameraPermission) {
             fotoapparat?.stop()
         }
         fotoapparat = null;
@@ -246,7 +246,8 @@ abstract class CameraFragment : androidx.fragment.app.Fragment(), ActivityCompat
     ////////////////////////////////////////////////////////////////////////////////////////
 
     protected fun hasCameraPermission(): Boolean {
-        return ContextCompat.checkSelfPermission(context!!, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
+        val hasPermission = ContextCompat.checkSelfPermission(context!!, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+        return hasPermission
     }
 
     protected fun checkPermissions(permissions: ArrayList<String> = ArrayList()) {

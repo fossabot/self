@@ -29,8 +29,9 @@ class SelfOCRViewManager(
 
     override fun getName() = REACT_CLASS
 
-    override fun createViewInstance(reactContext: ThemedReactContext) =
-      FrameLayout(reactContext)
+    override fun createViewInstance(reactContext: ThemedReactContext): FrameLayout {
+        return FrameLayout(reactContext)
+    }
 
     override fun getCommandsMap() = mapOf(
         "create" to COMMAND_CREATE,
@@ -45,9 +46,38 @@ class SelfOCRViewManager(
         super.receiveCommand(root, commandId, args)
         val reactNativeViewId = requireNotNull(args).getInt(0)
 
-        when (commandId.toInt()) {
-            COMMAND_CREATE -> createFragment(root, reactNativeViewId)
-            COMMAND_DESTROY -> destroyFragment(root, reactNativeViewId)
+        when (commandId) {
+            "create" -> {
+                createFragment(root, reactNativeViewId)
+            }
+            "destroy" -> {
+                destroyFragment(root, reactNativeViewId)
+            }
+            else -> {
+                android.util.Log.w("SelfOCRViewManager", "Unknown command: $commandId")
+            }
+        }
+    }
+
+    // Alternative method signature for newer React Native versions
+    override fun receiveCommand(
+        root: FrameLayout,
+        commandId: Int,
+        args: ReadableArray?
+    ) {
+        super.receiveCommand(root, commandId, args)
+        val reactNativeViewId = requireNotNull(args).getInt(0)
+
+        when (commandId) {
+            COMMAND_CREATE -> {
+                createFragment(root, reactNativeViewId)
+            }
+            COMMAND_DESTROY -> {
+                destroyFragment(root, reactNativeViewId)
+            }
+            else -> {
+                android.util.Log.w("SelfOCRViewManager", "Unknown command: $commandId")
+            }
         }
     }
 
@@ -57,18 +87,51 @@ class SelfOCRViewManager(
         if (index == 1) propHeight = value
     }
 
+    // @ReactProp(name = "width")
+    // fun setWidth(view: FrameLayout, width: Int) {
+    //     propWidth = width
+    // }
+
+    // @ReactProp(name = "height")
+    // fun setHeight(view: FrameLayout, height: Int) {
+    //     propHeight = height
+    // }
+
     private fun createFragment(root: FrameLayout, reactNativeViewId: Int) {
         this.reactNativeViewId = reactNativeViewId
         val parentView = root.findViewById<ViewGroup>(reactNativeViewId)
         setupLayout(parentView)
 
+        val activity = reactContext.currentActivity as? FragmentActivity
+        if (activity == null) {
+            android.util.Log.e("SelfOCRViewManager", "No FragmentActivity found")
+            return
+        }
+
+        // Check if activity is in a valid state
+        if (activity.isFinishing || activity.isDestroyed) {
+            android.util.Log.e("SelfOCRViewManager", "Activity is finishing or destroyed")
+            return
+        }
+
         val cameraFragment = CameraMLKitFragment(this)
-        // val cameraFragment = MyFragment()
-        val activity = reactContext.currentActivity as FragmentActivity
-        activity.supportFragmentManager
-            .beginTransaction()
-            .replace(reactNativeViewId, cameraFragment, reactNativeViewId.toString())
-            .commit()
+        android.util.Log.d("SelfOCRViewManager", "Starting fragment transaction")
+
+        // Post to ensure activity is fully ready
+        activity.window.decorView.post {
+            try {
+                if (!activity.isFinishing && !activity.isDestroyed) {
+                    activity.supportFragmentManager
+                        .beginTransaction()
+                        .replace(reactNativeViewId, cameraFragment, reactNativeViewId.toString())
+                        .commitNow()
+                } else {
+                    android.util.Log.e("SelfOCRViewManager", "Activity no longer valid for fragment transaction")
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("SelfOCRViewManager", "Fragment transaction failed", e)
+            }
+        }
     }
 
     private fun destroyFragment(root: FrameLayout, reactNativeViewId: Int) {
@@ -97,8 +160,8 @@ class SelfOCRViewManager(
 
     private fun manuallyLayoutChildren(view: View) {
         // propWidth and propHeight coming from react-native props
-        val width = requireNotNull(propWidth)
-        val height = requireNotNull(propHeight)
+        val width = propWidth ?: 800 // Default fallback
+        val height = propHeight ?: 800 // Default fallback
 
         view.measure(
             View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),

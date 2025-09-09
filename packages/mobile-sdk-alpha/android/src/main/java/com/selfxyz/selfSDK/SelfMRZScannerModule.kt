@@ -22,36 +22,97 @@ ReactContextBaseJavaModule(reactContext), CameraMLKitFragment.CameraMLKitCallbac
     override fun getName() = "SelfMRZScannerModule"
 
     private var scanPromise: Promise? = null
+    private var currentContainer: FrameLayout? = null
+    private var currentFragment: CameraMLKitFragment? = null
 
     @ReactMethod
     fun startScanning(promise: Promise) {
-      scanPromise = promise
-        val activity = reactApplicationContext.currentActivity as? FragmentActivity ?: return
+        scanPromise = promise
+        val activity = reactApplicationContext.currentActivity as? FragmentActivity
+        if (activity == null) {
+            promise.reject("E_NO_ACTIVITY", "No FragmentActivity found")
+            return
+        }
 
-      activity.runOnUiThread {
-        val container = FrameLayout(activity)
-        val containerId = View.generateViewId()
-        container.id = containerId
 
-        activity.addContentView(container, ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.MATCH_PARENT
-        ))
+        activity.runOnUiThread {
+            try {
+                val container = FrameLayout(activity)
+                // just using view.generateViewId() doesn't work.
+                val containerId = generateUnusedId(activity.window.decorView as ViewGroup)
+                container.id = containerId
 
-        activity.supportFragmentManager
-            .beginTransaction()
-            .replace(containerId, CameraMLKitFragment(this))
-            .commit()
+                container.layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+
+                container.isFocusable = true
+                container.isFocusableInTouchMode = true
+                container.setBackgroundColor(android.graphics.Color.BLACK)
+
+                activity.addContentView(container, ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                ))
+
+                val fragment = CameraMLKitFragment(this@SelfMRZScannerModule)
+
+                // Store references for cleanup
+                currentContainer = container
+                currentFragment = fragment
+
+                activity.supportFragmentManager
+                    .beginTransaction()
+                    .replace(containerId, fragment)
+                    .commitNow()
+
+            } catch (e: Exception) {
+                android.util.Log.e("SelfMRZScannerModule", "Error in startScanning", e)
+                promise.reject("E_SCANNING_ERROR", e.message, e)
+            }
         }
     }
 
     override fun onPassportRead(mrzInfo: MRZInfo) {
         scanPromise?.resolve(mrzInfo.toString())
         scanPromise = null
+        cleanup()
     }
 
     override fun onError(e: Exception) {
         scanPromise?.reject(e)
         scanPromise = null
+        cleanup()
+    }
+
+    private fun generateUnusedId(root: ViewGroup): Int {
+        var id: Int
+        do { id = View.generateViewId() } while (root.findViewById<View>(id) != null)
+        return id
+    }
+
+    private fun cleanup() {
+        val activity = reactApplicationContext.currentActivity as? FragmentActivity
+        if (activity != null && currentFragment != null && currentContainer != null) {
+            activity.runOnUiThread {
+                try {
+                    activity.supportFragmentManager
+                        .beginTransaction()
+                        .remove(currentFragment!!)
+                        .commitNow()
+
+                    val parent = currentContainer!!.parent as? ViewGroup
+                    parent?.removeView(currentContainer)
+
+                    android.util.Log.d("SelfMRZScannerModule", "Cleaned up fragment and container")
+                } catch (e: Exception) {
+                    android.util.Log.e("SelfMRZScannerModule", "Error during cleanup", e)
+                }
+
+                currentFragment = null
+                currentContainer = null
+            }
+        }
     }
 }
