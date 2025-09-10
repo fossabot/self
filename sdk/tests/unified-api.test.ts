@@ -30,10 +30,10 @@ describe('Self SDK API Comparison Tests', function () {
     const validUserContext = getUserContextData();
     const invalidUserContext = getInvalidUserContextData();
     before(async () => {
-        await setupTestData();
+        await setupTestData("1");
     });
 
-    describe('API Verification Tests', function () {
+    describe('API Verification Tests Passport', function () {
         it('should verify valid proof successfully', async function () {
             const { proof, publicSignals } = getTestData();
             const body = {
@@ -253,5 +253,241 @@ describe('Self SDK API Comparison Tests', function () {
 
 
 
+    });
+});
+
+describe.only('Self SDK EU ID Card API Comparison Tests', function () {
+    this.timeout(0);
+
+    const validUserContext = getUserContextData();
+    const invalidUserContext = getInvalidUserContextData();
+    let euIdTestData: any = null;
+
+    before(async () => {
+        // Setup EU ID card test data
+        await setupTestData("2");
+        euIdTestData = getTestData();
+    });
+
+    describe('EU ID Card API Verification Tests', function () {
+        it('should verify valid EU ID card proof successfully', async function () {
+            const { proof, publicSignals } = euIdTestData;
+            const body = {
+                attestationId: 2,
+                proof: proof,
+                publicSignals: publicSignals,
+                userContextData: validUserContext
+            };
+            await runTest(body, 200, []);
+        });
+
+        it('should reject invalid user context', async function () {
+            const { proof, publicSignals } = euIdTestData;
+            const body = {
+                attestationId: 2,
+                proof: proof,
+                publicSignals: publicSignals,
+                userContextData: invalidUserContext
+            };
+            await runTest(body, 500, ['context hash does not match', 'circuit']);
+        });
+
+        it('should reject invalid scope', async function () {
+            const { proof, publicSignals } = euIdTestData;
+            const body = {
+                attestationId: 2,
+                proof: proof,
+                publicSignals: publicSignals.map((sig, i) => i === 19 ? "17121382998761176299335602807450250650083579600718579431641003529012841023067" : sig),
+                userContextData: validUserContext
+            };
+            await runTest(body, 500, ['Scope']);
+        });
+
+        it('should reject invalid merkle root', async function () {
+            const { proof, publicSignals } = euIdTestData;
+            const body = {
+                attestationId: 2,
+                proof: proof,
+                publicSignals: publicSignals.map((sig, i) => i === 10 ? "9656656992379025128519272376477139373854042233370909906627112932049610896732" : sig),
+                userContextData: validUserContext
+            };
+            await runTest(body, 500, ['Onchain root']);
+        });
+
+        it('should reject attestation ID mismatch', async function () {
+            const { proof, publicSignals } = euIdTestData;
+            const body = {
+                attestationId: 1, // Using passport attestation ID instead of EU ID card (2)
+                proof: proof,
+                publicSignals: publicSignals,
+                userContextData: validUserContext
+            };
+            await runTest(body, 500, ['Attestation ID', 'does not match', 'circuit']);
+        });
+
+        it('should reject forbidden countries list mismatch', async function () {
+            const { proof, publicSignals } = euIdTestData;
+            // For attestation ID 2 (EU Card), forbidden countries list packed indices are 4-7
+            // We modify the forbidden countries list to include UAE and AUS instead of PAK and IRN
+            // UAE, AUS packed value: '91625632383317' (calculated using packForbiddenCountriesList(['UAE', 'AUS']))
+            const modifiedPublicSignals = publicSignals.map((sig, i) => {
+                if (i === 4) return "91625632383317";
+                return sig;
+            });
+
+            const body = {
+                attestationId: 2, // Using EU ID card attestation ID
+                proof: proof,
+                publicSignals: modifiedPublicSignals,
+                userContextData: validUserContext
+            };
+
+            await runTest(body, 500, ['Forbidden countries', 'does not match', 'circuit']);
+        });
+
+        it('should reject minimum age mismatch', async function () {
+            const { proof, publicSignals } = euIdTestData;
+
+            // Get the current revealed data bytes
+            const currentBytes = getRevealedDataBytes(2, publicSignals); // attestationId = 2
+
+            // Modify the minimum age bytes (positions 90-91 for EU ID cards)
+            // Config expects age 18, we'll change it to age 25 to create mismatch
+            // Age 25 in ASCII: "2" = 50, "5" = 53
+            const modifiedBytes = [...currentBytes];
+            modifiedBytes[90] = 50; // "2"
+            modifiedBytes[91] = 53; // "5"
+
+            const packedData = packBytes(modifiedBytes);
+
+            // Replace the revealed data packed signals (indices 0-3) with modified ones
+            const modifiedPublicSignals = [
+                ...packedData.map(p => p.toString()),
+                ...publicSignals.slice(4)
+            ];
+
+            const body = {
+                attestationId: 2,
+                proof: proof,
+                publicSignals: modifiedPublicSignals,
+                userContextData: validUserContext
+            };
+
+            await runTest(body, 500, ['Minimum age', 'does not match', 'circuit', '25']);
+        });
+
+        it('should reject OFAC mismatch', async function () {
+            const scope = hashEndpointWithScope("http://localhost:3000", "self-playground");
+            const rawProofData = await runGenerateVcAndDiscloseRawProof("1234", "2", getGlobalPassportData(), scope, "hello from the playground", {
+                selectorOfac: "1"
+            });
+            const body = {
+                attestationId: 2,
+                proof: rawProofData.proof,
+                publicSignals: rawProofData.publicSignals,
+                userContextData: validUserContext
+            };
+            await runTest(body, 500, ['OFAC check is not allowed', 'Passport number', 'Name and DOB', 'Name and YOB']);
+        });
+
+        it('should reject ConfigID not found', async function () {
+            const { proof, publicSignals } = euIdTestData;
+            let userContextData = validUserContext;
+            userContextData = userContextData.slice(0, -1) + "7";
+            const body = {
+                attestationId: 2,
+                proof: proof,
+                publicSignals: publicSignals,
+                userContextData: userContextData
+            };
+            await runTest(body, 500, ['Config Id not found']);
+        });
+
+        it('should reject Config not found', async function () {
+            const { proof, publicSignals } = euIdTestData;
+            let userContextData = validUserContext;
+            userContextData = userContextData.slice(0, -1) + "5";
+            const body = {
+                attestationId: 2,
+                proof: proof,
+                publicSignals: publicSignals,
+                userContextData: userContextData
+            };
+            await runTest(body, 500, ['Config not found']);
+        });
+
+        it('should reject future timestamp', async function () {
+            const { proof, publicSignals } = euIdTestData;
+
+            const futureDate = new Date();
+            futureDate.setDate(futureDate.getDate() + 3);
+
+            const year = futureDate.getFullYear().toString();
+            const month = (futureDate.getMonth() + 1).toString().padStart(2, '0');
+            const day = futureDate.getDate().toString().padStart(2, '0');
+
+            const yy = year.slice(-2);
+            const mm = month;
+            const dd = day;
+
+            // For EU ID Card (attestation ID 2), timestamp is at indices 11-16 (YYMMDD format)
+            const modifiedPublicSignals = publicSignals.map((signal, index) => {
+                switch (index) {
+                    case 11: return yy[0];
+                    case 12: return yy[1];
+                    case 13: return mm[0];
+                    case 14: return mm[1];
+                    case 15: return dd[0];
+                    case 16: return dd[1];
+                    default: return signal;
+                }
+            });
+
+            const body = {
+                attestationId: 2,
+                proof: proof,
+                publicSignals: modifiedPublicSignals,
+                userContextData: validUserContext
+            };
+
+            await runTest(body, 500, ['Circuit timestamp is in the future']);
+        });
+
+        it('should reject old timestamp', async function () {
+            const { proof, publicSignals } = euIdTestData;
+
+            const pastDate = new Date();
+            pastDate.setDate(pastDate.getDate() - 3);
+
+            const year = pastDate.getFullYear().toString();
+            const month = (pastDate.getMonth() + 1).toString().padStart(2, '0');
+            const day = pastDate.getDate().toString().padStart(2, '0');
+
+            const yy = year.slice(-2);
+            const mm = month;
+            const dd = day;
+
+            // For EU ID Card (attestation ID 2), timestamp is at indices 11-16 (YYMMDD format)
+            const modifiedPublicSignals = publicSignals.map((signal, index) => {
+                switch (index) {
+                    case 11: return yy[0];
+                    case 12: return yy[1];
+                    case 13: return mm[0];
+                    case 14: return mm[1];
+                    case 15: return dd[0];
+                    case 16: return dd[1];
+                    default: return signal;
+                }
+            });
+
+            const body = {
+                attestationId: 2,
+                proof: proof,
+                publicSignals: modifiedPublicSignals,
+                userContextData: validUserContext
+            };
+
+            await runTest(body, 500, ['Circuit timestamp is too old']);
+        });
     });
 });

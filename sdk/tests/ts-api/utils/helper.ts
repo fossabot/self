@@ -27,6 +27,11 @@ import passportNojson from "@selfxyz/circuits/tests/consts/ofac/passportNoAndNat
 import nameAndDobjson from "@selfxyz/circuits/tests/consts/ofac/nameAndDobSMT.json";
 // @ts-ignore
 import nameAndYobjson from "@selfxyz/circuits/tests/consts/ofac/nameAndYobSMT.json";
+// @ts-ignore
+import nameAndDobjsonID from "@selfxyz/circuits/tests/consts/ofac/nameAndDobSMT_ID.json";
+// @ts-ignore
+import nameAndYobjsonID from "@selfxyz/circuits/tests/consts/ofac/nameAndYobSMT_ID.json";
+
 import { calculateUserIdentifierHash } from "@selfxyz/common";
 
 const { ec: EC } = elliptic;
@@ -40,7 +45,7 @@ export async function generateVcAndDiscloseRawProof(
   attestationId: string,
   passportData: PassportData,
   scope: string,
-  selectorDg1: string[] = new Array(88).fill("1"),
+  selectorDg1: string[],
   selectorOlderThan: string | number = "1",
   merkletree: LeanIMT<bigint>,
   majority: string = "18",
@@ -55,36 +60,61 @@ export async function generateVcAndDiscloseRawProof(
   publicSignals: PublicSignals;
 }> {
 
-  // Ensure selector length matches circuit expectation (selector_dg1[88])
-  if (selectorDg1.length !== 88) {
-    selectorDg1 = selectorDg1.slice(0, 88);
-    if (selectorDg1.length < 88) {
-      selectorDg1 = selectorDg1.concat(new Array(88 - selectorDg1.length).fill("0"));
-    }
+  let vcAndDiscloseCircuitInputs: CircuitSignals;
+  if(attestationId === "1"){
+    vcAndDiscloseCircuitInputs = generateCircuitInputsVCandDisclose(
+      secret,
+      attestationId,
+      passportData,
+      scope,
+      selectorDg1,
+      selectorOlderThan,
+      merkletree,
+      majority,
+      passportNo_smt,
+      nameAndDob_smt,
+      nameAndYob_smt,
+      selectorOfac,
+      forbiddenCountriesList,
+      userIdentifier,
+    );
+  }
+  else {
+     vcAndDiscloseCircuitInputs = generateCircuitInputsVCandDisclose(
+      secret,
+      attestationId,
+      passportData,
+      scope,
+      selectorDg1,
+      selectorOlderThan,
+      merkletree,
+      majority,
+      null,
+      nameAndDob_smt,
+      nameAndYob_smt,
+      selectorOfac,
+      forbiddenCountriesList,
+      userIdentifier,
+    );
   }
 
-  const vcAndDiscloseCircuitInputs: CircuitSignals = generateCircuitInputsVCandDisclose(
-    secret,
-    attestationId,
-    passportData,
-    scope,
-    selectorDg1,
-    selectorOlderThan,
-    merkletree,
-    majority,
-    passportNo_smt,
-    nameAndDob_smt,
-    nameAndYob_smt,
-    selectorOfac,
-    forbiddenCountriesList,
-    userIdentifier,
-  );
+
 
   const __filenameHelper = fileURLToPath(import.meta.url);
   const __dirnameHelper = path.dirname(__filenameHelper);
-  const wasmPath = path.resolve(__dirnameHelper, "assests/vc_and_disclose.wasm");
-  const zkeyPath = path.resolve(__dirnameHelper, "assests/vc_and_disclose_00008.zkey");
-
+  let wasmPath:any;
+  let zkeyPath:any;
+  let vKey:any;
+  if(attestationId === "1"){
+    wasmPath = path.resolve(__dirnameHelper, "assests/vc_and_disclose.wasm");
+    zkeyPath = path.resolve(__dirnameHelper, "assests/vc_and_disclose_00008.zkey");
+    vKey = JSON.parse(fs.readFileSync(path.resolve(__dirnameHelper, "assests/verification_key.json"), "utf8"));
+  }
+  else{
+    wasmPath = path.resolve(__dirnameHelper, "assests/vc_and_disclose_id.wasm");
+    zkeyPath = path.resolve(__dirnameHelper, "assests/vc_and_disclose_id.zkey");
+    vKey = JSON.parse(fs.readFileSync(path.resolve(__dirnameHelper, "assests/verification_key_id.json"), "utf8"));
+  }
 
   const vcAndDiscloseProof = await groth16.fullProve(
     vcAndDiscloseCircuitInputs,
@@ -92,10 +122,10 @@ export async function generateVcAndDiscloseRawProof(
     zkeyPath,
   );
 
-  const vKey = JSON.parse(fs.readFileSync(path.resolve(__dirnameHelper, "assests/verification_key.json"), "utf8"));
+
   const isValid = await groth16.verify(vKey, vcAndDiscloseProof.publicSignals, vcAndDiscloseProof.proof);
   if (!isValid) {
-    throw new Error("Generated register proof verification failed");
+    throw new Error("Generated disclose proof verification failed");
   }
 
   return vcAndDiscloseProof;
@@ -419,9 +449,17 @@ export async function runGenerateVcAndDiscloseRawProof(
     forbiddenCountriesList?: string[];
   },
 ) {
-  const selectorDg1 = (options?.selectorDg1 && options.selectorDg1.length === 88)
+  let selectorDg1: string[];
+  if(attestationId === "1"){
+   selectorDg1 = (options?.selectorDg1 && options.selectorDg1.length === 88)
     ? options.selectorDg1
     : new Array(88).fill("1");
+  }
+  else{
+    selectorDg1 = (options?.selectorDg1 && options.selectorDg1.length === 90)
+    ? options.selectorDg1
+    : new Array(90).fill("1");
+  }
   const selectorOlderThan = options?.selectorOlderThan ?? "1";
   const majority = options?.majority ?? "18";
   const selectorOfac = options?.selectorOfac ?? "1";
@@ -430,16 +468,23 @@ export async function runGenerateVcAndDiscloseRawProof(
 
   const merkleTree: any = new LeanIMT<bigint>((a, b) => poseidon2([a, b]), []);
 
-  const identityTreeHeader = await fetch(
-    "http://tree.staging.self.xyz/identity"
-  );
+  let identityTreeHeader: any;
+  if(attestationId === "1"){
+    identityTreeHeader = await fetch(
+      "http://tree.staging.self.xyz/identity"
+    );
+  }
+  else{
+    identityTreeHeader = await fetch(
+      "http://tree.staging.self.xyz/identity-id"
+    );
+  }
+
   const identityTree = JSON.parse((await identityTreeHeader.json() as any).data).map(
     (x: string[]) => x.map((y: string) => BigInt(y))
   );
 
   merkleTree.insertMany(identityTree[0]);
-
-  console.log("identityTree fetched");
 
   const hash2 = (childNodes: ChildNodes) =>
     childNodes.length === 2 ? poseidon2(childNodes) : poseidon3(childNodes);
@@ -449,8 +494,14 @@ export async function runGenerateVcAndDiscloseRawProof(
   const nameAndYob_smt = new SMT(hash2, true);
 
   passportNo_smt.import(passportNojson as any);
-  nameAndDob_smt.import(nameAndDobjson as any);
-  nameAndYob_smt.import(nameAndYobjson as any);
+  if(attestationId === "1"){
+    nameAndDob_smt.import(nameAndDobjson as any);
+    nameAndYob_smt.import(nameAndYobjson as any);
+  }
+  else{
+    nameAndDob_smt.import(nameAndDobjsonID as any);
+    nameAndYob_smt.import(nameAndYobjsonID as any);
+  }
 
   return await generateVcAndDiscloseRawProof(
     secret,

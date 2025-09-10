@@ -1,5 +1,15 @@
-import { genAndInitMockPassportData, generateCircuitInputsRegister, getCircuitNameFromPassportData, PassportData } from "@selfxyz/common";
-import { getProofGeneratedUpdate, handshakeAndGetUuid, runGenerateVcAndDiscloseRawProof } from "./ts-api/utils/helper.ts";
+import {
+  genAndInitMockPassportData,
+  generateCircuitInputsRegister,
+  genMockIdDocAndInitDataParsing,
+  getCircuitNameFromPassportData,
+  PassportData,
+} from "@selfxyz/common";
+import {
+  getProofGeneratedUpdate,
+  handshakeAndGetUuid,
+  runGenerateVcAndDiscloseRawProof,
+} from "./ts-api/utils/helper.ts";
 import { REGISTER_URL } from "./ts-api/utils/constant.ts";
 import { hashEndpointWithScope } from "@selfxyz/common/utils/scope";
 import { PublicSignals } from "snarkjs";
@@ -7,35 +17,51 @@ import axios from "axios";
 
 // Types for API testing
 export interface ProofData {
-    proof: {
-        a: string[];
-        b: string[][];
-        c: string[];
-    };
-    publicSignals: PublicSignals;
+  proof: {
+    a: string[];
+    b: string[][];
+    c: string[];
+  };
+  publicSignals: PublicSignals;
 }
 
 export interface APIResponse {
-    status: number;
-    data: any;
-    success: boolean;
+  status: number;
+  data: any;
+  success: boolean;
 }
 
-async function registerMockPassport(secret: string): Promise<PassportData> {
+async function registerMockPassportOrEUid(
+  secret: string,
+  ispassport: boolean
+): Promise<PassportData> {
+  let passportData: any;
+  let dscTree: any;
 
-  const passportData = genAndInitMockPassportData(
-    "sha1",
-    "sha1",
-    "rsa_sha1_65537_4096",
-    "FRA",
-    "000101",
-    "300101",
-  );
+  if (ispassport) {
+    passportData = genAndInitMockPassportData(
+      "sha1",
+      "sha1",
+      "rsa_sha1_65537_4096",
+      "FRA",
+      "000101",
+      "300101"
+    );
+    dscTree = await axios.get("http://tree.staging.self.xyz/dsc");
+  } else {
+    passportData = genMockIdDocAndInitDataParsing({
+      idType: "mock_id_card",
+      dgHashAlgo: "sha256",
+      eContentHashAlgo: "sha256",
+      signatureType: "ecdsa_sha256_brainpoolP224r1_224",
+    });
+    dscTree = await axios.get("http://tree.staging.self.xyz/dsc-id");
 
-  const dscTree = await axios.get("http://tree.staging.self.xyz/dsc");
+  }
+
   const serialized_dsc_tree = dscTree.data;
 
-  //Register proof generation
+  // Register proof generation
   const registerInputs = generateCircuitInputsRegister(
     secret,
     passportData,
@@ -47,7 +73,7 @@ async function registerMockPassport(secret: string): Promise<PassportData> {
     "register"
   );
 
-  //keyLength === 384 ? REGISTER_MEDIUM_URL : REGISTER_URL,
+  // keyLength === 384 ? REGISTER_MEDIUM_URL : REGISTER_URL,
   const registerUuid = await handshakeAndGetUuid(
     REGISTER_URL,
     registerInputs,
@@ -56,7 +82,10 @@ async function registerMockPassport(secret: string): Promise<PassportData> {
   );
 
   const registerData = await getProofGeneratedUpdate(registerUuid);
-  console.log(" Got register proof generated update:", registerData ? "SUCCESS" : "FAILED");
+  console.log(
+    " Got register proof generated update:",
+    registerData ? "SUCCESS" : "FAILED"
+  );
   console.log("\x1b[34m%s\x1b[0m", "register uuid:", registerUuid);
   console.log("\x1b[34m%s\x1b[0m", "circuit:", registerCircuitName);
   console.log(
@@ -78,123 +107,158 @@ async function registerMockPassport(secret: string): Promise<PassportData> {
   return passportData;
 }
 
-
-
 // API testing utilities
-export async function callAPI(url: string, requestBody: any): Promise<APIResponse> {
-    try {
-        const response = await fetch(`${url}/api/verify`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody)
-        });
+export async function callAPI(
+  url: string,
+  requestBody: any
+): Promise<APIResponse> {
+  try {
+    const response = await fetch(`${url}/api/verify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody),
+    });
 
-        const data = await response.text();
-        let parsedData;
-        try {
-            parsedData = JSON.parse(data);
-        } catch {
-            parsedData = { rawResponse: data };
-        }
-        return {
-            status: response.status,
-            data: parsedData,
-            success: true
-        };
-    } catch (error: any) {
-        return { status: 0, data: { error: error.message }, success: false };
+    const data = await response.text();
+    let parsedData;
+    try {
+      parsedData = JSON.parse(data);
+    } catch {
+      parsedData = { rawResponse: data };
     }
+    return {
+      status: response.status,
+      data: parsedData,
+      success: true,
+    };
+  } catch (error: any) {
+    return { status: 0, data: { error: error.message }, success: false };
+  }
 }
 
-export function compareAPIs(tsResponse: APIResponse, goResponse: APIResponse, expectedStatus: number = 200, expectedKeywords: string[] = []): { passed: boolean; issues: string[] } {
-    const issues: string[] = [];
+export function compareAPIs(
+  tsResponse: APIResponse,
+  goResponse: APIResponse,
+  expectedStatus: number = 200,
+  expectedKeywords: string[] = []
+): { passed: boolean; issues: string[] } {
+  const issues: string[] = [];
 
-    if (!tsResponse.success) issues.push(`TS API unreachable: ${tsResponse.data.error}`);
-    if (!goResponse.success) issues.push(`Go API unreachable: ${goResponse.data.error}`);
-    if (issues.length) return { passed: false, issues };
+  if (!tsResponse.success)
+    issues.push(`TS API unreachable: ${tsResponse.data.error}`);
+  if (!goResponse.success)
+    issues.push(`Go API unreachable: ${goResponse.data.error}`);
+  if (issues.length) return { passed: false, issues };
 
-    if (tsResponse.status !== goResponse.status) {
-        issues.push(`Status mismatch: TS=${tsResponse.status}, Go=${goResponse.status}`);
+  if (tsResponse.status !== goResponse.status) {
+    issues.push(
+      `Status mismatch: TS=${tsResponse.status}, Go=${goResponse.status}`
+    );
+  }
+  if (tsResponse.status !== expectedStatus) {
+    issues.push(
+      `Expected status ${expectedStatus}, got TS=${tsResponse.status}, Go=${goResponse.status}`
+    );
+  }
+
+  const tsResult = tsResponse.data?.result;
+  const goResult = goResponse.data?.result;
+  if (
+    tsResult !== undefined &&
+    goResult !== undefined &&
+    tsResult !== goResult
+  ) {
+    issues.push(`Result mismatch: TS=${tsResult}, Go=${goResult}`);
+  }
+
+  if (expectedKeywords.length > 0 && expectedStatus >= 400) {
+    const tsMessage = tsResponse.data?.message || tsResponse.data?.error || "";
+    const goMessage = goResponse.data?.message || goResponse.data?.error || "";
+
+    for (const keyword of expectedKeywords) {
+      const tsHasKeyword = tsMessage
+        .toLowerCase()
+        .includes(keyword.toLowerCase());
+      const goHasKeyword = goMessage
+        .toLowerCase()
+        .includes(keyword.toLowerCase());
+
+      if (!tsHasKeyword) {
+        issues.push(
+          `TS error message missing keyword "${keyword}": "${tsMessage}"`
+        );
+      }
+      if (!goHasKeyword) {
+        issues.push(
+          `Go error message missing keyword "${keyword}": "${goMessage}"`
+        );
+      }
     }
-    if (tsResponse.status !== expectedStatus) {
-        issues.push(`Expected status ${expectedStatus}, got TS=${tsResponse.status}, Go=${goResponse.status}`);
-    }
+  }
 
-    const tsResult = tsResponse.data?.result;
-    const goResult = goResponse.data?.result;
-    if (tsResult !== undefined && goResult !== undefined && tsResult !== goResult) {
-        issues.push(`Result mismatch: TS=${tsResult}, Go=${goResult}`);
-    }
-
-    if (expectedKeywords.length > 0 && expectedStatus >= 400) {
-        const tsMessage = tsResponse.data?.message || tsResponse.data?.error || '';
-        const goMessage = goResponse.data?.message || goResponse.data?.error || '';
-
-        for (const keyword of expectedKeywords) {
-            const tsHasKeyword = tsMessage.toLowerCase().includes(keyword.toLowerCase());
-            const goHasKeyword = goMessage.toLowerCase().includes(keyword.toLowerCase());
-
-            if (!tsHasKeyword) {
-                issues.push(`TS error message missing keyword "${keyword}": "${tsMessage}"`);
-            }
-            if (!goHasKeyword) {
-                issues.push(`Go error message missing keyword "${keyword}": "${goMessage}"`);
-            }
-        }
-    }
-
-    return { passed: issues.length === 0, issues };
+  return { passed: issues.length === 0, issues };
 }
 
 // Test data setup and management
 let globalProofData: ProofData | null = null;
 let globalPassportData: PassportData | null = null;
 
-export async function setupTestData(): Promise<void> {
-    const secret = "1234";
-    const attestationId = "1";
-    const scope = hashEndpointWithScope("http://localhost:3000", "self-playground");
+export async function setupTestData(
+  attestationId: string,
+): Promise<void> {
+  const secret = "1234";
+  const scope = hashEndpointWithScope(
+    "http://localhost:3000",
+    "self-playground"
+  );
 
-    globalPassportData = await registerMockPassport(secret);
-    const rawProofData = await runGenerateVcAndDiscloseRawProof(secret, attestationId, globalPassportData, scope, "hello from the playground", {
-        selectorOfac: "0"
-    });
+  globalPassportData = await registerMockPassportOrEUid(secret, attestationId == "1");
+  const rawProofData = await runGenerateVcAndDiscloseRawProof(
+    secret,
+    attestationId,
+    globalPassportData,
+    scope,
+    "hello from the playground",
+    {
+      selectorOfac: "0",
+    }
+  );
 
-    globalProofData = {
-        proof: {
-            a: rawProofData.proof.pi_a.slice(0, 2),
-            b: rawProofData.proof.pi_b.map(b => b.slice(0, 2)),
-            c: rawProofData.proof.pi_c.slice(0, 2),
-        },
-        publicSignals: rawProofData.publicSignals
-    };
-
+  globalProofData = {
+    proof: {
+      a: rawProofData.proof.pi_a.slice(0, 2),
+      b: rawProofData.proof.pi_b.map((b) => b.slice(0, 2)),
+      c: rawProofData.proof.pi_c.slice(0, 2),
+    },
+    publicSignals: rawProofData.publicSignals,
+  };
 }
 
 export function getTestData() {
-    if (!globalProofData) {
-        throw new Error('Test data not initialized. Call setupTestData() first.');
-    }
-    const proof = globalProofData.proof;
-    const publicSignals = globalProofData.publicSignals;
+  if (!globalProofData) {
+    throw new Error("Test data not initialized. Call setupTestData() first.");
+  }
+  const proof = globalProofData.proof;
+  const publicSignals = globalProofData.publicSignals;
 
-    return { proof, publicSignals };
+  return { proof, publicSignals };
 }
-    // Format: destChainId(32 bytes) + userIdentifier(32 bytes) + userDefinedData
-    // userDefinedData: "hello from the playground" = 68656c6c6f2066726f6d2074686520706c617967726f756e64
+
+// Format: destChainId(32 bytes) + userIdentifier(32 bytes) + userDefinedData
+// userDefinedData: "hello from the playground" = 68656c6c6f2066726f6d2074686520706c617967726f756e64
 export function getUserContextData() {
-    return "000000000000000000000000000000000000000000000000000000000000a4ec00000000000000000000000094ba0db8a9db66979905784a9d6b2d286e55bd2768656c6c6f2066726f6d2074686520706c617967726f756e64";
+  return "000000000000000000000000000000000000000000000000000000000000a4ec00000000000000000000000094ba0db8a9db66979905784a9d6b2d286e55bd2768656c6c6f2066726f6d2074686520706c617967726f756e64";
 }
 
 export function getInvalidUserContextData() {
-    return "000000000000000000000000000000000000000000000000000000000000a4ec00000000000000000000000094ba0db8a9db66979905784a9d6b2d286e55bd2868656c6c6f2066726f6d2074686520706c617967726f756e64";
+  return "000000000000000000000000000000000000000000000000000000000000a4ec00000000000000000000000094ba0db8a9db66979905784a9d6b2d286e55bd2868656c6c6f2066726f6d2074686520706c617967726f756e64";
 }
 
 export function getGlobalPassportData() {
-    if (!globalPassportData) {
-        throw new Error('Test data not initialized. Call setupTestData() first.');
-    }
-    return globalPassportData;
+  if (!globalPassportData) {
+    throw new Error("Test data not initialized. Call setupTestData() first.");
+  }
+  return globalPassportData;
 }
 
-export { registerMockPassport };
+export { registerMockPassportOrEUid };
