@@ -1,16 +1,20 @@
 import {
   genAndInitMockPassportData,
+  generateCircuitInputsDSC,
   generateCircuitInputsRegister,
-  genMockIdDocAndInitDataParsing,
+  genMockIdDoc,
+  generateMockDSC,
   getCircuitNameFromPassportData,
+  initPassportDataParsing,
   PassportData,
+  genMockIdDocAndInitDataParsing,
 } from "@selfxyz/common";
 import {
   getProofGeneratedUpdate,
   handshakeAndGetUuid,
   runGenerateVcAndDiscloseRawProof,
 } from "./ts-api/utils/helper.ts";
-import { REGISTER_URL } from "./ts-api/utils/constant.ts";
+import { DSC_URL, REGISTER_URL } from "./ts-api/utils/constant.ts";
 import { hashEndpointWithScope } from "@selfxyz/common/utils/scope";
 import { PublicSignals } from "snarkjs";
 import axios from "axios";
@@ -49,13 +53,18 @@ async function registerMockPassportOrEUid(
     );
     dscTree = await axios.get("http://tree.staging.self.xyz/dsc");
   } else {
-    passportData = genMockIdDocAndInitDataParsing({
-      idType: "mock_id_card",
-      dgHashAlgo: "sha256",
-      eContentHashAlgo: "sha256",
-      signatureType: "ecdsa_sha256_brainpoolP224r1_224",
+    console.log("Generating EU ID card data");
+
+    passportData =  genMockIdDocAndInitDataParsing({
+      idType: 'mock_id_card',
+      dgHashAlgo: `sha256`,
+      eContentHashAlgo: `sha256`,
+      signatureType:
+        `rsa_sha256_65537_4096`,
     });
     dscTree = await axios.get("http://tree.staging.self.xyz/dsc-id");
+
+
 
   }
 
@@ -73,11 +82,14 @@ async function registerMockPassportOrEUid(
     "register"
   );
 
+  // Determine the correct proof type based on circuit name
+  const proofType = registerCircuitName.startsWith("register_id_") ? "register_id" : "register";
+
   // keyLength === 384 ? REGISTER_MEDIUM_URL : REGISTER_URL,
   const registerUuid = await handshakeAndGetUuid(
     REGISTER_URL,
     registerInputs,
-    "register",
+    proofType,
     registerCircuitName
   );
 

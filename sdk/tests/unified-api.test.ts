@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { describe } from 'mocha';
 import { callAPI, compareAPIs, setupTestData, getTestData, getGlobalPassportData, getUserContextData, getInvalidUserContextData } from './utils.ts';
 import { getRevealedDataBytes } from '../core/src/utils/proof.js';
-import { packBytes } from '../../common/src/utils/bytes.js';
+import { packBytes, packBytesArray } from '../../common/src/utils/bytes.js';
 import { runGenerateVcAndDiscloseRawProof } from './ts-api/utils/helper.ts';
 import { hashEndpointWithScope } from '@selfxyz/common';
 
@@ -24,7 +24,7 @@ async function runTest(requestBody: any, expectedStatus: number = 200, expectedK
 }
 
 
-describe('Self SDK API Comparison Tests', function () {
+describe('Self SDK Passport API Comparison Tests', function () {
     this.timeout(0);
 
     const validUserContext = getUserContextData();
@@ -256,7 +256,7 @@ describe('Self SDK API Comparison Tests', function () {
     });
 });
 
-describe.only('Self SDK EU ID Card API Comparison Tests', function () {
+describe('Self SDK EU ID Card API Comparison Tests', function () {
     this.timeout(0);
 
     const validUserContext = getUserContextData();
@@ -351,16 +351,15 @@ describe.only('Self SDK EU ID Card API Comparison Tests', function () {
             // Get the current revealed data bytes
             const currentBytes = getRevealedDataBytes(2, publicSignals); // attestationId = 2
 
-            // Modify the minimum age bytes (positions 90-91 for EU ID cards)
+            // For EU ID cards, minimum age is at positions 90-91 (olderThanStart: 90, olderThanEnd: 91)
             // Config expects age 18, we'll change it to age 25 to create mismatch
             // Age 25 in ASCII: "2" = 50, "5" = 53
             const modifiedBytes = [...currentBytes];
             modifiedBytes[90] = 50; // "2"
             modifiedBytes[91] = 53; // "5"
 
-            const packedData = packBytes(modifiedBytes);
+            const packedData = packBytesArray(modifiedBytes);
 
-            // Replace the revealed data packed signals (indices 0-3) with modified ones
             const modifiedPublicSignals = [
                 ...packedData.map(p => p.toString()),
                 ...publicSignals.slice(4)
@@ -387,7 +386,7 @@ describe.only('Self SDK EU ID Card API Comparison Tests', function () {
                 publicSignals: rawProofData.publicSignals,
                 userContextData: validUserContext
             };
-            await runTest(body, 500, ['OFAC check is not allowed', 'Passport number', 'Name and DOB', 'Name and YOB']);
+            await runTest(body, 500, ['OFAC check is not allowed', 'Name and DOB', 'Name and YOB']);
         });
 
         it('should reject ConfigID not found', async function () {
@@ -491,3 +490,32 @@ describe.only('Self SDK EU ID Card API Comparison Tests', function () {
         });
     });
 });
+/*
+Public Signals Structure & Indices
+The public signals array has a well-defined structure with specific indices for different data types. There are two main attestation types:
+Attestation ID 1 (Passport):
+Revealed Data Packed: Indices 0-2 (3 signals, 31 bytes each = 93 bytes total)
+Forbidden Countries List Packed: Indices 3-6 (4 signals)
+Nullifier: Index 7
+Attestation ID: Index 8
+Merkle Root: Index 9
+Current Date: Indices 10-15 (6 signals for YYMMDD format)
+Passport Number SMT Root: Index 16
+Name+DOB SMT Root: Index 17
+Name+YOB SMT Root: Index 18
+Scope: Index 19
+User Identifier: Index 20
+
+Attestation ID 2 (EU Card):
+Revealed Data Packed: Indices 0-3 (4 signals, 31+31+31+1 bytes = 94 bytes total)
+Forbidden Countries List Packed: Indices 4-7 (4 signals)
+Nullifier: Index 8
+Attestation ID: Index 9
+Merkle Root: Index 10
+Current Date: Indices 11-16 (6 signals for YYMMDD format)
+Passport Number SMT Root: Index 99 (disabled)
+Name+DOB SMT Root: Index 17
+Name+YOB SMT Root: Index 18
+Scope: Index 19
+User Identifier: Index 20
+*/

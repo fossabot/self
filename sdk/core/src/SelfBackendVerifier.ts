@@ -256,21 +256,24 @@ export class SelfBackendVerifier {
       });
     }
 
+    let ofacoffset = 0;
+    if(attestationId.toString() == "1") {
+      ofacoffset = 1;
     if (!verificationConfig.ofac && genericDiscloseOutput.ofac[0]) {
       issues.push({
         type: ConfigMismatch.InvalidOfac,
         message: 'Passport number OFAC check is not allowed',
       });
     }
-
-    if (!verificationConfig.ofac && genericDiscloseOutput.ofac[1]) {
+  }
+    if (!verificationConfig.ofac && genericDiscloseOutput.ofac[0 + ofacoffset]) {
       issues.push({
         type: ConfigMismatch.InvalidOfac,
         message: 'Name and DOB OFAC check is not allowed',
       });
     }
 
-    if (!verificationConfig.ofac && genericDiscloseOutput.ofac[2]) {
+    if (!verificationConfig.ofac && genericDiscloseOutput.ofac[1 + ofacoffset]) {
       issues.push({
         type: ConfigMismatch.InvalidOfac,
         message: 'Name and YOB OFAC check is not allowed',

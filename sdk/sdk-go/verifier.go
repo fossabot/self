@@ -329,7 +329,7 @@ func (s *BackendVerifier) Verify(
 
 			// Only proceed with validations if no error and config is not empty
 			if configErr == nil && !s.isEmptyVerificationConfig(verificationConfig) {
-				forbiddenCountriesList, genericDiscloseOutput, _ = s.validateWithConfig(verificationConfig, publicSignals, discloseIndices, genericDiscloseOutput, &issues)
+				forbiddenCountriesList, genericDiscloseOutput, _ = s.validateWithConfig(attestationId, verificationConfig, publicSignals, discloseIndices, genericDiscloseOutput, &issues)
 			}
 		}
 	}
@@ -432,8 +432,6 @@ func (s *BackendVerifier) Verify(
 		}
 	}
 
-
-
 	isOfacValid := true
 	if configErr == nil && verificationConfig.Ofac {
 		for _, ofacCheck := range genericDiscloseOutput.Ofac {
@@ -463,6 +461,7 @@ func (s *BackendVerifier) Verify(
 // validateWithConfig performs config-based validations (forbidden countries, minimum age, timestamp, OFAC)
 // Returns the computed values for reuse in return value construction
 func (s *BackendVerifier) validateWithConfig(
+	attestationId AttestationId,
 	verificationConfig VerificationConfig,
 	publicSignals []string,
 	discloseIndices DiscloseIndicesEntry,
@@ -522,24 +521,29 @@ func (s *BackendVerifier) validateWithConfig(
 	s.validateTimestamp(publicSignals, discloseIndices, issues)
 
 	if !verificationConfig.Ofac {
-		for i, ofacCheck := range genericDiscloseOutput.Ofac {
-			if ofacCheck {
-				var ofacType string
-				switch i {
-				case 0:
-					ofacType = "Passport number OFAC check"
-				case 1:
-					ofacType = "Name and DOB OFAC check"
-				case 2:
-					ofacType = "Name and YOB OFAC check"
-				default:
-					ofacType = fmt.Sprintf("OFAC check %d", i)
-				}
+		ofacOffset := 0
+		if attestationId == 1 {
+			ofacOffset = 1
+			if genericDiscloseOutput.Ofac[0] {
 				*issues = append(*issues, ConfigIssue{
 					Type:    InvalidOfac,
-					Message: fmt.Sprintf("%s is not allowed", ofacType),
+					Message: "Passport number OFAC check is not allowed",
 				})
 			}
+		}
+
+		if genericDiscloseOutput.Ofac[0+ofacOffset] {
+			*issues = append(*issues, ConfigIssue{
+				Type:    InvalidOfac,
+				Message: "Name and DOB OFAC check is not allowed",
+			})
+		}
+
+		if genericDiscloseOutput.Ofac[1+ofacOffset] {
+			*issues = append(*issues, ConfigIssue{
+				Type:    InvalidOfac,
+				Message: "Name and YOB OFAC check is not allowed",
+			})
 		}
 	}
 

@@ -152,7 +152,7 @@ function encryptAES256GCM(plaintext: string, key: Buffer<ArrayBuffer>) {
 export const handshakeAndGetUuid = async (
   wsUrl: string,
   inputs: any,
-  proofType: "register" | "dsc" | "disclose",
+  proofType: "register" | "register_id" | "dsc" | "disclose",
   circuitName: string
 ): Promise<string> => {
   const pubkey =
@@ -177,22 +177,22 @@ export const handshakeAndGetUuid = async (
 
   return new Promise((resolve, reject) => {
     ws.on("message", async (data: any) => {
-      let textDecoder = new TextDecoder();
-      //@ts-ignore
-      let result = JSON.parse(textDecoder.decode(Buffer.from(data)));
-      if (result.result.attestation !== undefined) {
-        const { userData, pubkey } = await verifyAttestation(
-          result.result.attestation
-        );
-        //check if key1 is the same as userData
-        const serverPubkey = pubkey!;
-        const key2 = ec.keyFromPublic(serverPubkey, "hex");
-        const sharedKey = key1.derive(key2.getPublic());
+        let textDecoder = new TextDecoder();
+        //@ts-ignore
+        let result = JSON.parse(textDecoder.decode(Buffer.from(data)));
+        if (result.result.attestation !== undefined) {
+          const { userData, pubkey } = await verifyAttestation(
+            result.result.attestation
+          );
+          //check if key1 is the same as userData
+          const serverPubkey = pubkey!;
+          const key2 = ec.keyFromPublic(serverPubkey, "hex");
+          const sharedKey = key1.derive(key2.getPublic());
 
-        const endpoint = {
-          endpointType: "staging_celo",
-          endpoint: "0x3Dd6fc52d2bA4221E02ae3A0707377B56FEA845a",
-        };
+          const endpoint = {
+            endpointType: "staging_celo",
+            endpoint: "0x3Dd6fc52d2bA4221E02ae3A0707377B56FEA845a",
+          };
         const encryptionData = encryptAES256GCM(
           JSON.stringify({
             type: proofType,
@@ -203,19 +203,19 @@ export const handshakeAndGetUuid = async (
               inputs: JSON.stringify(inputs),
             },
           }),
-          Buffer.from(sharedKey.toString("hex").padStart(64, "0"), "hex")
-        );
-        const submitBody = {
-          jsonrpc: "2.0",
-          method: "openpassport_submit_request",
-          id: 1,
-          params: {
-            uuid: result.result.uuid,
-            ...encryptionData,
-          },
-        };
-        ws.send(JSON.stringify(submitBody));
-      } else {
+            Buffer.from(sharedKey.toString("hex").padStart(64, "0"), "hex")
+          );
+          const submitBody = {
+            jsonrpc: "2.0",
+            method: "openpassport_submit_request",
+            id: 1,
+            params: {
+              uuid: result.result.uuid,
+              ...encryptionData,
+            },
+          };
+          ws.send(JSON.stringify(submitBody));
+        } else {
         ws.close();
 
         resolve(result.result);
