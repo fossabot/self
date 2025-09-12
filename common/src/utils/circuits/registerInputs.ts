@@ -58,6 +58,7 @@ export function generateTEEInputsDiscloseStateless(
   const selector_ofac = disclosures.ofac ? 1 : 0;
 
   const ofac_trees = getTree(document, 'ofac');
+  console.log('ofac_trees', ofac_trees);
   if (!ofac_trees) {
     throw new Error('OFAC trees not loaded');
   }
@@ -79,7 +80,7 @@ export function generateTEEInputsDiscloseStateless(
   }
   nameAndDobSMT.import(ofac_trees.nameAndDob);
   nameAndYobSMT.import(ofac_trees.nameAndYob);
-
+  console.info('nameAndDobSMT impored');
   const serialized_tree = getTree(document, 'commitment');
   const tree = LeanIMT.import((a, b) => poseidon2([a, b]), serialized_tree);
   const inputs = generateCircuitInputsVCandDisclose(
