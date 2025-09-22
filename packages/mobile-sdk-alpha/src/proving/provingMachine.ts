@@ -1019,10 +1019,11 @@ export const useProvingStore = create<ProvingState>((set, get) => {
             ): D extends 'aadhaar' ? string[] | null : Record<string, string> => {
               switch (docType) {
                 case 'passport':
-                case 'id_card':
+                case 'id_card': {
                   // fixes typing issue for .alternative_csca
-                  let idDocType = docType as 'passport' | 'id_card'; // any is fine because the type is checked in the switch
+                  const idDocType = docType as 'passport' | 'id_card'; // any is fine because the type is checked in the switch
                   return useProtocolStore.getState()[idDocType].alternative_csca as any;
+                }
                 case 'aadhaar':
                   return useProtocolStore.getState().aadhaar.public_keys as D extends 'aadhaar'
                     ? string[] | null
