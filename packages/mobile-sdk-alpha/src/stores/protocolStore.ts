@@ -74,7 +74,8 @@ interface ProtocolState {
     fetch_ofac_trees: (environment: 'prod' | 'stg') => Promise<void>;
   };
 }
-
+// we log this so its obvious if we have multiple instances of the store
+console.debug('creating protocolStore', __filename);
 export const useProtocolStore = create<ProtocolState>((set, get) => ({
   passport: {
     commitment_tree: null,

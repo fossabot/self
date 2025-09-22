@@ -19,7 +19,6 @@ interface SelfAppState {
   _initSocket: (sessionId: string) => Socket;
   handleProofResult: (proof_verified: boolean, error_code?: string, reason?: string) => void;
 }
-
 export const cleanSelfApp = () => {
   const appStore = useSelfAppStore.getState();
 
@@ -43,6 +42,8 @@ export const startAppListener = (sessionId: string) => {
 
   appStore.startAppListener(sessionId);
 };
+
+console.debug('creating selfAppStore', __filename);
 
 export const useSelfAppStore = create<SelfAppState>((set, get) => ({
   selfApp: null,

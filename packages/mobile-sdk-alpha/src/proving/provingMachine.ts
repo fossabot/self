@@ -125,7 +125,10 @@ const _generateCircuitInputs = async (
       ));
       circuitTypeWithDocumentExtension = `${circuitType}${document === 'passport' ? '' : '_id'}`;
       break;
-    case 'disclose':
+    case 'disclose': {
+      if (!selfApp) {
+        throw new Error('SelfApp context not initialized');
+      }
       ({ inputs, circuitName, endpointType, endpoint } = generateTEEInputsDiscloseStateless(
         secret as string,
         passportData,
@@ -152,6 +155,7 @@ const _generateCircuitInputs = async (
       ));
       circuitTypeWithDocumentExtension = `disclose`;
       break;
+    }
     default:
       throw new Error('Invalid circuit type:' + circuitType);
   }

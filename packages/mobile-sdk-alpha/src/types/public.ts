@@ -4,7 +4,7 @@
 
 import type { DocumentCatalog, IDDocument, PassportData } from '@selfxyz/common/utils/types';
 
-import { ProofContext } from '../proving/internal/logging';
+import type { ProofContext } from '../proving/internal/logging';
 import { SDKEvent, SDKEventMap } from './events';
 
 export type { PassportValidationCallbacks } from '../validation/document';

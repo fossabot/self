@@ -5,3 +5,4 @@
 export { cleanSelfApp, getSelfApp, setSelfApp, startAppListener } from './selfAppStore';
 
 export { useProtocolStore } from './protocolStore';
+export { useProvingStore } from '../proving/provingMachine';

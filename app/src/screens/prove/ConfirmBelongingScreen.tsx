@@ -9,9 +9,9 @@ import type { StaticScreenProps } from '@react-navigation/native';
 import { usePreventRemove } from '@react-navigation/native';
 
 import {
+  loadSelectedDocument,
   useProvingStore,
   useSelfClient,
-  loadSelectedDocument,
 } from '@selfxyz/mobile-sdk-alpha';
 import {
   PassportEvents,
