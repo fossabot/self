@@ -89,7 +89,7 @@ type DocumentNFCScanRoute = RouteProp<
   Record<string, DocumentNFCScanRouteParams>,
   string
 >;
-
+// TODO: MSDK - break up into logical hooks and move to mSDK
 const DocumentNFCScanScreen: React.FC = () => {
   const selfClient = useSelfClient();
   const { trackEvent } = selfClient;
@@ -200,6 +200,7 @@ const DocumentNFCScanScreen: React.FC = () => {
     [baseContext, showModal, goToNFCTrouble],
   );
 
+  // TODO: MSDK- Move to mSDK
   const checkNfcSupport = useCallback(async () => {
     const isSupported = await NfcManager.isSupported();
     if (isSupported) {
@@ -259,6 +260,7 @@ const DocumentNFCScanScreen: React.FC = () => {
 
   const isPacePolling = usePacePolling();
 
+  // Keep here
   const onVerifyPress = useCallback(async () => {
     buttonTap();
     if (isNfcEnabled) {
@@ -616,6 +618,7 @@ const DocumentNFCScanScreen: React.FC = () => {
                 {nfcMessage && nfcMessage.trim().length > 0 ? (
                   nfcMessage
                 ) : (
+                  // TODO: MSDK- include in text constants
                   <>
                     Hold your device near the NFC tag and stop moving when it
                     vibrates.

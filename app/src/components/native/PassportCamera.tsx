@@ -53,6 +53,7 @@ export interface PassportCameraProps {
   ) => void;
 }
 
+// TODO: MSDK- Rename to MRZCamera?
 export const PassportCamera: React.FC<PassportCameraProps> = ({
   onPassportRead,
   isMounted,

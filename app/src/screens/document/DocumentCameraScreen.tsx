@@ -42,6 +42,7 @@ const DocumentCameraScreen: React.FC = () => {
   // Add a ref to track when the camera screen is mounted
   const scanStartTimeRef = useRef(Date.now());
 
+  // TODO: MSDK- readname to onMRZRead
   const onPassportRead = useCallback<PassportCameraProps['onPassportRead']>(
     (error, result) => {
       // Calculate scan duration in seconds with exactly 2 decimal places

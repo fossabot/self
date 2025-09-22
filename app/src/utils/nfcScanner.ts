@@ -50,6 +50,7 @@ export const parseScanResponse = (response: unknown) => {
     : handleResponseIOS(response);
 };
 
+// TODO: MSDK- Move to mSDK
 export const scan = async (inputs: Inputs) => {
   await configureNfcAnalytics();
 
