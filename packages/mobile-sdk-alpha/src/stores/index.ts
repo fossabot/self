@@ -4,3 +4,4 @@
 
 export { useProtocolStore } from './protocolStore';
 export { useSelfAppStore } from './selfAppStore';
+export { useProvingStore } from '../proving/provingMachine';
