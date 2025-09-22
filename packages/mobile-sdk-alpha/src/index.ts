@@ -91,6 +91,8 @@ export { createListenersMap, createSelfClient } from './client';
 /** @deprecated Use createSelfClient().extractMRZInfo or import from './mrz' */
 export { defaultConfig } from './config/defaults';
 
+export { cleanSelfApp, getSelfApp, setSelfApp, startAppListener, useProtocolStore } from './stores';
+
 export { extractMRZInfo } from './mrz';
 
 export { formatDateToYYMMDD, scanMRZ } from './mrz';
@@ -111,7 +113,5 @@ export { parseNFCResponse, scanNFC } from './nfc';
 export { reactNativeScannerAdapter } from './adapters/react-native/scanner';
 
 export { scanQRProof } from './qr';
-
-export { useProtocolStore, useSelfAppStore } from './stores';
 
 export { webScannerShim } from './adapters/web/shims';

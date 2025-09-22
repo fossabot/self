@@ -12,6 +12,7 @@ jest.mock('@/navigation', () => ({
   },
 }));
 
+// TODO: it needs to be mocked differently now
 const mockSelfAppStore = { useSelfAppStore: { getState: jest.fn() } };
 jest.mock('@selfxyz/mobile-sdk-alpha/stores', () => mockSelfAppStore);
 

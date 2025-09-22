@@ -3,7 +3,7 @@
 // NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
 import { SelfClient, useProtocolStore, useProvingStore } from '../../src';
-import { useSelfAppStore } from '../../src/stores';
+import { useSelfAppStore } from '../../src/stores/selfAppStore';
 import { actorMock } from './actorMock';
 
 vitest.mock('xstate', async importOriginal => {

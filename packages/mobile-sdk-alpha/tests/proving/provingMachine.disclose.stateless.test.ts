@@ -4,7 +4,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useSelfAppStore } from '../../src/stores';
+import { useSelfAppStore } from '../../src/stores/selfAppStore';
 import type { SelfClient } from '../../src/types/public';
 
 // Do not import provingMachine here; we'll require it after setting up mocks per test

@@ -14,7 +14,7 @@ import {
 
 import { useSelfClient } from '@selfxyz/mobile-sdk-alpha';
 import { ProofEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
-import { useSelfAppStore } from '@selfxyz/mobile-sdk-alpha/stores';
+import { cleanSelfApp, startAppListener, setSelfApp } from '@selfxyz/mobile-sdk-alpha';
 
 import qrScanAnimation from '@/assets/animations/qr_scan.json';
 import type { QRCodeScannerViewProps } from '@/components/native/QRCodeScanner';
@@ -70,8 +70,11 @@ const QRCodeViewFinderScreen: React.FC = () => {
               scan_type: 'selfApp',
             });
             const selfAppJson = JSON.parse(selfApp);
-            useSelfAppStore.getState().setSelfApp(selfAppJson);
-            useSelfAppStore.getState().startAppListener(selfAppJson.sessionId);
+
+
+            setSelfApp(selfAppJson);
+            startAppListener(selfAppJson.sessionId);
+
             setTimeout(() => {
               navigateToProve();
             }, 100);
@@ -92,8 +95,10 @@ const QRCodeViewFinderScreen: React.FC = () => {
           trackEvent(ProofEvents.QR_SCAN_SUCCESS, {
             scan_type: 'sessionId',
           });
-          useSelfAppStore.getState().cleanSelfApp();
-          useSelfAppStore.getState().startAppListener(sessionId);
+
+          cleanSelfApp();
+          startAppListener(sessionId);
+
           setTimeout(() => {
             navigateToProve();
           }, 100);

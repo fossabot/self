@@ -20,6 +20,30 @@ interface SelfAppState {
   handleProofResult: (proof_verified: boolean, error_code?: string, reason?: string) => void;
 }
 
+export const cleanSelfApp = () => {
+  const appStore = useSelfAppStore.getState();
+
+  appStore.cleanSelfApp();
+};
+
+export const getSelfApp = (): SelfApp | null => {
+  const appStore = useSelfAppStore.getState();
+
+  return appStore.selfApp;
+};
+
+export const setSelfApp = (selfApp: SelfApp | null) => {
+  const appStore = useSelfAppStore.getState();
+
+  appStore.setSelfApp(selfApp);
+};
+
+export const startAppListener = (sessionId: string) => {
+  const appStore = useSelfAppStore.getState();
+
+  appStore.startAppListener(sessionId);
+};
+
 export const useSelfAppStore = create<SelfAppState>((set, get) => ({
   selfApp: null,
   sessionId: null,

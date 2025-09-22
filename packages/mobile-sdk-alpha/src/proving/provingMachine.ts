@@ -12,7 +12,7 @@ import { createActor, createMachine } from 'xstate';
 import { create } from 'zustand';
 
 import type { DocumentCategory, PassportData } from '@selfxyz/common/types';
-import type { EndpointType, SelfApp } from '@selfxyz/common/utils';
+import type { EndpointType } from '@selfxyz/common/utils';
 import { getCircuitNameFromPassportData, getSolidityPackedUserContextData } from '@selfxyz/common/utils';
 import { checkPCR0Mapping, validatePKIToken } from '@selfxyz/common/utils/attest';
 import {
@@ -45,7 +45,13 @@ import {
   markCurrentDocumentAsRegistered,
   reStorePassportDataWithRightCSCA,
 } from '../documents/utils';
-import { useProtocolStore, useSelfAppStore } from '../stores';
+import { useProtocolStore } from '../stores';
+
+// TODO: here for simplicity we allow for the direct import of the selfAppStore, we just
+// don't expose it in the public API
+import { useSelfAppStore } from '../stores/selfAppStore';
+
+
 import { SdkEvents } from '../types/events';
 import type { SelfClient } from '../types/public';
 import type { ProofContext } from './internal/logging';
@@ -92,6 +98,10 @@ const _generateCircuitInputs = async (
   const protocolStore = useProtocolStore.getState();
   const selfApp = useSelfAppStore.getState().selfApp;
 
+  if (!selfApp) {
+    throw new Error('SelfApp is not available');
+  }
+
   let inputs, circuitName, endpointType, endpoint, circuitTypeWithDocumentExtension;
 
   switch (circuitType) {
@@ -119,7 +129,7 @@ const _generateCircuitInputs = async (
       ({ inputs, circuitName, endpointType, endpoint } = generateTEEInputsDiscloseStateless(
         secret as string,
         passportData,
-        selfApp as SelfApp,
+        selfApp,
         (doc: DocumentCategory, tree) => {
           const docStore =
             doc === 'passport'

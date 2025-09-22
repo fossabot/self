@@ -11,7 +11,6 @@ import { useIsFocused } from '@react-navigation/native';
 
 import { useProvingStore, useSelfClient } from '@selfxyz/mobile-sdk-alpha';
 import { ProofEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
-import { useSelfAppStore } from '@selfxyz/mobile-sdk-alpha/stores';
 
 import loadingAnimation from '@/assets/animations/loading/misc.json';
 import failAnimation from '@/assets/animations/proof_failed.json';
@@ -31,10 +30,11 @@ import {
   notificationError,
   notificationSuccess,
 } from '@/utils/haptic';
+import { cleanSelfApp, getSelfApp } from '@selfxyz/mobile-sdk-alpha/stores';
 
 const SuccessScreen: React.FC = () => {
   const { trackEvent } = useSelfClient();
-  const { selfApp, cleanSelfApp } = useSelfAppStore();
+  const selfApp = getSelfApp();
   const appName = selfApp?.appName;
   const goHome = useHapticNavigation('Home');
 

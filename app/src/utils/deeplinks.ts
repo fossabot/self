@@ -7,10 +7,10 @@ import { Linking, Platform } from 'react-native';
 
 import { countries } from '@selfxyz/common/constants/countries';
 import type { IdDocInput } from '@selfxyz/common/utils';
-import { useSelfAppStore } from '@selfxyz/mobile-sdk-alpha/stores';
 
 import { navigationRef } from '@/navigation';
 import useUserStore from '@/stores/userStore';
+import { cleanSelfApp, startAppListener, setSelfApp } from '@selfxyz/mobile-sdk-alpha/stores';
 
 // Validation patterns for each expected parameter
 const VALIDATION_PATTERNS = {
@@ -102,8 +102,8 @@ export const handleUrl = (uri: string) => {
   if (selfAppStr) {
     try {
       const selfAppJson = JSON.parse(selfAppStr);
-      useSelfAppStore.getState().setSelfApp(selfAppJson);
-      useSelfAppStore.getState().startAppListener(selfAppJson.sessionId);
+      setSelfApp(selfAppJson);
+      startAppListener(selfAppJson.sessionId);
 
       navigationRef.navigate('Prove' as never);
 
@@ -117,8 +117,8 @@ export const handleUrl = (uri: string) => {
       );
     }
   } else if (sessionId && typeof sessionId === 'string') {
-    useSelfAppStore.getState().cleanSelfApp();
-    useSelfAppStore.getState().startAppListener(sessionId);
+    cleanSelfApp();
+    startAppListener(sessionId);
 
     navigationRef.navigate('Prove' as never);
   } else if (mock_passport) {
