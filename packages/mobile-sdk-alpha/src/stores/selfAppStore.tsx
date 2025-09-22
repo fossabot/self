@@ -19,7 +19,8 @@ interface SelfAppState {
   _initSocket: (sessionId: string) => Socket;
   handleProofResult: (proof_verified: boolean, error_code?: string, reason?: string) => void;
 }
-
+// we log this so its obvious if we have multiple instances of the store
+console.debug('creating selfAppStore', __filename);
 export const useSelfAppStore = create<SelfAppState>((set, get) => ({
   selfApp: null,
   sessionId: null,
