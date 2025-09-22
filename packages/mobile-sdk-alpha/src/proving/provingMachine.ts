@@ -105,6 +105,9 @@ const _generateCircuitInputs = async (
       circuitTypeWithDocumentExtension = `${circuitType}${document === 'passport' ? '' : '_id'}`;
       break;
     case 'dsc':
+      if (document === 'aadhaar') {
+        throw new Error('DSC circuit is not supported for Aadhaar');
+      }
       ({ inputs, circuitName, endpointType, endpoint } = generateTEEInputsDSC(
         passportData as PassportData,
         protocolStore[document].csca_tree as string[][],
@@ -923,7 +926,7 @@ export const useProvingStore = create<ProvingState>((set, get) => {
               step: 'protocol_store_fetch',
               document,
             });
-            await useProtocolStore.getState()[document].fetch_all(env!);
+            await useProtocolStore.getState()[document as 'aadhaar'].fetch_all(env!);
             break;
         }
         selfClient.logProofEvent('info', 'Data fetch succeeded', context, {
@@ -1011,10 +1014,23 @@ export const useProvingStore = create<ProvingState>((set, get) => {
         else {
           const { isRegistered, csca } = await isUserRegisteredWithAlternativeCSCA(passportData, secret as string, {
             getCommitmentTree,
-            getAltCSCA: (docType: DocumentCategory) =>
-              docType === 'aadhaar'
-                ? useProtocolStore.getState().aadhaar.public_keys
-                : useProtocolStore.getState()[docType].alternative_csca,
+            getAltCSCA: <D extends DocumentCategory>(
+              docType: D,
+            ): D extends 'aadhaar' ? string[] | null : Record<string, string> => {
+              switch (docType) {
+                case 'passport':
+                case 'id_card':
+                  // fixes typing issue for .alternative_csca
+                  let idDocType = docType as 'passport' | 'id_card'; // any is fine because the type is checked in the switch
+                  return useProtocolStore.getState()[idDocType].alternative_csca as any;
+                case 'aadhaar':
+                  return useProtocolStore.getState().aadhaar.public_keys as D extends 'aadhaar'
+                    ? string[] | null
+                    : never;
+                default:
+                  throw new Error(`Unsupported document category: ${docType}`);
+              }
+            },
           });
           selfClient.logProofEvent('info', 'Alternative CSCA registration check', context, {
             registered: isRegistered,

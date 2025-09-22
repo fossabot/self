@@ -8,7 +8,7 @@ import { ProofContext } from '../proving/internal/logging';
 import { SDKEvent, SDKEventMap } from './events';
 
 export type { PassportValidationCallbacks } from '../validation/document';
-export type { DocumentCatalog, PassportData };
+export type { DocumentCatalog, IDDocument, PassportData };
 export interface Config {
   timeouts?: {
     scanMs?: number;
@@ -177,8 +177,8 @@ export interface SelfClient {
   loadDocumentCatalog(): Promise<DocumentCatalog>;
   saveDocumentCatalog(catalog: DocumentCatalog): Promise<void>;
   registerNotificationsToken(sessionId: string, deviceToken?: string, isMock?: boolean): Promise<void>;
-  loadDocumentById(id: string): Promise<PassportData | null>;
-  saveDocument(id: string, passportData: PassportData): Promise<void>;
+  loadDocumentById(id: string): Promise<IDDocument | null>;
+  saveDocument(id: string, passportData: IDDocument): Promise<void>;
 
   deleteDocument(id: string): Promise<void>;
 }

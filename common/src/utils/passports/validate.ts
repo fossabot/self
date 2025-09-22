@@ -139,6 +139,7 @@ export async function checkIfPassportDscIsInTree(
 }
 
 type AlternativeCSCA = Record<string, string>;
+type AadhaarPublicKeys = null | Array<string>;
 
 export function generateCommitmentInApp(
   secret: string,
@@ -315,7 +316,9 @@ export async function isUserRegisteredWithAlternativeCSCA(
     getAltCSCA,
   }: {
     getCommitmentTree: (docCategory: DocumentCategory) => string;
-    getAltCSCA: (docCategory: DocumentCategory) => AlternativeCSCA;
+    getAltCSCA: <D extends DocumentCategory>(
+      docCategory: D
+    ) => D extends 'aadhaar' ? AadhaarPublicKeys : AlternativeCSCA;
   }
 ): Promise<{ isRegistered: boolean; csca: string | null }> {
   if (!passportData) {
