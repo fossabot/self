@@ -96,18 +96,22 @@ ReactContextBaseJavaModule(reactContext), QrCodeScannerFragment.QRCodeScannerCal
 
     private fun cleanup() {
         val activity = reactApplicationContext.currentActivity as? FragmentActivity
+        val fragment = currentFragment
+        val container = currentContainer
+        currentContainer = null
+        currentFragment = null
         activity?.runOnUiThread {
-            currentFragment?.let { fragment ->
-                activity.supportFragmentManager
-                    .beginTransaction()
-                    .remove(fragment)
-                    .commit()
+            try {
+                fragment?.let {
+                    activity.supportFragmentManager
+                        .beginTransaction()
+                        .remove(it)
+                        .commitAllowingStateLoss()
+                }
+                container?.let { (it.parent as? ViewGroup)?.removeView(it) }
+            } catch (e: Exception) {
+                android.util.Log.e("SelfQRScannerModule", "Error during cleanup", e)
             }
-            currentContainer?.let { container ->
-                (container.parent as? ViewGroup)?.removeView(container)
-            }
-            currentContainer = null
-            currentFragment = null
         }
     }
 
