@@ -75,7 +75,7 @@ interface ProtocolState {
   };
 }
 // we log this so its obvious if we have multiple instances of the store
-console.debug('creating protocolStore', __filename);
+console.debug('creating protocolStore');
 export const useProtocolStore = create<ProtocolState>((set, get) => ({
   passport: {
     commitment_tree: null,
