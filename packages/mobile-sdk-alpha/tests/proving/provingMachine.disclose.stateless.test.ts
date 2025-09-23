@@ -4,8 +4,31 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useSelfAppStore } from '../../src/stores/selfAppStore';
 import type { SelfClient } from '../../src/types/public';
+
+vi.mock('../../src/stores/selfAppStore', () => ({
+  useSelfAppStore: {
+    getState: () => ({
+      selfApp: {
+        chainID: 42220,
+        userId: '12345678-1234-1234-1234-123456789abc',
+        userDefinedData: '0x0',
+        endpointType: 'https',
+        endpoint: 'https://endpoint',
+        scope: 'scope',
+        sessionId: '',
+        appName: '',
+        logoBase64: '',
+        header: '',
+        userIdType: 'uuid',
+        devMode: false,
+        disclosures: {},
+        version: 1,
+        deeplinkCallback: '',
+      },
+    }),
+  },
+}));
 
 // Do not import provingMachine here; we'll require it after setting up mocks per test
 
@@ -38,26 +61,6 @@ describe('_generatePayload disclose (stateless resolver)', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
-
-    useSelfAppStore.setState({
-      selfApp: {
-        chainID: 42220,
-        userId: '12345678-1234-1234-1234-123456789abc',
-        userDefinedData: '0x0',
-        endpointType: 'https',
-        endpoint: 'https://endpoint',
-        scope: 'scope',
-        sessionId: '',
-        appName: '',
-        logoBase64: '',
-        header: '',
-        userIdType: 'uuid',
-        devMode: false,
-        disclosures: {},
-        version: 1,
-        deeplinkCallback: '',
-      },
-    });
   });
 
   it('uses resolver to fetch ofac and commitment trees', async () => {

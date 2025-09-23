@@ -3,9 +3,9 @@
 // NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
 import { SelfClient, useProvingStore } from '../../src';
+import { ProofEvents } from '../../src/constants/analytics';
 import * as documentUtils from '../../src/documents/utils';
 import { actorMock } from './actorMock';
-import { ProofEvents } from '../../src/constants/analytics';
 
 vitest.mock('xstate', () => {
   return {

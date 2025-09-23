@@ -3,4 +3,4 @@
 // NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
 export { cleanSelfApp, getSelfApp, setSelfApp, startAppListener } from './selfAppStore';
-export { fetchAllTreesAndCircuits, getCommitmentTree, getAltCSCAPublicKeys } from './protocolStore';
+export { fetchAllTreesAndCircuits, getAltCSCAPublicKeys, getCommitmentTree } from './protocolStore';

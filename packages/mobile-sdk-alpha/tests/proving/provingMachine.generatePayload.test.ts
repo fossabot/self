@@ -5,7 +5,6 @@
 import { SelfClient, useProvingStore } from '../../src';
 import { useProtocolStore } from '../../src/stores/protocolStore';
 import { useSelfAppStore } from '../../src/stores/selfAppStore';
-
 import { actorMock } from './actorMock';
 
 vitest.mock('xstate', async importOriginal => {
