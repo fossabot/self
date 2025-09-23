@@ -12,9 +12,15 @@ jest.mock('@/navigation', () => ({
   },
 }));
 
-// TODO: it needs to be mocked differently now
-const mockSelfAppStore = { useSelfAppStore: { getState: jest.fn() } };
-jest.mock('@selfxyz/mobile-sdk-alpha/stores', () => mockSelfAppStore);
+const mockSetSelfApp = jest.fn();
+const mockStartAppListener = jest.fn();
+const mockCleanSelfApp = jest.fn();
+
+jest.mock('@selfxyz/mobile-sdk-alpha/stores', () => ({
+  setSelfApp: mockSetSelfApp,
+  startAppListener: mockStartAppListener,
+  cleanSelfApp: mockCleanSelfApp,
+}));
 
 const mockUserStore = { default: { getState: jest.fn() } };
 jest.mock('@/stores/userStore', () => ({
@@ -22,7 +28,6 @@ jest.mock('@/stores/userStore', () => ({
   ...mockUserStore,
 }));
 
-let setSelfApp: jest.Mock, startAppListener: jest.Mock, cleanSelfApp: jest.Mock;
 let setDeepLinkUserDetails: jest.Mock;
 
 let handleUrl: (url: string) => void;
@@ -38,19 +43,11 @@ describe('deeplinks', () => {
       parseAndValidateUrlParams,
       setupUniversalLinkListenerInNavigation,
     } = require('@/utils/deeplinks'));
-    setSelfApp = jest.fn();
-    startAppListener = jest.fn();
-    cleanSelfApp = jest.fn();
     setDeepLinkUserDetails = jest.fn();
     jest.spyOn(Linking, 'getInitialURL').mockResolvedValue(null as any);
     jest
       .spyOn(Linking, 'addEventListener')
       .mockReturnValue({ remove: jest.fn() } as any);
-    mockSelfAppStore.useSelfAppStore.getState.mockReturnValue({
-      setSelfApp,
-      startAppListener,
-      cleanSelfApp,
-    });
     mockUserStore.default.getState.mockReturnValue({
       setDeepLinkUserDetails,
     });
@@ -62,8 +59,8 @@ describe('deeplinks', () => {
       const url = `scheme://open?selfApp=${encodeURIComponent(JSON.stringify(selfApp))}`;
       handleUrl(url);
 
-      expect(setSelfApp).toHaveBeenCalledWith(selfApp);
-      expect(startAppListener).toHaveBeenCalledWith('abc');
+      expect(mockSetSelfApp).toHaveBeenCalledWith(selfApp);
+      expect(mockStartAppListener).toHaveBeenCalledWith('abc');
       const { navigationRef } = require('@/navigation');
       expect(navigationRef.navigate).toHaveBeenCalledWith('Prove');
     });
@@ -72,8 +69,8 @@ describe('deeplinks', () => {
       const url = 'scheme://open?sessionId=123';
       handleUrl(url);
 
-      expect(cleanSelfApp).toHaveBeenCalled();
-      expect(startAppListener).toHaveBeenCalledWith('123');
+      expect(mockCleanSelfApp).toHaveBeenCalledWith();
+      expect(mockStartAppListener).toHaveBeenCalledWith('123');
       const { navigationRef } = require('@/navigation');
       expect(navigationRef.navigate).toHaveBeenCalledWith('Prove');
     });
