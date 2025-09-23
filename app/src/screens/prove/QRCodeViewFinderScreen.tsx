@@ -12,9 +12,13 @@ import {
   useNavigation,
 } from '@react-navigation/native';
 
-import { useSelfClient } from '@selfxyz/mobile-sdk-alpha';
+import {
+  cleanSelfApp,
+  setSelfApp,
+  startAppListener,
+  useSelfClient,
+} from '@selfxyz/mobile-sdk-alpha';
 import { ProofEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
-import { cleanSelfApp, startAppListener, setSelfApp } from '@selfxyz/mobile-sdk-alpha';
 
 import qrScanAnimation from '@/assets/animations/qr_scan.json';
 import type { QRCodeScannerViewProps } from '@/components/native/QRCodeScanner';
@@ -70,7 +74,6 @@ const QRCodeViewFinderScreen: React.FC = () => {
               scan_type: 'selfApp',
             });
             const selfAppJson = JSON.parse(selfApp);
-
 
             setSelfApp(selfAppJson);
             startAppListener(selfAppJson.sessionId);

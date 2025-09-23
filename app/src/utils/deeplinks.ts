@@ -7,10 +7,14 @@ import { Linking, Platform } from 'react-native';
 
 import { countries } from '@selfxyz/common/constants/countries';
 import type { IdDocInput } from '@selfxyz/common/utils';
+import {
+  cleanSelfApp,
+  setSelfApp,
+  startAppListener,
+} from '@selfxyz/mobile-sdk-alpha/stores';
 
 import { navigationRef } from '@/navigation';
 import useUserStore from '@/stores/userStore';
-import { cleanSelfApp, startAppListener, setSelfApp } from '@selfxyz/mobile-sdk-alpha/stores';
 
 // Validation patterns for each expected parameter
 const VALIDATION_PATTERNS = {

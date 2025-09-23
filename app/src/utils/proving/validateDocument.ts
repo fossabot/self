@@ -7,7 +7,10 @@ import { isUserRegistered } from '@selfxyz/common/utils/passports/validate';
 import type { PassportValidationCallbacks } from '@selfxyz/mobile-sdk-alpha';
 import { isPassportDataValid } from '@selfxyz/mobile-sdk-alpha';
 import { DocumentEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
-import { useProtocolStore } from '@selfxyz/mobile-sdk-alpha/stores';
+import {
+  fetchAllTreesAndCircuits,
+  getCommitmentTree,
+} from '@selfxyz/mobile-sdk-alpha/stores';
 
 import {
   getAllDocumentsDirectlyFromKeychain,
@@ -115,9 +118,11 @@ export async function checkAndUpdateRegistrationStates(): Promise<void> {
         );
         continue;
       }
-      await useProtocolStore
-        .getState()
-        [documentCategory].fetch_all(environment, authorityKeyIdentifier);
+      await fetchAllTreesAndCircuits(
+        documentCategory,
+        environment,
+        authorityKeyIdentifier,
+      );
       const passportDataAndSecret = await loadPassportDataAndSecret();
       if (!passportDataAndSecret) {
         console.warn(
@@ -130,7 +135,7 @@ export async function checkAndUpdateRegistrationStates(): Promise<void> {
       const isRegistered = await isUserRegistered(
         migratedPassportData,
         secret,
-        docType => useProtocolStore.getState()[docType].commitment_tree,
+        getCommitmentTree,
       );
 
       // Update the registration state in the document metadata

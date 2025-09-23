@@ -45,13 +45,11 @@ import {
   markCurrentDocumentAsRegistered,
   reStorePassportDataWithRightCSCA,
 } from '../documents/utils';
-import { useProtocolStore } from '../stores';
-
+import { getCommitmentTree } from '../stores';
+import { useProtocolStore } from '../stores/protocolStore';
 // TODO: here for simplicity we allow for the direct import of the selfAppStore, we just
 // don't expose it in the public API
 import { useSelfAppStore } from '../stores/selfAppStore';
-
-
 import { SdkEvents } from '../types/events';
 import type { SelfClient } from '../types/public';
 import type { ProofContext } from './internal/logging';
@@ -996,8 +994,7 @@ export const useProvingStore = create<ProvingState>((set, get) => {
           actor!.send({ type: 'PASSPORT_NOT_SUPPORTED' });
           return;
         }
-        const getCommitmentTree = (documentCategory: DocumentCategory) =>
-          useProtocolStore.getState()[documentCategory].commitment_tree;
+
         /// disclosure
         if (circuitType === 'disclose') {
           const isRegisteredWithLocalCSCA = await isUserRegistered(passportData, secret as string, getCommitmentTree);

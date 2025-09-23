@@ -9,7 +9,10 @@ import { useNavigation } from '@react-navigation/native';
 import { isUserRegisteredWithAlternativeCSCA } from '@selfxyz/common/utils/passports/validate';
 import { useSelfClient } from '@selfxyz/mobile-sdk-alpha';
 import { BackupEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
-import { useProtocolStore } from '@selfxyz/mobile-sdk-alpha/stores';
+import {
+  getAltCSCAPublicKeys,
+  getCommitmentTree,
+} from '@selfxyz/mobile-sdk-alpha/stores';
 
 import { PrimaryButton } from '@/components/buttons/PrimaryButton';
 import { SecondaryButton } from '@/components/buttons/SecondaryButton';
@@ -62,14 +65,9 @@ const AccountRecoveryChoiceScreen: React.FC = () => {
         passportData,
         secret,
         {
-          getCommitmentTree(docCategory) {
-            return useProtocolStore.getState()[docCategory].commitment_tree;
-          },
+          getCommitmentTree,
           getAltCSCA(docCategory) {
-            if (passportData.documentCategory === 'aadhaar') {
-              return useProtocolStore.getState().aadhaar.public_keys;
-            }
-            return useProtocolStore.getState()[docCategory].alternative_csca;
+            return getAltCSCAPublicKeys(docCategory);
           },
         },
       );

@@ -10,6 +10,7 @@ import type { NativeStackHeaderProps } from '@react-navigation/native-stack';
 import { Clipboard as ClipboardIcon } from '@tamagui/lucide-icons';
 
 import type { SelfApp } from '@selfxyz/common/utils/appType';
+import { setSelfApp, startAppListener } from '@selfxyz/mobile-sdk-alpha/stores';
 
 import { NavBar } from '@/components/NavBar/BaseNavBar';
 import ActivityIcon from '@/images/icons/activity.svg';
@@ -18,7 +19,6 @@ import SettingsIcon from '@/images/icons/settings.svg';
 import { black, charcoal, slate50 } from '@/utils/colors';
 import { extraYPadding } from '@/utils/constants';
 import { buttonTap } from '@/utils/haptic';
-import { setSelfApp, startAppListener } from '@selfxyz/mobile-sdk-alpha/stores';
 
 export const HomeNavBar = (props: NativeStackHeaderProps) => {
   const insets = useSafeAreaInsets();

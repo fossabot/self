@@ -77,6 +77,8 @@ export { SelfClientContext, SelfClientProvider, useSelfClient } from './context'
 // Documents utils
 export { SelfMobileSdk } from './entry';
 
+export { cleanSelfApp, getSelfApp, setSelfApp, startAppListener } from './stores';
+
 export {
   clearPassportData,
   getAllDocuments,
@@ -90,8 +92,6 @@ export { createListenersMap, createSelfClient } from './client';
 
 /** @deprecated Use createSelfClient().extractMRZInfo or import from './mrz' */
 export { defaultConfig } from './config/defaults';
-
-export { cleanSelfApp, getSelfApp, setSelfApp, startAppListener, useProtocolStore } from './stores';
 
 export { extractMRZInfo } from './mrz';
 
