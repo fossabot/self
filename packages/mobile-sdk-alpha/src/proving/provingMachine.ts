@@ -98,12 +98,9 @@ const _generateCircuitInputs = async (
   const protocolStore = useProtocolStore.getState();
   const selfApp = useSelfAppStore.getState().selfApp;
 
-  if (!selfApp) {
-    throw new Error('SelfApp is not available');
-  }
+  // (Removed the early selfApp guard—only the disclosure path now enforces selfApp below)
 
   let inputs, circuitName, endpointType, endpoint, circuitTypeWithDocumentExtension;
-
   switch (circuitType) {
     case 'register':
       ({ inputs, circuitName, endpointType, endpoint } = await generateTEEInputsRegister(
