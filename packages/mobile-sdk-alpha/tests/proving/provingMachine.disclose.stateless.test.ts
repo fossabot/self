@@ -88,7 +88,7 @@ describe('_generatePayload disclose (stateless resolver)', () => {
 
     // Import after mocks are in place
     const mod = await import('../../src/proving/provingMachine');
-    const storeModule = await import('../../src/stores');
+    const storeModule = await import('../../src/stores/protocolStore');
     const store = mod.useProvingStore;
     const protocolStore = storeModule.useProtocolStore;
 
@@ -190,7 +190,7 @@ describe('_generatePayload disclose (stateless resolver)', () => {
     }));
 
     const mod = await import('../../src/proving/provingMachine');
-    const storeModule = await import('../../src/stores');
+    const storeModule = await import('../../src/stores/protocolStore');
     const store = mod.useProvingStore;
     const protocolStore = storeModule.useProtocolStore;
 
@@ -268,7 +268,7 @@ describe('_generatePayload disclose (stateless resolver)', () => {
     }));
 
     const mod = await import('../../src/proving/provingMachine');
-    const storeModule = await import('../../src/stores');
+    const storeModule = await import('../../src/stores/protocolStore');
     const store = mod.useProvingStore;
     const protocolStore = storeModule.useProtocolStore;
 

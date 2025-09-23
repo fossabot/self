@@ -23,7 +23,7 @@ import {
   TREE_URL_STAGING,
 } from '@selfxyz/common/constants';
 import { fetchOfacTrees } from '@selfxyz/common/utils/ofac';
-import type { DeployedCircuits, Environment, OfacTree } from '@selfxyz/common/utils/types';
+import type { DeployedCircuits, DocumentCategory, Environment, OfacTree } from '@selfxyz/common/utils/types';
 
 interface ProtocolState {
   passport: {
@@ -442,3 +442,22 @@ export const useProtocolStore = create<ProtocolState>((set, get) => ({
     },
   },
 }));
+export async function fetchAllTreesAndCircuits(
+  docCategory: DocumentCategory,
+  environment: Environment,
+  authorityKeyIdentifier: string,
+) {
+  await useProtocolStore.getState()[docCategory].fetch_all(environment, authorityKeyIdentifier);
+}
+
+export function getAltCSCAPublicKeys(docCategory: DocumentCategory) {
+  if (docCategory === 'aadhaar') {
+    return useProtocolStore.getState()[docCategory].public_keys;
+  }
+  return useProtocolStore.getState()[docCategory].alternative_csca;
+}
+
+export function getCommitmentTree(documentCategory: DocumentCategory) {
+  const protocolStore = useProtocolStore.getState();
+  return protocolStore[documentCategory].commitment_tree;
+}

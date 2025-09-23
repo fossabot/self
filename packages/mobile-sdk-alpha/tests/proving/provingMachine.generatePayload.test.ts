@@ -2,8 +2,10 @@
 // SPDX-License-Identifier: BUSL-1.1
 // NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
-import { SelfClient, useProtocolStore, useProvingStore } from '../../src';
+import { SelfClient, useProvingStore } from '../../src';
+import { useProtocolStore } from '../../src/stores/protocolStore';
 import { useSelfAppStore } from '../../src/stores/selfAppStore';
+
 import { actorMock } from './actorMock';
 
 vitest.mock('xstate', async importOriginal => {

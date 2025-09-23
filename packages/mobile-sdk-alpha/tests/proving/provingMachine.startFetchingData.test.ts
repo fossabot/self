@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: BUSL-1.1
 // NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
-import { SelfClient, useProtocolStore, useProvingStore } from '../../src';
+import { SelfClient, useProvingStore } from '../../src';
 import * as documentUtils from '../../src/documents/utils';
 import { actorMock } from './actorMock';
+import { ProofEvents } from '../../src/constants/analytics';
 
 vitest.mock('xstate', () => {
   return {
@@ -21,6 +22,14 @@ vitest.mock('xstate', () => {
     fromTransition: vitest.fn(),
     fromReducer: vitest.fn(),
     fromRef: vitest.fn(),
+  };
+});
+
+vitest.mock('../../src/stores', async () => {
+  const actual = await vitest.importActual<typeof import('../../src/stores')>('../../src/stores');
+  return {
+    ...actual,
+    fetchAllTreesAndCircuits: vitest.fn(),
   };
 });
 
@@ -46,14 +55,9 @@ describe('startFetchingData', () => {
       logProofEvent: vitest.fn(),
     } as unknown as SelfClient;
 
-    useProtocolStore.setState({
-      passport: { fetch_all: vitest.fn().mockResolvedValue(undefined) },
-    } as any);
     await useProvingStore.getState().init(mockSelfClient, 'register');
     actorMock.send.mockClear();
-    useProtocolStore.setState({
-      passport: { fetch_all: vitest.fn() },
-    } as any);
+
     useProvingStore.setState({
       passportData: { documentCategory: 'passport', mock: false },
       env: 'prod',
@@ -62,8 +66,10 @@ describe('startFetchingData', () => {
 
   it('emits FETCH_ERROR when dsc_parsed is missing', async () => {
     await useProvingStore.getState().startFetchingData(mockSelfClient);
-
-    expect(useProtocolStore.getState().passport.fetch_all).not.toHaveBeenCalled();
+    expect(mockSelfClient.trackEvent).toHaveBeenCalledWith(ProofEvents.FETCH_DATA_STARTED);
     expect(actorMock.send).toHaveBeenCalledWith({ type: 'FETCH_ERROR' });
+    expect(mockSelfClient.trackEvent).toHaveBeenCalledWith(ProofEvents.FETCH_DATA_FAILED, {
+      message: 'Missing parsed DSC in passport data',
+    });
   });
 });

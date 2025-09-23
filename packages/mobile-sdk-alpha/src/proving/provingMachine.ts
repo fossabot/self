@@ -45,7 +45,7 @@ import {
   markCurrentDocumentAsRegistered,
   reStorePassportDataWithRightCSCA,
 } from '../documents/utils';
-import { getCommitmentTree } from '../stores';
+import { fetchAllTreesAndCircuits, getCommitmentTree } from '../stores/protocolStore';
 import { useProtocolStore } from '../stores/protocolStore';
 // TODO: here for simplicity we allow for the direct import of the selfAppStore, we just
 // don't expose it in the public API
@@ -926,9 +926,7 @@ export const useProvingStore = create<ProvingState>((set, get) => {
               step: 'protocol_store_fetch',
               document,
             });
-            await useProtocolStore
-              .getState()
-              [document].fetch_all(env!, (passportData as PassportData).dsc_parsed!.authorityKeyIdentifier);
+            await fetchAllTreesAndCircuits(document,env!, passportData.dsc_parsed!.authorityKeyIdentifier);
             break;
           case 'aadhaar':
             selfClient.logProofEvent('info', 'Protocol store fetch', context, {
