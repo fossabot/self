@@ -4,7 +4,7 @@
 
 import { DocumentCategory } from '@selfxyz/common/types';
 
-import { NFCScanContext, ProofContext } from '../proving/internal/logging';
+import type { NFCScanContext, ProofContext } from '../proving/internal/logging';
 import type { LogLevel, Progress } from './public';
 
 export enum SdkEvents {

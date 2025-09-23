@@ -86,7 +86,7 @@ export interface MRZValidation {
 }
 
 export interface NotificationAdapter {
-  registerDeviceToken(sessionId: string, deviceToken?: string, isMockPassport?: boolean): Promise<void>;
+  registerDeviceToken(sessionId: string, deviceToken?: string, isMock?: boolean): Promise<void>;
 }
 
 export type LogLevel = 'info' | 'warn' | 'error';
