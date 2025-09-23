@@ -22,12 +22,9 @@ import { Eye, EyeOff } from '@tamagui/lucide-icons';
 
 import type { SelfAppDisclosureConfig } from '@selfxyz/common/utils/appType';
 import { formatEndpoint } from '@selfxyz/common/utils/scope';
-import {
-  getSelfApp,
-  useProvingStore,
-  useSelfClient,
-} from '@selfxyz/mobile-sdk-alpha';
+import { useProvingStore, useSelfClient } from '@selfxyz/mobile-sdk-alpha';
 import { ProofEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
+import { getSelfApp } from '@selfxyz/mobile-sdk-alpha/stores';
 
 import miscAnimation from '@/assets/animations/loading/misc.json';
 import { HeldPrimaryButtonProveScreen } from '@/components/buttons/HeldPrimaryButtonProveScreen';
