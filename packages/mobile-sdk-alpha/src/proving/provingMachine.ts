@@ -45,8 +45,7 @@ import {
   markCurrentDocumentAsRegistered,
   reStorePassportDataWithRightCSCA,
 } from '../documents/utils';
-import { fetchAllTreesAndCircuits, getCommitmentTree } from '../stores/protocolStore';
-import { useProtocolStore } from '../stores/protocolStore';
+import { fetchAllTreesAndCircuits, getCommitmentTree, useProtocolStore } from '../stores/protocolStore';
 // TODO: here for simplicity we allow for the direct import of the selfAppStore, we just
 // don't expose it in the public API
 import { useSelfAppStore } from '../stores/selfAppStore';

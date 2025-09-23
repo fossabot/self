@@ -24,7 +24,15 @@ export const cleanSelfApp = () => {
 
   appStore.cleanSelfApp();
 };
-
+/*
+  Hook to access the current SelfApp data in react components
+*/
+export function useCurrentSelfApp(): SelfApp | null {
+  return useSelfAppStore(state => state.selfApp);
+}
+/*
+  use this function to get the current SelfApp data outside of react components or in callbacks
+*/
 export const getSelfApp = (): SelfApp | null => {
   const appStore = useSelfAppStore.getState();
 
@@ -43,8 +51,12 @@ export const startAppListener = (sessionId: string) => {
   appStore.startAppListener(sessionId);
 };
 
-console.debug('creating selfAppStore', __filename);
+console.debug('creating selfAppStore');
 
+/*
+  Never export outside of the mobile sdk. It can cause multiple instances of the store to be created.
+  Use the functions above to interact with the store.
+*/
 export const useSelfAppStore = create<SelfAppState>((set, get) => ({
   selfApp: null,
   sessionId: null,
