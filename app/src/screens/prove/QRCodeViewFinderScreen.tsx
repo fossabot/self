@@ -12,13 +12,13 @@ import {
   useNavigation,
 } from '@react-navigation/native';
 
+import { useSelfClient } from '@selfxyz/mobile-sdk-alpha';
+import { ProofEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
 import {
   cleanSelfApp,
   setSelfApp,
   startAppListener,
-  useSelfClient,
-} from '@selfxyz/mobile-sdk-alpha';
-import { ProofEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
+} from '@selfxyz/mobile-sdk-alpha/stores';
 
 import qrScanAnimation from '@/assets/animations/qr_scan.json';
 import type { QRCodeScannerViewProps } from '@/components/native/QRCodeScanner';

@@ -77,8 +77,6 @@ export { SelfClientContext, SelfClientProvider, useSelfClient } from './context'
 // Documents utils
 export { SelfMobileSdk } from './entry';
 
-export { cleanSelfApp, getSelfApp, setSelfApp, startAppListener } from './stores';
-
 export {
   clearPassportData,
   getAllDocuments,
