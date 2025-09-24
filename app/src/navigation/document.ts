@@ -4,6 +4,7 @@
 
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 
+import ConfirmBelongingScreen from '@/screens/document/ConfirmBelongingScreen';
 import DocumentCameraScreen from '@/screens/document/DocumentCameraScreen';
 import DocumentCameraTroubleScreen from '@/screens/document/DocumentCameraTroubleScreen';
 import DocumentNFCMethodSelectionScreen from '@/screens/document/DocumentNFCMethodSelectionScreen';
@@ -53,6 +54,12 @@ const documentScreens = {
     options: {
       animation: 'slide_from_bottom',
       // presentation: 'modal' wanted to do this but seems to break stuff
+      headerShown: false,
+    } as NativeStackNavigationOptions,
+  },
+  ConfirmBelonging: {
+    screen: ConfirmBelongingScreen,
+    options: {
       headerShown: false,
     } as NativeStackNavigationOptions,
   },
