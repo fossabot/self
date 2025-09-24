@@ -24,12 +24,7 @@ export const cleanSelfApp = () => {
 
   appStore.cleanSelfApp();
 };
-/*
-  Hook to access the current SelfApp data in react components
-*/
-export function useCurrentSelfApp(): SelfApp | null {
-  return useSelfAppStore(state => state.selfApp);
-}
+
 /*
   use this function to get the current SelfApp data outside of react components or in callbacks
 */
@@ -50,6 +45,13 @@ export const startAppListener = (sessionId: string) => {
 
   appStore.startAppListener(sessionId);
 };
+
+/*
+  Hook to access the current SelfApp data in react components
+*/
+export function useCurrentSelfApp(): SelfApp | null {
+  return useSelfAppStore(state => state.selfApp);
+}
 
 console.debug('creating selfAppStore');
 

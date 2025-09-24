@@ -4,14 +4,15 @@
 
 /* @vitest-environment jsdom */
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
 
-import type { PassportData } from '@selfxyz/common/types';
-import type { IDDocument, SelfClient } from '../../src/types/public';
-import { usePrepareDocumentProof } from '../../src/features/onboarding-confirm-ownership';
-import * as documentsUtils from '../../src/documents/utils';
-import { useProvingStore } from '../../src/proving/provingMachine';
 import { DocumentMetadata } from '@selfxyz/common/utils/types';
+
+import * as documentsUtils from '../../src/documents/utils';
+import { usePrepareDocumentProof } from '../../src/features/onboarding-confirm-ownership';
+import { useProvingStore } from '../../src/proving/provingMachine';
+import type { IDDocument, SelfClient } from '../../src/types/public';
+
+import { act, renderHook } from '@testing-library/react';
 
 // Mock the proving store at module level
 vi.mock('../../src/proving/provingMachine', () => ({
@@ -53,7 +54,7 @@ describe('usePrepareDocumentProof', () => {
     const initSpy = vi.fn();
     const mockSetFcmToken = vi.fn();
     const mockSetUserConfirmed = vi.fn();
-    
+
     (useProvingStore as any).mockImplementation((selector: any) => {
       const mockState = {
         currentState: 'ready_to_prove',
@@ -84,7 +85,7 @@ describe('usePrepareDocumentProof', () => {
     const initSpy = vi.fn();
     const mockSetFcmToken = vi.fn();
     const mockSetUserConfirmed = vi.fn();
-    
+
     (useProvingStore as any).mockImplementation((selector: any) => {
       const mockState = {
         currentState: 'ready_to_prove',
@@ -114,7 +115,7 @@ describe('usePrepareDocumentProof', () => {
     const initSpy = vi.fn();
     const mockSetFcmToken = vi.fn();
     const mockSetUserConfirmed = vi.fn();
-    
+
     (useProvingStore as any).mockImplementation((selector: any) => {
       const mockState = {
         currentState: 'ready_to_prove',
@@ -147,7 +148,7 @@ describe('usePrepareDocumentProof', () => {
     const initSpy = vi.fn();
     const mockSetFcmToken = vi.fn();
     const mockSetUserConfirmed = vi.fn();
-    
+
     (useProvingStore as any).mockImplementation((selector: any) => {
       const mockState = {
         currentState: 'ready_to_prove',
@@ -220,12 +221,12 @@ describe('usePrepareDocumentProof', () => {
     const mockSelfClient1 = createMockSelfClient();
     const mockSelfClient2 = createMockSelfClient();
 
-    const loadSelectedDocumentSpy = vi.spyOn(documentsUtils, 'loadSelectedDocument').mockResolvedValue(null);
+    vi.spyOn(documentsUtils, 'loadSelectedDocument').mockResolvedValue(null);
 
     const initSpy = vi.fn();
     const mockSetFcmToken = vi.fn();
     const mockSetUserConfirmed = vi.fn();
-    
+
     (useProvingStore as any).mockImplementation((selector: any) => {
       const mockState = {
         currentState: 'ready_to_prove',
@@ -236,7 +237,7 @@ describe('usePrepareDocumentProof', () => {
       return selector(mockState);
     });
 
-    const { result, rerender } = renderHook(({ client }) => usePrepareDocumentProof(client), {
+    const { rerender } = renderHook(({ client }) => usePrepareDocumentProof(client), {
       initialProps: { client: mockSelfClient1 },
     });
 
@@ -259,14 +260,14 @@ describe('usePrepareDocumentProof', () => {
 
   it('should handle document with undefined documentCategory', async () => {
     const mockSelfClient = createMockSelfClient();
-    const mockDocument = { data: {} as PassportData };
+    const mockDocument = { data: {} as IDDocument, metadata: {} as DocumentMetadata };
 
     const loadSelectedDocumentSpy = vi.spyOn(documentsUtils, 'loadSelectedDocument').mockResolvedValue(mockDocument);
 
     const initSpy = vi.fn();
     const mockSetFcmToken = vi.fn();
     const mockSetUserConfirmed = vi.fn();
-    
+
     (useProvingStore as any).mockImplementation((selector: any) => {
       const mockState = {
         currentState: 'ready_to_prove',

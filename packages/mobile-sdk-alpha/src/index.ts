@@ -74,7 +74,6 @@ export { SdkEvents } from './types/events';
 // Components
 export { SelfClientContext, SelfClientProvider, useSelfClient } from './context';
 
-
 export {
   clearPassportData,
   getAllDocuments,

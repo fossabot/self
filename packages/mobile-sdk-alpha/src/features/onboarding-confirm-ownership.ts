@@ -1,7 +1,15 @@
 import { useEffect } from 'react';
-import { useProvingStore } from '../proving/provingMachine';
+
 import { loadSelectedDocument } from '../documents/utils';
+import { useProvingStore } from '../proving/provingMachine';
 import type { SelfClient } from '../types/public';
+
+/*
+  Display this to users before they confirm ownership of a document
+*/
+export function preRegistrationDescription() {
+  return "By continuing, you certify that this passport, biometric ID or Aadhaar card belongs to you and is not stolen or forged. Once registered with Self, this document will be permanently linked to your identity and can't be linked to another one.";
+}
 
 /*
   Hook to prepare for proving a document by initializing the proving state machine.
@@ -38,10 +46,4 @@ export function usePrepareDocumentProof(selfClient: SelfClient) {
     initializeProving();
   }, [init, selfClient]);
   return { setFcmToken, setUserConfirmed, isReadyToProve };
-}
-/*
-  Display this to users before they confirm ownership of a document
-*/
-export function preRegistrationDescription() {
-  return "By continuing, you certify that this passport, biometric ID or Aadhaar card belongs to you and is not stolen or forged. Once registered with Self, this document will be permanently linked to your identity and can't be linked to another one.";
 }

@@ -926,7 +926,7 @@ export const useProvingStore = create<ProvingState>((set, get) => {
               step: 'protocol_store_fetch',
               document,
             });
-            await fetchAllTreesAndCircuits(document,env!, passportData.dsc_parsed!.authorityKeyIdentifier);
+            await fetchAllTreesAndCircuits(document, env!, passportData.dsc_parsed!.authorityKeyIdentifier);
             break;
           case 'aadhaar':
             selfClient.logProofEvent('info', 'Protocol store fetch', context, {

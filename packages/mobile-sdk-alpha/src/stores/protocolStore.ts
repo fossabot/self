@@ -76,6 +76,25 @@ interface ProtocolState {
 }
 // we log this so its obvious if we have multiple instances of the store
 console.debug('creating protocolStore');
+export async function fetchAllTreesAndCircuits(
+  docCategory: DocumentCategory,
+  environment: Environment,
+  authorityKeyIdentifier: string,
+) {
+  await useProtocolStore.getState()[docCategory].fetch_all(environment, authorityKeyIdentifier);
+}
+export function getAltCSCAPublicKeys(docCategory: DocumentCategory) {
+  if (docCategory === 'aadhaar') {
+    return useProtocolStore.getState()[docCategory].public_keys;
+  }
+  return useProtocolStore.getState()[docCategory].alternative_csca;
+}
+
+export function getCommitmentTree(documentCategory: DocumentCategory) {
+  const protocolStore = useProtocolStore.getState();
+  return protocolStore[documentCategory].commitment_tree;
+}
+
 export const useProtocolStore = create<ProtocolState>((set, get) => ({
   passport: {
     commitment_tree: null,
@@ -442,22 +461,3 @@ export const useProtocolStore = create<ProtocolState>((set, get) => ({
     },
   },
 }));
-export async function fetchAllTreesAndCircuits(
-  docCategory: DocumentCategory,
-  environment: Environment,
-  authorityKeyIdentifier: string,
-) {
-  await useProtocolStore.getState()[docCategory].fetch_all(environment, authorityKeyIdentifier);
-}
-
-export function getAltCSCAPublicKeys(docCategory: DocumentCategory) {
-  if (docCategory === 'aadhaar') {
-    return useProtocolStore.getState()[docCategory].public_keys;
-  }
-  return useProtocolStore.getState()[docCategory].alternative_csca;
-}
-
-export function getCommitmentTree(documentCategory: DocumentCategory) {
-  const protocolStore = useProtocolStore.getState();
-  return protocolStore[documentCategory].commitment_tree;
-}
