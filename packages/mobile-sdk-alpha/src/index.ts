@@ -74,8 +74,6 @@ export { SdkEvents } from './types/events';
 // Components
 export { SelfClientContext, SelfClientProvider, useSelfClient } from './context';
 
-// Documents utils
-export { SelfMobileSdk } from './entry';
 
 export {
   clearPassportData,

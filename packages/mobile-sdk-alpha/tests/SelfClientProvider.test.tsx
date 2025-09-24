@@ -6,13 +6,13 @@ import { describe, expect, it } from 'vitest';
 
 describe('High-Level SelfMobileSdk Component', () => {
   it('can be imported successfully', async () => {
-    const { SelfMobileSdk } = await import('../src');
-    expect(SelfMobileSdk).toBeDefined();
-    expect(typeof SelfMobileSdk).toBe('function');
+    const { SelfClientProvider } = await import('../src');
+    expect(SelfClientProvider).toBeDefined();
+    expect(typeof SelfClientProvider).toBe('function');
   });
 
   it('accepts the expected props interface', async () => {
-    const { SelfMobileSdk } = await import('../src');
+    const { SelfClientProvider } = await import('../src');
 
     // Test that the component accepts the expected props structure
     const mockExternal = {
@@ -25,7 +25,7 @@ describe('High-Level SelfMobileSdk Component', () => {
       onDisclosureFailure: () => {},
     };
 
-    expect(SelfMobileSdk).toBeDefined();
+    expect(SelfClientProvider).toBeDefined();
     // The component should accept these props without throwing
     expect(() => {
       // This is just a type check - we're not actually rendering
