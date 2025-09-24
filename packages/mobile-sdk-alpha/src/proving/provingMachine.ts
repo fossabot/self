@@ -330,6 +330,7 @@ interface ProvingState {
   endpointType: EndpointType | null;
   fcmToken: string | null;
   env: 'prod' | 'stg' | null;
+  // TODO: keeping the notifications token here feels very wrong.
   setFcmToken: (token: string, selfClient: SelfClient) => void;
   init: (
     selfClient: SelfClient,

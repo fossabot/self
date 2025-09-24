@@ -8,15 +8,15 @@ import { ActivityIndicator, View } from 'react-native';
 import type { StaticScreenProps } from '@react-navigation/native';
 import { usePreventRemove } from '@react-navigation/native';
 
-import {
-  loadSelectedDocument,
-  useProvingStore,
-  useSelfClient,
-} from '@selfxyz/mobile-sdk-alpha';
+import { useSelfClient } from '@selfxyz/mobile-sdk-alpha/';
 import {
   PassportEvents,
   ProofEvents,
 } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
+import {
+  preRegistrationDescription,
+  usePrepareDocumentProof,
+} from '@selfxyz/mobile-sdk-alpha/onboarding/confirm-ownership';
 
 import successAnimation from '@/assets/animations/loading/success.json';
 import { PrimaryButton } from '@/components/buttons/PrimaryButton';
@@ -42,30 +42,12 @@ const ConfirmBelongingScreen: React.FC<ConfirmBelongingScreenProps> = () => {
     params: {},
   });
   const [_requestingPermission, setRequestingPermission] = useState(false);
-  const currentState = useProvingStore(state => state.currentState);
-  const init = useProvingStore(state => state.init);
-  const setFcmToken = useProvingStore(state => state.setFcmToken);
-  const setUserConfirmed = useProvingStore(state => state.setUserConfirmed);
-  const isReadyToProve = currentState === 'ready_to_prove';
+  const { setFcmToken, setUserConfirmed, isReadyToProve } =
+    usePrepareDocumentProof(selfClient);
+
   useEffect(() => {
     notificationSuccess();
-
-    const initializeProving = async () => {
-      try {
-        const selectedDocument = await loadSelectedDocument(selfClient);
-        if (selectedDocument?.data?.documentCategory === 'aadhaar') {
-          init(selfClient, 'register');
-        } else {
-          init(selfClient, 'dsc');
-        }
-      } catch (error) {
-        console.error('Error loading selected document:', error);
-        init(selfClient, 'dsc');
-      }
-    };
-
-    initializeProving();
-  }, [init, selfClient]);
+  }, []);
 
   const onOkPress = async () => {
     try {
@@ -127,10 +109,7 @@ const ConfirmBelongingScreen: React.FC<ConfirmBelongingScreenProps> = () => {
         >
           <Title textAlign="center">Confirm your identity</Title>
           <Description textAlign="center" paddingBottom={20}>
-            By continuing, you certify that this passport, biometric ID or
-            Aadhaar card belongs to you and is not stolen or forged. Once
-            registered with Self, this document will be permanently linked to
-            your identity and can't be linked to another one.
+            {preRegistrationDescription()}
           </Description>
           <PrimaryButton
             trackEvent={PassportEvents.OWNERSHIP_CONFIRMED}

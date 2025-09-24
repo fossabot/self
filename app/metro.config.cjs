@@ -33,6 +33,10 @@ const extraNodeModules = {
     sdkAlphaPath,
     'dist/esm/stores.js',
   ),
+  '@selfxyz/mobile-sdk-alpha/onboarding/confirm-ownership': path.resolve(
+    sdkAlphaPath,
+    'dist/esm/onboarding/confirm-ownership.js',
+  ),
   // Main exports
   '@selfxyz/common/utils': path.resolve(
     commonPath,

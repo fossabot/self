@@ -33,6 +33,11 @@
       "types": "./dist/esm/constants/analytics.d.ts",
       "import": "./dist/esm/constants/analytics.js",
       "require": "./dist/cjs/constants/analytics.cjs"
+    },
+    "./onboarding/confirm-ownership": {
+      "types": "./dist/esm/onboarding/confirm-ownership.d.ts",
+      "import": "./dist/esm/onboarding/confirm-ownership.js",
+      "require": "./dist/cjs/onboarding/confirm-ownership.cjs"
     }
   },
   "main": "./dist/cjs/index.cjs",

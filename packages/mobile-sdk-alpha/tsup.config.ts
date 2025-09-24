@@ -11,6 +11,7 @@ const entry = {
   browser: 'src/browser.ts',
   'constants/analytics': 'src/constants/analytics.ts',
   stores: 'src/stores/index.ts',
+  'onboarding/confirm-ownership': 'src/features/onboarding-confirm-ownership.ts',
 };
 
 export default defineConfig([

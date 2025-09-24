@@ -4,7 +4,7 @@
 
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 
-import ConfirmBelongingScreen from '@/screens/prove/ConfirmBelongingScreen';
+import ConfirmBelongingScreen from '@/screens/document/ConfirmBelongingScreen';
 import ProofRequestStatusScreen from '@/screens/prove/ProofRequestStatusScreen';
 import ProveScreen from '@/screens/prove/ProveScreen';
 import QRCodeTroubleScreen from '@/screens/prove/QRCodeTroubleScreen';
