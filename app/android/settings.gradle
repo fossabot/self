@@ -10,3 +10,5 @@ include ':react-native-passport-reader'
 project(':react-native-passport-reader').projectDir = new File(rootProject.projectDir, './react-native-passport-reader/android')
 include ':passportreader'
 project(':passportreader').projectDir = new File(rootProject.projectDir, './android-passport-reader/app')
+include ':android-mrz-qr-scanner'
+project(':android-mrz-qr-scanner').projectDir = new File(rootProject.projectDir, './android-mrz-qr-scanner')

@@ -15,6 +15,7 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint
 import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.soloader.SoLoader
 import com.facebook.react.soloader.OpenSourceMergedSoMapping
+import com.selfxyz.mrzqrscanner.MRZQRScannerPackage
 
 class MainApplication : Application(), ReactApplication {
 
@@ -23,7 +24,7 @@ class MainApplication : Application(), ReactApplication {
         override fun getPackages(): MutableList<ReactPackage> =
             PackageList(this).packages.apply {
               add(CameraActivityPackage())
-              add(QRCodeScannerPackage())
+              add(MRZQRScannerPackage())
               add(BackupPackage())
               // add(RNSelfPassportReaderPackage())
             }

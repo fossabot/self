@@ -13,11 +13,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.proofofpassportapp.utils
+package com.selfxyz.mrzqrscanner.utils
 
 
 import android.graphics.Bitmap
-import android.os.AsyncTask
 import android.webkit.URLUtil
 import com.google.mlkit.vision.common.InputImage
 import com.google.zxing.BinaryBitmap
@@ -26,8 +25,8 @@ import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.Result
 import com.google.zxing.common.HybridBinarizer
 import com.google.zxing.qrcode.QRCodeReader
-import example.jllarraz.com.passportreader.mlkit.FrameMetadata
-import example.jllarraz.com.passportreader.utils.ImageUtil
+import com.selfxyz.mrzqrscanner.mlkit.FrameMetadata
+import com.selfxyz.mrzqrscanner.utils.ImageUtil
 import io.fotoapparat.preview.Frame
 import java.nio.ByteBuffer
 import java.util.concurrent.ExecutorService

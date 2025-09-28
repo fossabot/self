@@ -200,6 +200,7 @@ dependencies {
     }
     implementation project(':passportreader')
     implementation 'org.jmrtd:jmrtd:0.7.35'
+    implementation project(':android-mrz-qr-scanner')
 
     implementation 'com.github.blikoon:QRCodeScanner:0.1.2'
 

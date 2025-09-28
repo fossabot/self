@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="status_text">#ffffffff</color> <!-- status_view_top/status_view_bottom text color -->
+</resources>
