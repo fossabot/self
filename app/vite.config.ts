@@ -178,9 +178,6 @@ export default defineConfig({
 
           // Proving - split into even smaller chunks
           'screens-prove-core': ['./src/navigation/prove.ts'],
-          'screens-prove-machine-core': [
-            './src/utils/proving/provingMachine.ts',
-          ],
           'screens-prove-validation-core': [
             './src/utils/proving/validateDocument.ts',
           ],
@@ -198,7 +195,6 @@ export default defineConfig({
           'screens-settings': ['./src/navigation/settings.ts'],
           'screens-recovery': ['./src/navigation/recovery.ts'],
           'screens-dev': ['./src/navigation/devTools.ts'],
-          'screens-aesop': ['./src/navigation/aesop.ts'],
         },
       },
     },
