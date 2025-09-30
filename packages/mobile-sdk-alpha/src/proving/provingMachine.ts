@@ -1232,6 +1232,9 @@ export const useProvingStore = create<ProvingState>((set, get) => {
       }
 
       try {
+        // TODO remove fcmToken from here.
+        // instead emit an event SdkEvents.PROVING_WILL_BEGIN and lets the listner handle this block
+        // keep this token in a separate store (potentially not in the sdk at all)
         if (fcmToken) {
           try {
             const isMockPassport = passportData?.mock;

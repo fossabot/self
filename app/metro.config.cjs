@@ -33,10 +33,7 @@ const extraNodeModules = {
     sdkAlphaPath,
     'dist/esm/stores.js',
   ),
-  '@selfxyz/mobile-sdk-alpha/onboarding/confirm-ownership': path.resolve(
-    sdkAlphaPath,
-    'dist/esm/onboarding/confirm-ownership.js',
-  ),
+  // Flow entries will be handled by the custom resolver below
   // Main exports
   '@selfxyz/common/utils': path.resolve(
     commonPath,
@@ -226,8 +223,31 @@ const config = {
     assetExts: assetExts.filter(ext => ext !== 'svg'),
     sourceExts: [...sourceExts, 'svg'],
 
-    // Custom resolver to handle Node.js modules elegantly
+    // Custom resolver to handle Node.js modules and dynamic flow imports
     resolveRequest: (context, moduleName, platform) => {
+      // Handle dynamic flow imports
+      if (moduleName.startsWith('@selfxyz/mobile-sdk-alpha/')) {
+        const subPath = moduleName.replace('@selfxyz/mobile-sdk-alpha/', '');
+        
+        // Check if it's a flow import (onboarding/* or disclosing/*)
+        if (subPath.startsWith('onboarding/') || subPath.startsWith('disclosing/')) {
+          const flowPath = path.resolve(
+            sdkAlphaPath,
+            'dist/esm/flows',
+            `${subPath}.js`
+          );
+          
+          // Check if the file exists
+          const fs = require('fs');
+          if (fs.existsSync(flowPath)) {
+            return {
+              type: 'sourceFile',
+              filePath: flowPath,
+            };
+          }
+        }
+      }
+
       // Handle problematic Node.js modules that don't work in React Native
       const nodeModuleRedirects = {
         crypto: require.resolve('crypto-browserify'),

@@ -59,14 +59,7 @@ export {
   sdkError,
 } from './errors';
 
-// Screen Components
-export { NFCScannerScreen } from './components/screens/NFCScannerScreen';
-
-export { PassportCameraScreen } from './components/screens/PassportCameraScreen';
-
 export { type ProvingStateType, useProvingStore } from './proving/provingMachine';
-
-export { QRCodeScreen } from './components/screens/QRCodeScreen';
 
 // Context and Client
 export { SdkEvents } from './types/events';
@@ -88,7 +81,6 @@ export { createListenersMap, createSelfClient } from './client';
 /** @deprecated Use createSelfClient().extractMRZInfo or import from './mrz' */
 export { defaultConfig } from './config/defaults';
 
-export { extractMRZInfo } from './mrz';
 
 export { formatDateToYYMMDD, scanMRZ } from './mrz';
 

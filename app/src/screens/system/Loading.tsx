@@ -12,9 +12,11 @@ import { useIsFocused } from '@react-navigation/native';
 
 import { IDDocument } from '@selfxyz/common/utils/types';
 import {
+  getLoadingScreenText,
   type ProvingStateType,
-  useProvingStore,
-} from '@selfxyz/mobile-sdk-alpha';
+  terminalStates,
+  useProofGenerationState,
+} from '@selfxyz/mobile-sdk-alpha/onboarding/wait-generation';
 
 import failAnimation from '@/assets/animations/loading/fail.json';
 import proveLoadingAnimation from '@/assets/animations/loading/prove.json';
@@ -25,25 +27,17 @@ import { extraYPadding } from '@/utils/constants';
 import { advercase, dinot } from '@/utils/fonts';
 import { loadingScreenProgress } from '@/utils/haptic';
 import { setupNotifications } from '@/utils/notifications/notificationService';
-import { getLoadingScreenText } from '@/utils/proving/loadingScreenStateText';
 
 type LoadingScreenProps = StaticScreenProps<Record<string, never>>;
-
-// Define all terminal states that should stop animations and haptics
-const terminalStates: ProvingStateType[] = [
-  'completed',
-  'error',
-  'failure',
-  'passport_not_supported',
-  'account_recovery_choice',
-  'passport_data_not_found',
-];
 
 const LoadingScreen: React.FC<LoadingScreenProps> = ({}) => {
   // Animation states
   const [animationSource, setAnimationSource] = useState<
     LottieView['props']['source']
   >(proveLoadingAnimation);
+
+  const isFocused = useIsFocused();
+  const { bottom } = useSafeAreaInsets();
 
   // Passport data state
   const [passportData, setPassportData] = useState<IDDocument | null>(null);
@@ -58,14 +52,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({}) => {
   });
 
   // Get current state from proving machine, default to 'idle' if undefined
-  const currentState = useProvingStore(state => state.currentState) ?? 'idle';
-  const fcmToken = useProvingStore(state => state.fcmToken);
-  const isFocused = useIsFocused();
-  const { bottom } = useSafeAreaInsets();
-
-  // States where it's safe to close the app
-  const safeToCloseStates = ['proving', 'post_proving', 'completed'];
-  const canCloseApp = safeToCloseStates.includes(currentState);
+  const { currentState, fcmToken, canCloseApp } = useProofGenerationState();
 
   // Initialize notifications and load passport data
   useEffect(() => {

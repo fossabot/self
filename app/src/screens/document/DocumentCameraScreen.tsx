@@ -29,7 +29,7 @@ import useUserStore from '@/stores/userStore';
 import analytics from '@/utils/analytics';
 import { black, slate400, slate800, white } from '@/utils/colors';
 import { dinot } from '@/utils/fonts';
-import { checkScannedInfo } from '@/utils/utils';
+import { fastCheckIDInfo } from '@/utils/utils';
 
 const { trackEvent } = analytics();
 
@@ -42,7 +42,7 @@ const DocumentCameraScreen: React.FC = () => {
   // Add a ref to track when the camera screen is mounted
   const scanStartTimeRef = useRef(Date.now());
 
-  const onPassportRead = useCallback<PassportCameraProps['onPassportRead']>(
+  const onMRZRead = useCallback<PassportCameraProps['onPassportRead']>(
     (error, result) => {
       // Calculate scan duration in seconds with exactly 2 decimal places
       const scanDurationSeconds = (
@@ -85,7 +85,7 @@ const DocumentCameraScreen: React.FC = () => {
         Platform.OS === 'ios' ? formatDateToYYMMDD(dateOfExpiry) : dateOfExpiry;
 
       if (
-        !checkScannedInfo(
+        !fastCheckIDInfo(
           documentNumber,
           formattedDateOfBirth,
           formattedDateOfExpiry,
@@ -137,7 +137,7 @@ const DocumentCameraScreen: React.FC = () => {
   return (
     <ExpandableBottomLayout.Layout backgroundColor={white}>
       <ExpandableBottomLayout.TopSection roundTop backgroundColor={black}>
-        <PassportCamera onPassportRead={onPassportRead} isMounted={isFocused} />
+        <PassportCamera onPassportRead={onMRZRead} isMounted={isFocused} />
         <LottieView
           autoPlay
           loop
@@ -160,8 +160,7 @@ const DocumentCameraScreen: React.FC = () => {
                   Open to the photograph page
                 </Description>
                 <Additional style={styles.description}>
-                  Lay your document flat and position the machine readable text
-                  in the viewfinder
+                  {mrzReadInstructions()}
                 </Additional>
               </View>
             </XStack>

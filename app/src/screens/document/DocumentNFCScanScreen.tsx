@@ -124,12 +124,6 @@ const DocumentNFCScanScreen: React.FC = () => {
     [route.params?.useCan],
   );
 
-  const animationRef = useRef<LottieView>(null);
-
-  useEffect(() => {
-    animationRef.current?.play();
-  }, []);
-
   useEffect(() => {
     logNFCEvent('info', 'screen_mount', { ...baseContext, stage: 'mount' });
     return () => {
@@ -139,6 +133,12 @@ const DocumentNFCScanScreen: React.FC = () => {
       });
     };
   }, [baseContext]);
+
+  const animationRef = useRef<LottieView>(null);
+
+  useEffect(() => {
+    animationRef.current?.play();
+  }, []);
 
   // Cleanup timeout on component unmount
   useEffect(() => {
@@ -244,7 +244,7 @@ const DocumentNFCScanScreen: React.FC = () => {
     }
   }, [baseContext]);
 
-  const usePacePolling = (): boolean => {
+  const usingPacePolling = (): boolean => {
     const { usePacePolling: usePacePollingParam } = route.params ?? {};
     const shouldUsePacePolling = documentType + countryCode === 'IDFRA';
 
@@ -257,7 +257,7 @@ const DocumentNFCScanScreen: React.FC = () => {
     }
   };
 
-  const isPacePolling = usePacePolling();
+  const isPacePolling = usingPacePolling();
 
   const onVerifyPress = useCallback(async () => {
     buttonTap();

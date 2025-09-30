@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 
-import { loadSelectedDocument } from '../documents/utils';
-import { useProvingStore } from '../proving/provingMachine';
-import type { SelfClient } from '../types/public';
+import { loadSelectedDocument } from '../../documents/utils';
+import { useProvingStore } from '../../proving/provingMachine';
+import type { SelfClient } from '../../types/public';
 
 /*
   Display this to users before they confirm ownership of a document

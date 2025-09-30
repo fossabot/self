@@ -34,10 +34,15 @@
       "import": "./dist/esm/constants/analytics.js",
       "require": "./dist/cjs/constants/analytics.cjs"
     },
-    "./onboarding/confirm-ownership": {
-      "types": "./dist/esm/onboarding/confirm-ownership.d.ts",
-      "import": "./dist/esm/onboarding/confirm-ownership.js",
-      "require": "./dist/cjs/onboarding/confirm-ownership.cjs"
+    "./onboarding/*": {
+      "types": "./dist/esm/flows/onboarding/*.d.ts",
+      "import": "./dist/esm/flows/onboarding/*.js",
+      "require": "./dist/cjs/flows/onboarding/*.cjs"
+    },
+    "./disclosing/*": {
+      "types": "./dist/esm/flows/disclosing/*.d.ts",
+      "import": "./dist/esm/flows/disclosing/*.js",
+      "require": "./dist/cjs/flows/disclosing/*.cjs"
     }
   },
   "main": "./dist/cjs/index.cjs",

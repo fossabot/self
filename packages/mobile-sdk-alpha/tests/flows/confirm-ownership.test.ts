@@ -8,7 +8,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DocumentMetadata } from '@selfxyz/common/utils/types';
 
 import * as documentsUtils from '../../src/documents/utils';
-import { usePrepareDocumentProof } from '../../src/features/onboarding-confirm-ownership';
+import { usePrepareDocumentProof } from '../../src/flows/onboarding/confirm-ownership';
 import { useProvingStore } from '../../src/proving/provingMachine';
 import type { IDDocument, SelfClient } from '../../src/types/public';
 
