@@ -1,216 +1,200 @@
-# PR {{PR_NUMBER}} - Action Items Template
+<!--
+INSTRUCTIONS FOR AGENTS:
 
-## PR Overview
+CRITICAL FILTERING RULES - MUST FOLLOW EXACTLY:
+1. ONLY include comments that meet ALL criteria:
+   ✅ NO "✅ Addressed" status (must be truly unresolved)
+   ✅ NO "nitpick" or "suggestion" labels (medium+ severity only)
+   ✅ MEDIUM to CRITICAL impact (affects functionality, security, or architecture)
+   ✅ NOT cosmetic/style issues (unless security/performance related)
+   ✅ DO NOT include secrets, access tokens, API keys, private keys, MRZ data, or any PII. Redact sensitive values and replace with placeholders.
+
+2. VERIFICATION PROCESS - MANDATORY:
+   - Read EACH comment's status field carefully
+   - Check for "✅ Addressed in commits X to Y" text
+   - Verify comment type: "🛠️ Refactor suggestion", "⚠️ Potential issue", etc.
+   - Exclude: style, formatting, naming, documentation-only suggestions
+   - Include: security, memory leaks, breaking changes, API inconsistencies, platform compatibility
+
+3. SEVERITY CLASSIFICATION:
+   - CRITICAL: Security vulnerabilities, memory leaks, breaking platform compatibility
+   - HIGH: API inconsistencies, type safety issues, significant architectural problems
+   - MEDIUM: Test coverage gaps, minor architectural improvements, performance concerns
+   - LOW/NITPICK: Style, naming, documentation, minor suggestions (EXCLUDE THESE)
+
+4. DOUBLE-CHECK PROCESS:
+   - After initial analysis, re-read ALL comments
+   - Verify each "unresolved" issue is actually unresolved
+   - Remove any that have been addressed in subsequent commits
+   - If NO unresolved medium+ issues exist, state "All issues resolved ✅"
+   - Run a final pass to ensure no credentials, secrets, or PII are present in examples, logs, or screenshots.
+
+5. EXECUTION:
+   - Use giga_read_pr to fetch PR data and CodeRabbit comments
+   - Group related issues by root cause (not just severity)
+   - Include specific file paths and line numbers from CodeRabbit metadata
+   - Provide clear, actionable fixes with code examples
+   - Prioritize by "blocking merge" vs "architectural" vs "polish"
+   - Create file as PR-{{NUMBER}}-ACTION-ITEMS.md in project root
+   - Follow gitignore pattern: PR-*-ACTION*.md
+-->
+
+# PR {{PR_NUMBER}} Action Items
+
+## Overview
 **Title:** {{PR_TITLE}}
 **Author:** {{AUTHOR}}
 **Status:** {{STATUS}}
 **Created:** {{DATE}}
 **Branch:** {{BRANCH}}
 
-## Summary
 {{PR_SUMMARY}}
 
-## Key Changes
-- {{CHANGE_1}}
-- {{CHANGE_2}}
-- {{CHANGE_3}}
+## Analysis Summary
 
-## Action Items
+<!-- IF ALL ISSUES RESOLVED, USE THIS SECTION: -->
+**After thorough review of all {{TOTAL_COMMENTS}} CodeRabbit comments, ALL issues have been resolved in subsequent commits. The PR is ready for merge.**
 
-### 🔧 Critical Issues (High Priority)
-*Security vulnerabilities, breaking changes, critical bugs*
+### Resolved Comments ✅ ({{TOTAL_COMMENTS}}/{{TOTAL_COMMENTS}})
+All comments show ✅ "Addressed" status, indicating they were fixed in commits:
+- {{RESOLVED_CATEGORY_1}} - Fixed in commits {{COMMIT_RANGE}}
+- {{RESOLVED_CATEGORY_2}} - Fixed in commits {{COMMIT_RANGE}}
 
-#### 1. {{CRITICAL_ISSUE_TITLE}}
-**Status:** 🔴 Critical Issues Identified
-**Files:** {{FILE_PATHS}}
+### Unresolved Comments 🔴 (0/{{TOTAL_COMMENTS}})
+**None** - All comments have been addressed.
 
-**Issues:**
-- [ ] **Security Risk:** {{SECURITY_DESCRIPTION}}
-- [ ] **Cache Key Problems:** {{CACHE_DESCRIPTION}}
-- [ ] **Missing Validation:** {{VALIDATION_DESCRIPTION}}
+## Conclusion
+**This PR is ready for merge.** All CodeRabbit issues have been resolved.
 
-**Required Actions:**
-```bash
-# Specific code examples for fixes
+<!-- IF UNRESOLVED ISSUES EXIST, USE SECTIONS BELOW INSTEAD: -->
+
+## Critical Issues (Blocking Merge)
+
+<!-- ONLY include if there are ACTUAL unresolved medium+ severity issues -->
+
+### 1. {{ISSUE_TITLE}}
+**Files:** `{{FILE_PATH}}:{{LINE_NUMBER}}`
+**CodeRabbit Comment:** {{COMMENT_ID}}
+**Problem:** {{PROBLEM_DESCRIPTION}}
+**Fix:** {{SPECIFIC_FIX_OR_ACTION}}
+
+**Code Example:**
+```{{LANGUAGE}}
 {{CODE_EXAMPLE}}
 ```
 
-#### 2. {{SECOND_CRITICAL_ISSUE}}
-**Status:** 🟡 Investigation Required
-**Files:** {{FILE_PATHS}}
+### 2. {{ISSUE_TITLE}}
+**Files:** `{{FILE_PATH}}:{{LINE_NUMBER}}`
+**CodeRabbit Comment:** {{COMMENT_ID}}
+**Problem:** {{PROBLEM_DESCRIPTION}}
+**Fix:** {{SPECIFIC_FIX_OR_ACTION}}
 
-**Issue:** {{ISSUE_DESCRIPTION}}
+## Required Actions
 
-**Actions:**
-- [ ] {{ACTION_1}}
-- [ ] {{ACTION_2}}
-- [ ] {{ACTION_3}}
-
-### 📦 Functional Issues (Medium Priority)
-*Bugs, missing features, incorrect behavior*
-
-#### 3. {{FUNCTIONAL_ISSUE_TITLE}}
-**Status:** 🟡 Missing Dependencies
-**Files:** {{FILE_PATHS}}
-
-**Issue:** {{ISSUE_DESCRIPTION}}
+### Issue 1: {{GROUPED_ISSUE_TITLE}}
+**Root Cause:** {{ROOT_CAUSE_DESCRIPTION}}
+**Files Affected:**
+- `{{FILE_PATH}}:{{LINE_NUMBER}}` - {{ISSUE_DESCRIPTION}}
+- `{{FILE_PATH}}:{{LINE_NUMBER}}` - {{ISSUE_DESCRIPTION}}
 
 **Actions:**
-- [ ] {{ACTION_1}}
-- [ ] {{ACTION_2}}
-- [ ] {{ACTION_3}}
+- [ ] {{SPECIFIC_ACTION_1}}
+- [ ] {{SPECIFIC_ACTION_2}}
+- [ ] {{SPECIFIC_ACTION_3}}
 
-#### 4. {{WORKFLOW_ISSUE_TITLE}}
-**Status:** 🟡 Workflow Optimization
-**Files:** {{WORKFLOW_FILES}}
+**Code Example:**
+```{{LANGUAGE}}
+{{CODE_EXAMPLE}}
+```
 
-**Issue:** {{WORKFLOW_DESCRIPTION}}
-
-**Actions:**
-- [ ] {{WORKFLOW_ACTION_1}}
-- [ ] {{WORKFLOW_ACTION_2}}
-- [ ] {{WORKFLOW_ACTION_3}}
-
-### 🧪 Testing & Validation (High Priority)
-
-#### 5. Fix Failing Tests
-**Status:** 🔴 Blocking Issues
-**Files:** {{TEST_FILES}}
-
-**Known Failures:**
-- [ ] **{{TEST_TYPE}}:** {{FAILURE_DESCRIPTION}}
-- [ ] **{{TEST_TYPE_2}}:** {{FAILURE_DESCRIPTION_2}}
+### Issue 2: {{GROUPED_ISSUE_TITLE}}
+**Root Cause:** {{ROOT_CAUSE_DESCRIPTION}}
+**Files Affected:**
+- `{{FILE_PATH}}:{{LINE_NUMBER}}` - {{ISSUE_DESCRIPTION}}
 
 **Actions:**
-- [ ] Investigate {{ISSUE_TYPE}} configuration issues
-- [ ] Check {{COMPATIBILITY}} compatibility
-- [ ] Update test configurations if needed
-- [ ] Verify test environment setup
+- [ ] {{SPECIFIC_ACTION_1}}
+- [ ] {{SPECIFIC_ACTION_2}}
 
-#### 6. Comprehensive Test Suite
-**Status:** 🟡 Verification Required
+## CodeRabbit Analysis Summary
 
-**Actions:**
-- [ ] Run `yarn workspace @selfxyz/{{WORKSPACE_1}} test`
-- [ ] Run `yarn workspace @selfxyz/{{WORKSPACE_2}} test`
-- [ ] Run `yarn workspace @selfxyz/{{WORKSPACE_3}} test`
-- [ ] Run `yarn types`
-- [ ] Run `yarn build`
-- [ ] Run `yarn lint`
-- [ ] Run `yarn workspace @selfxyz/{{WORKSPACE_4}} build`
+### Resolved Comments ✅
+- {{RESOLVED_COMMENT_1}}
+- {{RESOLVED_COMMENT_2}}
 
-### 🔍 Code Review Tasks
+### Unresolved Comments 🔴
+- {{UNRESOLVED_COMMENT_1}} - {{STATUS}}
+- {{UNRESOLVED_COMMENT_2}} - {{STATUS}}
 
-#### 7. Review Security Changes
-**Status:** 🟡 Review Required
+### Comment Categories
+- **Critical:** {{COUNT}} comments (React Native compatibility, security, memory leaks)
+- **Architecture:** {{COUNT}} comments (API design, type safety)
+- **Code Quality:** {{COUNT}} comments (testing, imports, documentation)
 
-**Actions:**
-- [ ] Review all {{CHANGE_TYPE}} changes for security implications
-- [ ] Verify {{CONSISTENCY}} is consistent across all {{SCOPE}}
-- [ ] Check that {{CONFIGURATION}} is properly updated
-- [ ] Ensure {{ACTIONS}} are properly configured
-- [ ] Verify sanitization prevents injection attacks
-- [ ] Confirm all workflows use consistent patterns
+## Testing Checklist
 
-#### 8. Review Workflow Changes
-**Status:** 🟡 Review Required
+### Before Merge
+- [ ] {{SPECIFIC_TEST_TO_RUN}}
+- [ ] {{SPECIFIC_VALIDATION}}
+- [ ] {{SPECIFIC_BUILD_TEST}}
 
-**Actions:**
-- [ ] Review {{WORKFLOW_TYPE}} workflow changes
-- [ ] Verify {{WORKFLOW_STEP}} is appropriately implemented
-- [ ] Check that {{WORKFLOW_PROCESS}} is properly streamlined
-- [ ] Ensure no functionality was lost in optimizations
+### Post-Merge
+- [ ] {{INTEGRATION_TEST}}
+- [ ] {{PERFORMANCE_TEST}}
 
-### 🚀 Deployment Considerations
+## Breaking Changes
 
-#### 9. Pre-deployment Checklist
-**Status:** 🟡 Planning Required
+### For Consumers
+- [ ] {{SPECIFIC_BREAKING_CHANGE}}
+- [ ] {{MIGRATION_NEEDED}}
 
-**Actions:**
-- [ ] Test CI/CD pipeline with new {{FEATURE}} handling
-- [ ] Verify all workflows pass with {{CHANGES}} changes
-- [ ] Test {{RESOLUTION}} resolution in all environments
-- [ ] Validate build artifacts are consistent
-- [ ] Test {{SPECIFIC_FEATURE}} functionality
-- [ ] Verify {{WORKFLOW_TYPE}} workflows work correctly
+### Migration Guide
+- [ ] Update import statements
+- [ ] Replace deprecated API calls
+- [ ] Handle new dependencies
 
-## Risk Assessment
+## Implementation Priority
 
-### High Risk
-- **{{RISK_1}}:** {{RISK_1_DESCRIPTION}}
-- **{{RISK_2}}:** {{RISK_2_DESCRIPTION}}
-- **{{RISK_3}}:** {{RISK_3_DESCRIPTION}}
+### Phase 1: Critical Fixes (Blocking Merge)
+1. {{CRITICAL_FIX_1}}
+2. {{CRITICAL_FIX_2}}
 
-### Medium Risk
-- **{{RISK_4}}:** {{RISK_4_DESCRIPTION}}
-- **{{RISK_5}}:** {{RISK_5_DESCRIPTION}}
-- **{{RISK_6}}:** {{RISK_6_DESCRIPTION}}
+### Phase 2: Architecture Improvements
+1. {{ARCHITECTURE_FIX_1}}
+2. {{ARCHITECTURE_FIX_2}}
 
-### Low Risk
-- **{{RISK_7}}:** {{RISK_7_DESCRIPTION}}
-- **{{RISK_8}}:** {{RISK_8_DESCRIPTION}}
-
-## Success Criteria
-
-- [ ] All CI workflows pass consistently
-- [ ] No security vulnerabilities in {{FILES}}
-- [ ] All tests pass across all workspaces
-- [ ] {{DEPENDENCIES}} versions are properly aligned
-- [ ] {{FEATURE}} handling is robust and secure
-- [ ] {{CACHE}} keys prevent {{MISMATCH}} mismatches
-- [ ] {{WORKFLOW_TYPE}} workflows are optimized and functional
-- [ ] {{SPECIFIC_FEATURE}} works correctly in all environments
-
-## Additional Considerations
-
-### Edge Cases & Future Improvements
-
-#### 10. Monitoring & Alerting
-**Status:** 🟡 Future Enhancement
-
-**Considerations:**
-- [ ] Monitor for {{MONITORING_ITEM_1}}
-- [ ] Set up alerts for {{ALERT_TYPE}} failures
-- [ ] Track {{METRIC}} to ensure {{FEATURE}} is working
-- [ ] Monitor for any security issues with {{SECURITY_FEATURE}}
-
-#### 11. Documentation Updates
-**Status:** 🟡 Future Enhancement
-
-**Actions:**
-- [ ] Update {{DOC_TYPE}} documentation to reflect new {{FEATURE}}
-- [ ] Document the {{PROCESS}} process
-- [ ] Update developer onboarding for {{REQUIREMENT}}
-- [ ] Document {{STRATEGY}} strategy for future additions
-
-#### 12. Rollback Plan
-**Status:** 🟡 Planning Required
-
-**Actions:**
-- [ ] Document rollback procedure if {{CHANGE}} causes issues
-- [ ] Identify which {{COMPONENTS}} can be quickly reverted
-- [ ] Plan for emergency fixes if {{VALIDATION}} causes failures
-- [ ] Prepare fallback strategy for critical deployments
+### Phase 3: Polish & Documentation
+1. {{POLISH_ITEM_1}}
+2. {{POLISH_ITEM_2}}
 
 ## Notes
 
-- **{{ANALYSIS_TOOL}} Analysis:** {{ANALYSIS_SUMMARY}}
-- **Testing Status:** {{TESTING_STATUS}}
-- **Security Concerns:** {{SECURITY_CONCERNS}}
-- **Dependencies:** {{DEPENDENCY_ISSUES}}
-- **Workflow Improvements:** {{WORKFLOW_IMPROVEMENTS}}
-- **Cache Optimization:** {{CACHE_OPTIMIZATION}}
-- **Comprehensive Coverage:** {{COVERAGE_SUMMARY}}
+- {{SPECIFIC_NOTE_1}}
+- {{SPECIFIC_NOTE_2}}
+- {{SPECIFIC_NOTE_3}}
 
-## Timeline Estimate
+---
 
-- **Critical Fixes:** {{TIMELINE_1}}
-- **Testing & Validation:** {{TIMELINE_2}}
-- **Code Review:** {{TIMELINE_3}}
-- **Deployment:** {{TIMELINE_4}}
+## Agent Verification Checklist
 
-**Total Estimated Time:** {{TOTAL_TIMELINE}}
+**BEFORE FINALIZING - VERIFY EACH ITEM:**
+- [ ] ✅ Read ALL {{TOTAL_COMMENTS}} CodeRabbit comments thoroughly
+- [ ] ✅ Checked each comment for "✅ Addressed" status
+- [ ] ✅ Excluded all nitpick/style/documentation-only suggestions
+- [ ] ✅ Only included MEDIUM+ severity issues (security, architecture, functionality)
+- [ ] ✅ Verified unresolved count is accurate
+- [ ] ✅ If 0 unresolved issues, used "All issues resolved" template
+- [ ] ✅ Double-checked that each "unresolved" issue is actually unresolved
+
+**SEVERITY VERIFICATION:**
+- [ ] ✅ CRITICAL: Security, memory leaks, platform compatibility ({{CRITICAL_COUNT}})
+- [ ] ✅ HIGH: API inconsistencies, type safety, architecture ({{HIGH_COUNT}})
+- [ ] ✅ MEDIUM: Test coverage, performance, minor architecture ({{MEDIUM_COUNT}})
+- [ ] ❌ LOW/NITPICK: Style, naming, docs (EXCLUDED - {{EXCLUDED_COUNT}})
 
 ---
 
 **Last Updated:** {{DATE}}
+**CodeRabbit Comments Analyzed:** {{TOTAL_COMMENTS}}
+**Unresolved Medium+ Issues:** {{UNRESOLVED_COUNT}}
+**Excluded Low/Nitpick Issues:** {{EXCLUDED_COUNT}}

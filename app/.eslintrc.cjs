@@ -1,4 +1,6 @@
-// SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
+// SPDX-FileCopyrightText: 2025 Social Connect Labs, Inc.
+// SPDX-License-Identifier: BUSL-1.1
+// NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
 module.exports = {
   root: true,
@@ -36,6 +38,18 @@ module.exports = {
       typescript: {
         alwaysTryTypes: true,
         project: './tsconfig.json',
+        extensions: [
+          '.ts',
+          '.tsx',
+          '.native.ts',
+          '.native.tsx',
+          '.web.ts',
+          '.web.tsx',
+          '.ios.ts',
+          '.ios.tsx',
+          '.android.ts',
+          '.android.tsx',
+        ],
       },
     },
     'import/ignore': ['react-native'],
@@ -84,25 +98,26 @@ module.exports = {
     'import/newline-after-import': 'error',
     'import/no-duplicates': 'error',
 
-    // Header rule - configured to prevent duplicates, single line header only
-
-    'header/header': [
-      'error',
-      'line',
-      ' SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11',
-    ],
+    // Header rule - DISABLED in favor of check-license-headers.mjs script
+    // 'header/header': [
+    //   'error',
+    //   'line',
+    //   ' SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11',
+    // ],
 
     // Prevent empty lines at the beginning and end of files, and limit consecutive empty lines
+    // Exception: allow one empty line after license header at file start
 
     'no-multiple-empty-lines': [
       'error',
       {
         max: 1,
         maxEOF: 0,
-        maxBOF: 0,
+        maxBOF: 1, // Allow one empty line at beginning (for license header)
       },
     ],
-    // Enforce empty line after header comments (but not at file start)
+    // Keep lines-around-comment rule disabled for normal comments
+    // License header newlines will be enforced by the check-license-headers.mjs script
 
     'lines-around-comment': [
       'error',
@@ -110,7 +125,7 @@ module.exports = {
         beforeBlockComment: false,
         afterBlockComment: false,
         beforeLineComment: false,
-        afterLineComment: false,
+        afterLineComment: false, // Keep disabled - license script handles this
         allowBlockStart: true,
         allowBlockEnd: false,
         allowObjectStart: false,
@@ -141,7 +156,7 @@ module.exports = {
     // General JavaScript Rules
     // Warn on common issues but don't block development
 
-    'no-console': 'warn',
+    'no-console': 'off',
     'no-empty-pattern': 'off',
     'prefer-const': 'warn',
     '@typescript-eslint/no-explicit-any': 'warn',
@@ -181,7 +196,6 @@ module.exports = {
         'src/providers/passportDataProvider.tsx',
         'src/utils/cloudBackup/helpers.ts',
         'src/utils/haptic/index.ts',
-        'src/utils/proving/provingUtils.ts',
       ],
       rules: {
         'sort-exports/sort-exports': 'off',

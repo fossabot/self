@@ -3,19 +3,28 @@ name: Mobile Auto Deploy
 on:
   pull_request:
     types: [closed]
-    branches: [main, dev]
+    branches: [staging]
     paths:
       - "app/**"
       - "!app/**/*.md"
       - "!app/docs/**"
+      - "packages/mobile-sdk-alpha/**"
+
+concurrency:
+  group: mobile-deploy-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
   pull-requests: write
+  id-token: write
 
 jobs:
   check-and-deploy:
-    if: github.event.pull_request.merged == true && !contains(github.event.pull_request.labels.*.name, 'no-deploy')
+    # WORKFLOW DISABLED
+    # Maybe it's my understanding, but it doesn't work as expected. disabled for now.
+    if: false
+    # if: github.event.pull_request.merged == true && !contains(github.event.pull_request.labels.*.name, 'no-deploy')
     runs-on: ubuntu-latest
     outputs:
       should_deploy: ${{ steps.check.outputs.should_deploy }}
@@ -30,7 +39,7 @@ jobs:
           echo "🔍 Checking deployment conditions..."
 
           # Skip if PR has skip-deploy in title or body
-          if [[ "${{ github.event.pull_request.title }}" =~ \[skip-deploy\] ]] || 
+          if [[ "${{ github.event.pull_request.title }}" =~ \[skip-deploy\] ]] ||
              [[ "${{ github.event.pull_request.body }}" =~ \[skip-deploy\] ]]; then
             echo "should_deploy=false" >> $GITHUB_OUTPUT
             echo "⏭️ Skipping deployment due to [skip-deploy] flag"
@@ -41,7 +50,7 @@ jobs:
           if [[ "${{ github.base_ref }}" == "main" ]]; then
             echo "deployment_track=production" >> $GITHUB_OUTPUT
             echo "🚀 Deployment track: production"
-          elif [[ "${{ github.base_ref }}" == "dev" ]]; then
+          elif [[ "${{ github.base_ref }}" == "staging" ]]; then
             echo "deployment_track=internal" >> $GITHUB_OUTPUT
             echo "🧪 Deployment track: internal testing"
           fi
@@ -85,6 +94,7 @@ jobs:
       deployment_track: ${{ needs.check-and-deploy.outputs.deployment_track }}
       version_bump: ${{ needs.check-and-deploy.outputs.version_bump }}
       auto_deploy: true
+      test_mode: true
     secrets: inherit
 
   deploy-android:
@@ -96,6 +106,7 @@ jobs:
       deployment_track: ${{ needs.check-and-deploy.outputs.deployment_track }}
       version_bump: ${{ needs.check-and-deploy.outputs.version_bump }}
       auto_deploy: true
+      test_mode: true
     secrets: inherit
 
   notify-skip:

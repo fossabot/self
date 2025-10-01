@@ -1,5 +1,11 @@
 import { AttestationId } from 'src/types/types.js';
 
+export const ATTESTATION_ID = {
+  PASSPORT: 1,
+  BIOMETRIC_ID_CARD: 2,
+  AADHAAR: 3,
+} as const;
+
 export const discloseIndices = {
   1: {
     revealedDataPackedIndex: 0,
@@ -25,6 +31,19 @@ export const discloseIndices = {
     nameyobSmtRootIndex: 18,
     scopeIndex: 19,
     userIdentifierIndex: 20,
+    passportNoSmtRootIndex: 99,
+  },
+  3: {
+    revealedDataPackedIndex: 2,
+    forbiddenCountriesListPackedIndex: 6,
+    nullifierIndex: 0,
+    attestationIdIndex: 10,
+    merkleRootIndex: 16,
+    currentDateIndex: 11,
+    namedobSmtRootIndex: 14,
+    nameyobSmtRootIndex: 15,
+    scopeIndex: 17,
+    userIdentifierIndex: 18,
     passportNoSmtRootIndex: 99,
   },
 } as const;
@@ -83,6 +102,26 @@ export const revealedDataIndices: Record<
     olderThanEnd: 91,
     ofacStart: 92,
     ofacEnd: 93,
+  },
+  3: {
+    issuingStateStart: 81,
+    issuingStateEnd: 111,
+    nameStart: 9,
+    nameEnd: 70,
+    idNumberStart: 71,
+    idNumberEnd: 74,
+    nationalityStart: 999,
+    nationalityEnd: 999,
+    dateOfBirthStart: 1,
+    dateOfBirthEnd: 8,
+    genderStart: 0,
+    genderEnd: 0,
+    expiryDateStart: 999,
+    expiryDateEnd: 999,
+    olderThanStart: 118,
+    olderThanEnd: 118,
+    ofacStart: 116,
+    ofacEnd: 117,
   },
 } as const;
 

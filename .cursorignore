@@ -130,7 +130,7 @@ contracts/test/utils/smt.json
 circuits/circuits/utils/crypto/ec/powers/
 
 # Test data files
-app/android/android-passport-reader/app/src/main/assets/tessdata/
+app/android/android-passport-nfc-reader/app/src/main/assets/tessdata/
 
 # ========================================
 # Development & Testing
@@ -191,18 +191,13 @@ circuits/tests/**/test_cases.ts
 
 # iOS
 *.xcworkspace/
-*.xcodeproj/
-*.pbxproj
 app/ios/App Thinning Size Report.txt
 
 # Android
 *.iml
 .gradle/
 local.properties
-app/android/android-passport-reader/examples/
-
-# React Native config
-app/react-native.config.cjs
+app/android/android-passport-nfc-reader/examples/
 
 # ========================================
 # Miscellaneous
@@ -246,7 +241,6 @@ app/src/assets/animations/*.json
 app/src/assets/fonts/
 
 # Yarn configuration
-.yarnrc.yml
 **/.yarn/
 
 # Certificate generation config
@@ -277,6 +271,9 @@ circuits/ptau/
 !**/*.jsx
 !**/*.sol
 !**/*.circom
+
+# Exception for specific private module setup script
+!app/scripts/setup-private-modules.cjs
 
 # But exclude generated TypeScript declaration files
 **/*.d.ts

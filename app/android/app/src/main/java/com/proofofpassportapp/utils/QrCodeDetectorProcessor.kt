@@ -119,27 +119,100 @@ class QrCodeDetectorProcessor {
         return true
     }
 
-    private fun detectInImage(bitmap: Bitmap): Result? {
+    private fun detectInImage(bitmap: Bitmap, additionalHints: Map<com.google.zxing.DecodeHintType, Any>? = null): Result? {
         val qRCodeDetectorReader = QRCodeReader()
+
+        // Try with original image first
+        var result = tryDetectInBitmap(bitmap, qRCodeDetectorReader, additionalHints)
+        if (result != null) return result
+
+        // If original fails, try with scaled up image (better for small QR codes)
+        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, bitmap.width * 2, bitmap.height * 2, true)
+        result = tryDetectInBitmap(scaledBitmap, qRCodeDetectorReader, additionalHints)
+        if (result != null) return result
+
+        // If still fails, try with scaled down image (better for very large QR codes)
+        val scaledDownBitmap = Bitmap.createScaledBitmap(bitmap, bitmap.width / 2, bitmap.height / 2, true)
+        result = tryDetectInBitmap(scaledDownBitmap, qRCodeDetectorReader, additionalHints)
+        if (result != null) return result
+
+        return null
+    }
+
+    private fun tryDetectInBitmap(bitmap: Bitmap, qRCodeDetectorReader: QRCodeReader, additionalHints: Map<com.google.zxing.DecodeHintType, Any>? = null): Result? {
+        println("Attempting QR detection on bitmap: ${bitmap.width}x${bitmap.height}, hasAlpha: ${bitmap.hasAlpha()}")
+
         val intArray = IntArray(bitmap.width * bitmap.height)
         bitmap.getPixels(intArray, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
 
         val source: LuminanceSource =
             RGBLuminanceSource(bitmap.width, bitmap.height, intArray)
 
-        val binaryBitMap = BinaryBitmap(HybridBinarizer(source))
+        // Try multiple binarization strategies for better detection
+        val binarizers = listOf(
+            HybridBinarizer(source),
+            com.google.zxing.common.GlobalHistogramBinarizer(source)
+        )
 
-        try {
-            return qRCodeDetectorReader.decode(binaryBitMap)
+        for (binarizer in binarizers) {
+            val binaryBitMap = BinaryBitmap(binarizer)
+
+            try {
+                val result = qRCodeDetectorReader.decode(binaryBitMap)
+                println("QR Code detected successfully with ${binarizer.javaClass.simpleName}")
+                return result
+            } catch (e: Exception) {
+                println("Detection failed with ${binarizer.javaClass.simpleName}: ${e.message}")
+            }
         }
-        catch (e: Exception) {
-            // noop
-            println(e)
+
+        // Try with different hints for better detection
+        val hints = buildMap {
+            put(com.google.zxing.DecodeHintType.TRY_HARDER, true)
+            put(com.google.zxing.DecodeHintType.POSSIBLE_FORMATS, listOf(com.google.zxing.BarcodeFormat.QR_CODE))
+            additionalHints?.forEach { (key, value) -> put(key, value) }
         }
+
+        for (binarizer in binarizers) {
+            val binaryBitMap = BinaryBitmap(binarizer)
+
+            try {
+                val result = qRCodeDetectorReader.decode(binaryBitMap, hints)
+                println("QR Code detected successfully with hints and ${binarizer.javaClass.simpleName}")
+                return result
+            } catch (e: Exception) {
+                println("Detection with hints failed with ${binarizer.javaClass.simpleName}: ${e.message}")
+            }
+        }
+
+        println("All QR code detection attempts failed for bitmap ${bitmap.width}x${bitmap.height}")
         return null
     }
 
     fun stop() {
+    }
+
+    fun detectQrCodeInBitmap(
+        image: Bitmap,
+        listener: Listener
+    ): Boolean {
+        val start = System.currentTimeMillis()
+        executor.execute {
+            // Added for mAadhar qrcode detection
+            val hints = mapOf(
+                com.google.zxing.DecodeHintType.PURE_BARCODE to false
+            )
+            val result = detectInImage(image, hints)
+            val timeRequired = System.currentTimeMillis() - start
+            println(result)
+            if (result != null) {
+                listener.onSuccess(result.text!!, null, timeRequired, null)
+            }
+            else {
+                listener.onCompletedFrame(timeRequired)
+            }
+        }
+        return true
     }
 
 

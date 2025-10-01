@@ -1,6 +1,7 @@
 import { PublicSignals } from 'snarkjs';
 import { discloseIndices } from './constants.js';
 import { AttestationId } from 'src/types/types.js';
+import { ProofError } from '../errors/index.js';
 
 /**
  * Returns the number of public signals containing revealed data for the specified attestation ID.
@@ -16,14 +17,17 @@ export function getRevealedDataPublicSignalsLength(attestationId: AttestationId)
       return 93 / 31;
     case 2:
       return Math.ceil(94 / 31);
+    case 3:
+      return Math.ceil(119 / 31);
     default:
-      throw new Error(`Invalid attestation ID: ${attestationId}`);
+      throw new ProofError(`Invalid attestation ID: ${attestationId}`);
   }
 }
 
 export const bytesCount: Record<AttestationId, number[]> = {
   1: [31, 31, 31],
   2: [31, 31, 31, 1],
+  3: [31, 31, 31, 26],
 };
 
 /**

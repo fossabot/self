@@ -1,20 +1,18 @@
-// SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
+// SPDX-FileCopyrightText: 2025 Social Connect Labs, Inc.
+// SPDX-License-Identifier: BUSL-1.1
+// NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
-import type { ProvingStateType } from '@/utils/proving/provingMachine';
+import type { ProvingStateType } from '@selfxyz/mobile-sdk-alpha';
 
 interface LoadingScreenText {
   actionText: string;
   estimatedTime: string;
 }
 
-export interface PassportMetadata {
-  signatureAlgorithm: string;
-  curveOrExponent: string;
-}
-
 export function getLoadingScreenText(
   state: ProvingStateType,
-  metadata: PassportMetadata,
+  signatureAlgorithm: string,
+  curveOrExponent: string,
   type: 'dsc' | 'register' = 'register',
 ): LoadingScreenText {
   switch (state) {
@@ -58,9 +56,10 @@ export function getLoadingScreenText(
     case 'proving':
       return {
         actionText: 'Generating ZK proof',
-        estimatedTime: metadata
-          ? getProvingTimeEstimate(metadata, type)
-          : '30 - 90 SECONDS',
+        estimatedTime:
+          signatureAlgorithm && curveOrExponent
+            ? getProvingTimeEstimate(signatureAlgorithm, curveOrExponent, type)
+            : '30 - 90 SECONDS',
       };
     case 'post_proving':
       return {
@@ -109,13 +108,14 @@ export function getLoadingScreenText(
 }
 
 export function getProvingTimeEstimate(
-  metadata: PassportMetadata | undefined,
+  signatureAlgorithm: string,
+  curveOrExponent: string,
   type: 'dsc' | 'register',
 ): string {
-  if (!metadata) return '30 - 90 SECONDS';
+  if (!signatureAlgorithm || !curveOrExponent) return '30 - 90 SECONDS';
 
-  const algorithm = metadata.signatureAlgorithm?.toLowerCase();
-  const curveOrExponent = metadata.curveOrExponent;
+  const algorithm = signatureAlgorithm?.toLowerCase();
+  const curve = curveOrExponent;
 
   // RSA algorithms
   if (algorithm?.includes('rsa')) {
@@ -128,13 +128,13 @@ export function getProvingTimeEstimate(
   // ECDSA algorithms
   if (algorithm?.includes('ecdsa')) {
     // Check bit size from curve name
-    if (curveOrExponent?.includes('224') || curveOrExponent?.includes('256')) {
+    if (curve?.includes('224') || curve?.includes('256')) {
       return type === 'dsc' ? '25 SECONDS' : '50 SECONDS';
     }
-    if (curveOrExponent?.includes('384')) {
+    if (curve?.includes('384')) {
       return type === 'dsc' ? '45 SECONDS' : '90 SECONDS';
     }
-    if (curveOrExponent?.includes('512') || curveOrExponent?.includes('521')) {
+    if (curve?.includes('512') || curve?.includes('521')) {
       return type === 'dsc' ? '100 SECONDS' : '200 SECONDS';
     }
   }

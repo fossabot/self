@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: 2025 Social Connect Labs, Inc.
+// SPDX-License-Identifier: BUSL-1.1
+// NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
+
+import { MrzParseError } from '../errors';
 import type { MRZInfo, MRZValidation } from '../types/public';
 
 /**
@@ -18,7 +23,7 @@ function calculateCheckDigit(input: string): number {
     } else if (char === '<') {
       value = 0;
     } else {
-      throw new Error(`Invalid character in MRZ: ${char}`);
+      throw new MrzParseError(`Invalid character in MRZ: ${char}`);
     }
 
     sum += value * weights[i % 3];
@@ -45,74 +50,25 @@ function verifyCheckDigit(field: string, expectedCheckDigit: string): boolean {
 }
 
 /**
- * Parse names from MRZ format (surname<<given<names<<<)
- * Handles complex cases like: VAN<<DER<<BERG<<MARIA<ELENA
- * Expected: surname="VAN  DER  BERG", givenNames="MARIA ELENA"
- */
-function parseNames(nameField: string): { surname: string; givenNames: string } {
-  const parts = nameField.split('<<');
-
-  if (parts.length === 1) {
-    // No '<<' found, entire field is surname
-    return {
-      surname: nameField.replace(/</g, ' ').trim(),
-      givenNames: '',
-    };
-  }
-
-  // Find the boundary between surname and given names
-  // Look for the last part that contains '<' (indicating given names with spaces)
-  let givenNamesStartIndex = parts.length; // Default to all surname
-
-  for (let i = parts.length - 1; i >= 0; i--) {
-    const part = parts[i];
-    // If a part contains '<' within it (not just trailing '<'), it's likely given names
-    if (part.includes('<') && !part.endsWith('<'.repeat(part.length))) {
-      givenNamesStartIndex = i;
-      break;
-    }
-  }
-
-  // If we didn't find a clear given names section, use the first << as boundary
-  if (givenNamesStartIndex >= parts.length) {
-    const firstDoubleSeparator = nameField.indexOf('<<');
-    if (firstDoubleSeparator === -1) {
-      return {
-        surname: nameField.replace(/</g, ' ').trim(),
-        givenNames: '',
-      };
-    }
-
-    const surnameField = nameField.slice(0, firstDoubleSeparator);
-    const givenNamesField = nameField.slice(firstDoubleSeparator + 2);
-
-    return {
-      surname: surnameField.replace(/</g, ' ').trim(),
-      givenNames: givenNamesField.replace(/</g, ' ').trim(),
-    };
-  }
-
-  // Build surname from parts before the given names (join with double spaces to reflect <<)
-  const surnameParts = parts.slice(0, givenNamesStartIndex);
-  const surname = surnameParts.join('  ').replace(/</g, ' ').trim();
-
-  // Build given names from remaining parts
-  const givenNamesParts = parts.slice(givenNamesStartIndex);
-  const givenNames = givenNamesParts.join(' ').replace(/</g, ' ').trim();
-
-  return { surname, givenNames };
-}
-
-/**
  * Validate TD3 MRZ format (passport/travel document)
  */
 function validateTD3Format(lines: string[]): boolean {
   if (lines.length !== 2) {
     return false;
   }
+  const TD3_line_2_REGEX = /^([A-Z0-9<]{9})([0-9ILDSOG])([A-Z<]{3})/;
+  const isTD3 = TD3_line_2_REGEX.test(lines[1]);
+  return isTD3;
+}
 
-  // TD3 format: 2 lines, 44 characters each
-  return lines[0].length === 44 && lines[1].length === 44;
+function validateTD1Format(lines: string[]): boolean {
+  console.log('validateTD1Format', lines);
+
+  const concatenatedLines = lines[0] + lines[1];
+  const TD1_REGEX =
+    /^(?<documentType>[A-Z0-9<]{2})(?<issuingCountry>[A-Z<]{3})(?<documentNumber>[A-Z0-9<]{9})(?<checkDigitDocumentNumber>[0-9]{1})(?<optionalData1>[A-Z0-9<]{15})(?<dateOfBirth>[0-9]{6})(?<checkDigitDateOfBirth>[0-9]{1})(?<sex>[MF<]{1})(?<dateOfExpiry>[0-9]{6})(?<checkDigitDateOfExpiry>[0-9]{1})(?<nationality>[A-Z<]{3})(?<optionalData2>[A-Z0-9<]{7})/;
+  const isTD1 = TD1_REGEX.test(concatenatedLines) || lines[0].startsWith('I');
+  return isTD1;
 }
 
 /**
@@ -130,11 +86,9 @@ function extractTD3Info(lines: string[]): Omit<MRZInfo, 'validation'> {
     .slice(2, 5)
     .replace(/</g, '')
     .replace(/[^A-Z]/g, '');
-  const nameField = line1.slice(5, 44);
-  const { surname, givenNames } = parseNames(nameField);
 
   // Line 2: PASSPORT(9)CHECK(1)NATIONALITY(3)DOB(6)DOBCHECK(1)SEX(1)EXPIRY(6)EXPIRYCHECK(1)OPTIONAL(7)FINALCHECK(1)
-  const passportNumber = line2.slice(0, 9).replace(/</g, '');
+  const documentNumber = line2.slice(0, 9).replace(/</g, '');
 
   // Robust nationality extraction: scan 4-character window for three contiguous A-Z letters
   const rawNat = line2.slice(10, 14);
@@ -154,19 +108,52 @@ function extractTD3Info(lines: string[]): Omit<MRZInfo, 'validation'> {
     nationality = rawNat.slice(0, 3).replace(/[^A-Z]/g, '');
   }
   const dateOfBirth = line2.slice(13, 19);
-  const sex = line2.slice(20, 21).replace(/</g, '');
   const dateOfExpiry = line2.slice(21, 27);
 
   return {
     documentType,
     issuingCountry,
-    surname,
-    givenNames,
-    passportNumber,
-    nationality,
+    documentNumber,
     dateOfBirth,
-    sex,
     dateOfExpiry,
+  };
+}
+
+function extractTD1Info(lines: string[]): Omit<MRZInfo, 'validation'> {
+  const line1 = lines[0];
+  const line2 = lines[1];
+
+  const concatenatedLines = line1 + line2;
+
+  return {
+    documentType: concatenatedLines.slice(0, 2),
+    issuingCountry: concatenatedLines.slice(2, 5),
+    documentNumber: concatenatedLines.slice(5, 14).replace(/</g, '').trim(),
+    dateOfBirth: concatenatedLines.slice(30, 36),
+    dateOfExpiry: concatenatedLines.slice(38, 44),
+  };
+}
+
+/**
+ * Validate all check digits for TD1 MRZ format
+ */
+function validateTD1CheckDigits(lines: string[]): Omit<MRZValidation, 'format' | 'overall'> {
+  const line1 = lines[0];
+  const line2 = lines[1];
+  const concatenatedLines = line1 + line2;
+
+  const documentNumber = concatenatedLines.slice(5, 14);
+  const documentNumberCheckDigit = concatenatedLines.slice(14, 15);
+  const dateOfBirth = concatenatedLines.slice(30, 36);
+  const dobCheckDigit = concatenatedLines.slice(36, 37);
+  const dateOfExpiry = concatenatedLines.slice(38, 44);
+  const expiryCheckDigit = concatenatedLines.slice(44, 45);
+
+  return {
+    passportNumberChecksum: verifyCheckDigit(documentNumber, documentNumberCheckDigit),
+    dateOfBirthChecksum: verifyCheckDigit(dateOfBirth, dobCheckDigit),
+    dateOfExpiryChecksum: verifyCheckDigit(dateOfExpiry, expiryCheckDigit),
+    compositeChecksum: true, // TD1 doesn't have a composite check digit like TD3
   };
 }
 
@@ -204,7 +191,7 @@ function validateTD3CheckDigits(lines: string[]): Omit<MRZValidation, 'format' |
  */
 export function extractMRZInfo(mrzString: string): MRZInfo {
   if (!mrzString || typeof mrzString !== 'string') {
-    throw new Error('MRZ string is required and must be a string');
+    throw new MrzParseError('MRZ string is required and must be a string');
   }
 
   const lines = mrzString
@@ -214,25 +201,36 @@ export function extractMRZInfo(mrzString: string): MRZInfo {
 
   // Validate format
   const isValidTD3 = validateTD3Format(lines);
+  const isValidTD1 = validateTD1Format(lines);
 
-  if (!isValidTD3) {
-    throw new Error(
-      `Invalid MRZ format: Expected TD3 format (2 lines × 44 characters), got ${lines.length} lines with lengths [${lines.map(l => l.length).join(', ')}]`,
+  if (!isValidTD3 && !isValidTD1) {
+    throw new MrzParseError(
+      `Invalid MRZ format: Expected TD3 or TD1 format, got ${lines.length} lines with lengths [${lines.map(l => l.length).join(', ')}]`,
     );
   }
 
-  // Extract basic information
-  const info = extractTD3Info(lines);
+  let info: Omit<MRZInfo, 'validation'>;
+  let checksums: Omit<MRZValidation, 'format' | 'overall'>;
+  let validation: MRZValidation;
 
-  // Validate check digits
-  const checksums = validateTD3CheckDigits(lines);
-
-  // Create validation result
-  const validation: MRZValidation = {
-    format: isValidTD3,
-    ...checksums,
-    overall: isValidTD3 && Object.values(checksums).every(Boolean),
-  };
+  if (isValidTD3) {
+    // Extract basic information
+    info = extractTD3Info(lines);
+    checksums = validateTD3CheckDigits(lines);
+    validation = {
+      format: isValidTD3,
+      ...checksums,
+      overall: isValidTD3 && Object.values(checksums).every(Boolean),
+    };
+  } else {
+    info = extractTD1Info(lines);
+    checksums = validateTD1CheckDigits(lines);
+    validation = {
+      format: isValidTD1,
+      ...checksums,
+      overall: isValidTD1 && Object.values(checksums).every(Boolean),
+    };
+  }
 
   return {
     ...info,
@@ -241,12 +239,93 @@ export function extractMRZInfo(mrzString: string): MRZInfo {
 }
 
 /**
+ * Extract name from MRZ string
+ * Supports TD3 (passport) and TD1 (ID card) formats
+ *
+ * @param mrzString - The MRZ data as a string
+ * @returns Object with firstName and lastName, or null if parsing fails
+ *
+ * @example
+ * ```ts
+ * const name = extractNameFromMRZ("P<USADOE<<JOHN<<<<<<<<<<<<<<<<<<<<<<<<<");
+ * // Returns: { firstName: "JOHN", lastName: "DOE" }
+ * ```
+ */
+export function extractNameFromMRZ(mrzString: string): { firstName: string; lastName: string } | null {
+  if (!mrzString || typeof mrzString !== 'string') {
+    return null;
+  }
+
+  let lines = mrzString
+    .trim()
+    .split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(Boolean);
+
+  // Handle single-line MRZ strings (common for stored data)
+  // TD3 format: 88 or 90 characters total (2 lines of 44 or 45 chars each)
+  if (lines.length === 1) {
+    const mrzLength = lines[0].length;
+    if (mrzLength === 88 || mrzLength === 90) {
+      const lineLength = mrzLength === 88 ? 44 : 45;
+      lines = [lines[0].slice(0, lineLength), lines[0].slice(lineLength)];
+    }
+  }
+
+  if (lines.length === 0) {
+    return null;
+  }
+
+  // TD3 format (passport): Name is in line 1 after country code
+  // Format: P<COUNTRY<<LASTNAME<<FIRSTNAME<<<<<<<<<<
+  // TD3 typically has 2 lines, first line is usually 44 chars but we'll be lenient
+  if (lines.length === 2) {
+    const line1 = lines[0];
+    const nameMatch = line1.match(/^P<[A-Z]{3}(.+)$/);
+
+    if (nameMatch) {
+      const namePart = nameMatch[1];
+      // Split by << to separate last name and first name
+      const parts = namePart.split('<<').filter(Boolean);
+
+      if (parts.length >= 2) {
+        const lastName = parts[0].replace(/<+$/, '').replace(/</g, ' ').trim();
+        const firstName = parts[1].replace(/<+$/, '').replace(/</g, ' ').trim();
+        return { firstName, lastName };
+      } else if (parts.length === 1) {
+        const name = parts[0].replace(/<+$/, '').replace(/</g, ' ').trim();
+        return { firstName: '', lastName: name };
+      }
+    }
+  }
+
+  // TD1 format (ID card): Name is in line 3
+  // Format: LASTNAME<<FIRSTNAME<<<<<<<<<<
+  // TD1 typically has 3 lines, each 30 chars but we'll be lenient
+  if (lines.length === 3) {
+    const line3 = lines[2];
+    const parts = line3.split('<<').filter(Boolean);
+
+    if (parts.length >= 2) {
+      const lastName = parts[0].replace(/<+$/, '').replace(/</g, ' ').trim();
+      const firstName = parts[1].replace(/<+$/, '').replace(/</g, ' ').trim();
+      return { firstName, lastName };
+    } else if (parts.length === 1) {
+      const name = parts[0].replace(/<+$/, '').replace(/</g, ' ').trim();
+      return { firstName: '', lastName: name };
+    }
+  }
+
+  return null;
+}
+
+/**
  * Format ISO date string (YYYY-MM-DD) to YYMMDD format
  * Handles timezone variations and validates input
  */
 export function formatDateToYYMMDD(inputDate: string): string {
   if (!inputDate || typeof inputDate !== 'string') {
-    throw new Error('Date string is required');
+    throw new MrzParseError('Date string is required');
   }
 
   // Handle ISO date strings (YYYY-MM-DD format)
@@ -271,5 +350,5 @@ export function formatDateToYYMMDD(inputDate: string): string {
     return year.slice(2) + month + day;
   }
 
-  throw new Error(`Invalid date format: ${inputDate}. Expected ISO format (YYYY-MM-DD) or similar.`);
+  throw new MrzParseError(`Invalid date format: ${inputDate}. Expected ISO format (YYYY-MM-DD) or similar.`);
 }

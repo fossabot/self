@@ -10,6 +10,14 @@ showcase
 output/*
 *.tsbuildinfo
 .yarnrc.yml
+.giga/tasks/*
+package-lock.json
 
-# PR Action Items - prevent accidental commits
-PR_*_ACTION_ITEMS.md
+# CI-generated tarballs (don't commit these!)
+mobile-sdk-alpha-ci.tgz
+**/mobile-sdk-alpha-*.tgz
+/tmp/mobile-sdk-alpha*.tgz
+dataInput.d.ts
+
+# Private Android modules (cloned at build time)
+app/android/android-passport-nfc-reader/

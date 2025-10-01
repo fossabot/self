@@ -1,11 +1,14 @@
-// SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
+// SPDX-FileCopyrightText: 2025 Social Connect Labs, Inc.
+// SPDX-License-Identifier: BUSL-1.1
+// NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
+
+import type { ProvingStateType } from '@selfxyz/mobile-sdk-alpha';
 
 import type { PassportMetadata } from '@/utils/proving/loadingScreenStateText';
 import {
   getLoadingScreenText,
   getProvingTimeEstimate,
 } from '@/utils/proving/loadingScreenStateText';
-import type { ProvingStateType } from '@/utils/proving/provingMachine';
 
 describe('stateLoadingScreenText', () => {
   // Default metadata for basic tests
@@ -83,11 +86,15 @@ describe('stateLoadingScreenText', () => {
   describe('getLoadingScreenText with passport metadata', () => {
     const rsaMetadata: PassportMetadata = {
       signatureAlgorithm: 'RSA',
-      curveOrExponent: '',
+      curveOrExponent: '65537',
     };
 
     it('should use algorithm information to estimate proving time', () => {
-      const result = getLoadingScreenText('proving', rsaMetadata);
+      const result = getLoadingScreenText(
+        'proving',
+        rsaMetadata.signatureAlgorithm,
+        rsaMetadata.curveOrExponent,
+      );
 
       // Should use RSA (4 SECONDS)
       expect(result.estimatedTime).toBe('4 SECONDS');
@@ -95,8 +102,8 @@ describe('stateLoadingScreenText', () => {
   });
 
   describe('getProvingTimeEstimate', () => {
-    it('should return default time when metadata is undefined', () => {
-      const result = getProvingTimeEstimate(undefined, 'register');
+    it('should return default time when parameters are undefined', () => {
+      const result = getProvingTimeEstimate('', '', 'register');
       expect(result).toBe('30 - 90 SECONDS');
     });
 
@@ -115,7 +122,8 @@ describe('stateLoadingScreenText', () => {
           };
 
           const result = getProvingTimeEstimate(
-            metadata,
+            metadata.signatureAlgorithm,
+            metadata.curveOrExponent,
             type as 'dsc' | 'register',
           );
           expect(result).toBe(expectedTime);
@@ -136,7 +144,8 @@ describe('stateLoadingScreenText', () => {
           };
 
           const result = getProvingTimeEstimate(
-            metadata,
+            metadata.signatureAlgorithm,
+            metadata.curveOrExponent,
             type as 'dsc' | 'register',
           );
           expect(result).toBe(expectedTime);
@@ -159,7 +168,8 @@ describe('stateLoadingScreenText', () => {
           };
 
           const result = getProvingTimeEstimate(
-            metadata,
+            metadata.signatureAlgorithm,
+            metadata.curveOrExponent,
             type as 'dsc' | 'register',
           );
           expect(result).toBe(expectedTime);
@@ -180,7 +190,8 @@ describe('stateLoadingScreenText', () => {
           };
 
           const result = getProvingTimeEstimate(
-            metadata,
+            metadata.signatureAlgorithm,
+            metadata.curveOrExponent,
             type as 'dsc' | 'register',
           );
           expect(result).toBe(expectedTime);
@@ -201,7 +212,8 @@ describe('stateLoadingScreenText', () => {
           };
 
           const result = getProvingTimeEstimate(
-            metadata,
+            metadata.signatureAlgorithm,
+            metadata.curveOrExponent,
             type as 'dsc' | 'register',
           );
           expect(result).toBe(expectedTime);
@@ -222,7 +234,8 @@ describe('stateLoadingScreenText', () => {
           };
 
           const result = getProvingTimeEstimate(
-            metadata,
+            metadata.signatureAlgorithm,
+            metadata.curveOrExponent,
             type as 'dsc' | 'register',
           );
           expect(result).toBe(expectedTime);
@@ -236,7 +249,11 @@ describe('stateLoadingScreenText', () => {
         curveOrExponent: '',
       };
 
-      const result = getProvingTimeEstimate(metadata, 'register');
+      const result = getProvingTimeEstimate(
+        metadata.signatureAlgorithm,
+        metadata.curveOrExponent,
+        'register',
+      );
       expect(result).toBe('30 - 90 SECONDS');
     });
   });

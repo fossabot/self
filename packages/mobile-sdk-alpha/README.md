@@ -47,13 +47,23 @@ const compact = formatDateToYYMMDD('1974-08-12');
 const nfc = parseNFCResponse(rawBytes);
 ```
 
-## Migration checklist
+## Error handling
 
-Track progress in [MIGRATION_CHECKLIST.md](./docs/MIGRATION_CHECKLIST.md).
+The SDK surfaces typed errors for clearer diagnostics:
 
-## Architecture checklist
+- `NfcParseError` and `MrzParseError` for NFC and MRZ parsing issues (category `validation`)
+- `InitError` for initialization problems (category `init`)
+- `LivenessError` for liveness failures (category `liveness`)
 
-Plan implementation with [ARCHITECTURE.md](./docs/ARCHITECTURE.md) and task prompts in [ARCHITECTURE_PROMPTS.md](./docs/ARCHITECTURE_PROMPTS.md).
+All errors extend `SdkError`, which includes a `code`, `category`, and `retryable` flag.
+
+## Migration plan
+
+Track remaining tasks in [MIGRATION_PLAN.md](./docs/MIGRATION_PLAN.md) and see completed work in [MIGRATION_COMPLETED.md](./docs/MIGRATION_COMPLETED.md).
+
+## Architecture
+
+Migration and architecture prompts live in [PROMPTS.md](./docs/PROMPTS.md).
 
 ## Testing
 

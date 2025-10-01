@@ -1,8 +1,14 @@
 // Type exports from constants
 export type {
+  AadhaarData,
   CertificateData,
+  DeployedCircuits,
+  DocumentCatalog,
   DocumentCategory,
+  DocumentMetadata,
+  IDDocument,
   IdDocInput,
+  OfacTree,
   PassportData,
   PassportMetadata,
   PublicKeyDetailsECDSA,
@@ -11,6 +17,9 @@ export type {
   SelfAppDisclosureConfig,
   UserIdType,
 } from './src/utils/index.js';
+
+// Additional type exports
+export type { Environment } from './src/utils/types.js';
 
 // Constants exports
 export type { Country3LetterCode } from './src/constants/index.js';
@@ -56,6 +65,7 @@ export {
   bigIntToString,
   brutforceSignatureAlgorithmDsc,
   buildSMT,
+  calculateContentHash,
   calculateUserIdentifierHash,
   findStartPubKeyIndex,
   formatEndpoint,
@@ -65,6 +75,7 @@ export {
   genMockIdDocAndInitDataParsing,
   generateCircuitInputsDSC,
   generateCircuitInputsRegister,
+  generateCircuitInputsRegisterForTests,
   generateCircuitInputsVCandDisclose,
   generateCommitment,
   generateMockDSC,
@@ -72,16 +83,30 @@ export {
   getCircuitNameFromPassportData,
   getLeafCscaTree,
   getLeafDscTree,
+  fetchOfacTrees,
   getSKIPEM,
+  generateTEEInputsDiscloseStateless,
   getSolidityPackedUserContextData,
   getUniversalLink,
   hashEndpointWithScope,
+  inferDocumentCategory,
   initElliptic,
   initPassportDataParsing,
   parseCertificateSimple,
   parseDscCertificateData,
   stringToBigInt,
 } from './src/utils/index.js';
+
+// Crypto polyfill for cross-platform compatibility
+export {
+  createHash,
+  createHmac,
+  default as cryptoPolyfill,
+  pbkdf2Sync,
+  randomBytes,
+} from './src/polyfills/crypto.js';
+
+export { createSelector } from './src/utils/aadhaar/constants.js';
 
 // Hash utilities
 export {
@@ -91,3 +116,14 @@ export {
   hash,
   packBytesAndPoseidon,
 } from './src/utils/hash.js';
+
+export { generateTestData, testCustomData } from './src/utils/aadhaar/utils.js';
+
+export { isAadhaarDocument, isMRZDocument } from './src/utils/index.js';
+
+export {
+  prepareAadhaarDiscloseData,
+  prepareAadhaarDiscloseTestData,
+  prepareAadhaarRegisterData,
+  prepareAadhaarRegisterTestData,
+} from './src/utils/aadhaar/mockData.js';

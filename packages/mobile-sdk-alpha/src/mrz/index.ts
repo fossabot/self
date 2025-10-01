@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 Social Connect Labs, Inc.
+// SPDX-License-Identifier: BUSL-1.1
+// NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
+
 import { notImplemented } from '../errors';
 import type { ScanResult } from '../types/public';
 
@@ -8,7 +12,7 @@ import type { ScanResult } from '../types/public';
 export type MRZScanOptions = Record<string, never>;
 
 // Re-export processing functions
-export { extractMRZInfo, formatDateToYYMMDD } from '../processing/mrz';
+export { extractMRZInfo, extractNameFromMRZ, formatDateToYYMMDD } from '../processing/mrz';
 
 /**
  * Scan MRZ (Machine Readable Zone) on a passport or ID card.

@@ -1,13 +1,18 @@
-// SPDX-License-Identifier: BUSL-1.1; Copyright (c) 2025 Social Connect Labs, Inc.; Licensed under BUSL-1.1 (see LICENSE); Apache-2.0 from 2029-06-11
+// SPDX-FileCopyrightText: 2025 Social Connect Labs, Inc.
+// SPDX-License-Identifier: BUSL-1.1
+// NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
 import { Linking } from 'react-native';
 
-jest.mock('@/navigation', () => ({
-  navigationRef: { navigate: jest.fn(), isReady: jest.fn(() => true) },
-}));
+import { SelfClient } from '@selfxyz/mobile-sdk-alpha';
 
-const mockSelfAppStore = { useSelfAppStore: { getState: jest.fn() } };
-jest.mock('@/stores/selfAppStore', () => mockSelfAppStore);
+jest.mock('@/navigation', () => ({
+  navigationRef: {
+    navigate: jest.fn(),
+    isReady: jest.fn(() => true),
+    reset: jest.fn(),
+  },
+}));
 
 const mockUserStore = { default: { getState: jest.fn() } };
 jest.mock('@/stores/userStore', () => ({
@@ -15,10 +20,9 @@ jest.mock('@/stores/userStore', () => ({
   ...mockUserStore,
 }));
 
-let setSelfApp: jest.Mock, startAppListener: jest.Mock, cleanSelfApp: jest.Mock;
 let setDeepLinkUserDetails: jest.Mock;
 
-let handleUrl: (url: string) => void;
+let handleUrl: (selfClient: SelfClient, url: string) => void;
 let parseAndValidateUrlParams: (uri: string) => any;
 let setupUniversalLinkListenerInNavigation: () => () => void;
 
@@ -31,19 +35,11 @@ describe('deeplinks', () => {
       parseAndValidateUrlParams,
       setupUniversalLinkListenerInNavigation,
     } = require('@/utils/deeplinks'));
-    setSelfApp = jest.fn();
-    startAppListener = jest.fn();
-    cleanSelfApp = jest.fn();
     setDeepLinkUserDetails = jest.fn();
     jest.spyOn(Linking, 'getInitialURL').mockResolvedValue(null as any);
     jest
       .spyOn(Linking, 'addEventListener')
       .mockReturnValue({ remove: jest.fn() } as any);
-    mockSelfAppStore.useSelfAppStore.getState.mockReturnValue({
-      setSelfApp,
-      startAppListener,
-      cleanSelfApp,
-    });
     mockUserStore.default.getState.mockReturnValue({
       setDeepLinkUserDetails,
     });
@@ -53,28 +49,54 @@ describe('deeplinks', () => {
     it('handles selfApp parameter', () => {
       const selfApp = { sessionId: 'abc' };
       const url = `scheme://open?selfApp=${encodeURIComponent(JSON.stringify(selfApp))}`;
-      handleUrl(url);
 
-      expect(setSelfApp).toHaveBeenCalledWith(selfApp);
-      expect(startAppListener).toHaveBeenCalledWith('abc');
+      const mockSetSelfApp = jest.fn();
+      const mockStartAppListener = jest.fn();
+
+      handleUrl(
+        {
+          getSelfAppState: () => ({
+            setSelfApp: mockSetSelfApp,
+            startAppListener: mockStartAppListener,
+          }),
+        } as unknown as SelfClient,
+        url,
+      );
+
+      expect(mockSetSelfApp).toHaveBeenCalledWith(selfApp);
+      expect(mockStartAppListener).toHaveBeenCalledWith('abc');
+
       const { navigationRef } = require('@/navigation');
-      expect(navigationRef.navigate).toHaveBeenCalledWith('ProveScreen');
+      expect(navigationRef.navigate).toHaveBeenCalledWith('Prove');
     });
 
     it('handles sessionId parameter', () => {
       const url = 'scheme://open?sessionId=123';
-      handleUrl(url);
+      const mockCleanSelfApp = jest.fn();
+      const mockStartAppListener = jest.fn();
 
-      expect(cleanSelfApp).toHaveBeenCalled();
-      expect(startAppListener).toHaveBeenCalledWith('123');
+      handleUrl(
+        {
+          getSelfAppState: () => ({
+            setSelfApp: jest.fn(),
+            startAppListener: mockStartAppListener,
+            cleanSelfApp: mockCleanSelfApp,
+          }),
+        } as unknown as SelfClient,
+        url,
+      );
+
+      expect(mockCleanSelfApp).toHaveBeenCalledWith();
+      expect(mockStartAppListener).toHaveBeenCalledWith('123');
+
       const { navigationRef } = require('@/navigation');
-      expect(navigationRef.navigate).toHaveBeenCalledWith('ProveScreen');
+      expect(navigationRef.navigate).toHaveBeenCalledWith('Prove');
     });
 
     it('handles mock_passport parameter', () => {
       const mockData = { name: 'John', surname: 'Doe' };
       const url = `scheme://open?mock_passport=${encodeURIComponent(JSON.stringify(mockData))}`;
-      handleUrl(url);
+      handleUrl({} as SelfClient, url);
 
       expect(setDeepLinkUserDetails).toHaveBeenCalledWith({
         name: 'John',
@@ -84,7 +106,10 @@ describe('deeplinks', () => {
         gender: undefined,
       });
       const { navigationRef } = require('@/navigation');
-      expect(navigationRef.navigate).toHaveBeenCalledWith('MockDataDeepLink');
+      expect(navigationRef.reset).toHaveBeenCalledWith({
+        index: 1,
+        routes: [{ name: 'Home' }, { name: 'MockDataDeepLink' }],
+      });
     });
 
     it('navigates to QRCodeTrouble for invalid data', () => {
@@ -93,10 +118,13 @@ describe('deeplinks', () => {
         .mockImplementation(() => {});
 
       const url = 'scheme://open?selfApp=%7Binvalid';
-      handleUrl(url);
+      handleUrl({} as SelfClient, url);
 
       const { navigationRef } = require('@/navigation');
-      expect(navigationRef.navigate).toHaveBeenCalledWith('QRCodeTrouble');
+      expect(navigationRef.reset).toHaveBeenCalledWith({
+        index: 1,
+        routes: [{ name: 'Home' }, { name: 'QRCodeTrouble' }],
+      });
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'Error parsing selfApp:',
         expect.any(Error),
@@ -114,10 +142,13 @@ describe('deeplinks', () => {
         .mockImplementation(() => {});
 
       const url = 'scheme://open?sessionId=abc<script>alert("xss")</script>';
-      handleUrl(url);
+      handleUrl({} as SelfClient, url);
 
       const { navigationRef } = require('@/navigation');
-      expect(navigationRef.navigate).toHaveBeenCalledWith('QRCodeTrouble');
+      expect(navigationRef.reset).toHaveBeenCalledWith({
+        index: 1,
+        routes: [{ name: 'Home' }, { name: 'QRCodeTrouble' }],
+      });
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'No sessionId or selfApp found in the data',
       );
@@ -132,10 +163,13 @@ describe('deeplinks', () => {
         .mockImplementation(() => {});
 
       const url = 'scheme://open?sessionId=%ZZ'; // Invalid URL encoding
-      handleUrl(url);
+      handleUrl({} as SelfClient, url);
 
       const { navigationRef } = require('@/navigation');
-      expect(navigationRef.navigate).toHaveBeenCalledWith('QRCodeTrouble');
+      expect(navigationRef.reset).toHaveBeenCalledWith({
+        index: 1,
+        routes: [{ name: 'Home' }, { name: 'QRCodeTrouble' }],
+      });
 
       consoleErrorSpy.mockRestore();
     });

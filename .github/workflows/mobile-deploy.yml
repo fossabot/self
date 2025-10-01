@@ -1,11 +1,16 @@
 name: Mobile Deploy
+# Runs on:
+# 1. Manual trigger (workflow_dispatch) with configurable options
+# 2. When PRs are merged to staging (auto-deploy to internal track)
+# 3. DISABLED: When called by other workflows (workflow_call)
 
 env:
   # Build environment versions
   RUBY_VERSION: 3.2
   JAVA_VERSION: 17
   ANDROID_API_LEVEL: 35
-  ANDROID_NDK_VERSION: 27.0.11718014
+  ANDROID_NDK_VERSION: 27.0.12077973
+  XCODE_VERSION: 16.4
 
   # Cache versioning - increment these to bust caches when needed
   GH_CACHE_VERSION: v1 # Global cache version
@@ -29,6 +34,7 @@ env:
 permissions:
   contents: write
   pull-requests: write
+  id-token: write
 
 on:
   workflow_dispatch:
@@ -66,6 +72,16 @@ on:
           - minor
           - major
 
+  pull_request:
+    types: [closed]
+    branches: [staging]
+    paths:
+      - "app/**"
+      - "!app/**/*.md"
+      - "!app/docs/**"
+      - "packages/mobile-sdk-alpha/**"
+      - ".github/workflows/mobile-deploy.yml"
+
   workflow_call:
     inputs:
       platform:
@@ -88,19 +104,35 @@ on:
         required: false
         default: false
 
+concurrency:
+  group: mobile-deploy-${{ inputs.deployment_track || github.ref_name }}
+  cancel-in-progress: false
+
 jobs:
   build-ios:
-    runs-on: macos-latest
-    if: (inputs.platform == 'ios' || inputs.platform == 'both')
+    runs-on: macos-latest-large
+    if: |
+      (github.event_name != 'pull_request' || github.event.pull_request.merged == true) &&
+      (
+        (inputs.platform == 'ios' || inputs.platform == 'both') ||
+        (github.event_name == 'pull_request')
+      )
     steps:
       - name: Mobile deployment status
         run: |
           echo "🚀 Mobile deployment is enabled - proceeding with iOS build"
-          echo "📱 Platform: ${{ inputs.platform }}"
-          echo "🎯 Track: ${{ inputs.deployment_track }}"
-          echo "📦 Version bump: ${{ inputs.version_bump }}"
+          echo "📱 Platform: ${{ inputs.platform || 'both' }}"
+          echo "🎯 Track: ${{ inputs.deployment_track || 'internal' }}"
+          echo "📦 Version bump: ${{ inputs.version_bump || 'build' }}"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "🔀 Triggered by PR merge: #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}"
+            echo "👤 Merged by: ${{ github.event.pull_request.merged_by.login }}"
+          fi
 
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: staging
       - name: Read and sanitize Node.js version
         shell: bash
         run: |
@@ -115,34 +147,61 @@ jobs:
           echo "NODE_VERSION=$VERSION" >> "$GITHUB_ENV"
           echo "NODE_VERSION_SANITIZED=${VERSION//\//-}" >> "$GITHUB_ENV"
 
+      - name: Verify branch and commit (iOS)
+        if: inputs.platform != 'android'
+        run: |
+          echo "🔍 Verifying we're building from the correct branch and commit..."
+          echo "Current branch: $(git branch --show-current || git symbolic-ref --short HEAD 2>/dev/null || echo 'detached')"
+          echo "Current commit: $(git rev-parse HEAD)"
+          echo "Current commit message: $(git log -1 --pretty=format:'%s')"
+          echo "Staging HEAD commit: $(git rev-parse origin/staging)"
+          echo "Staging HEAD message: $(git log -1 --pretty=format:'%s' origin/staging)"
+
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/staging)" ]; then
+            echo "⚠️ WARNING: Current commit differs from latest staging commit"
+            echo "This might indicate we're not building from the latest staging branch"
+            git log --oneline HEAD..origin/staging || true
+          else
+            echo "✅ Building from latest staging commit"
+          fi
+
       - name: Set up Xcode
         if: inputs.platform != 'android'
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: "16.4"
+          xcode-version: ${{ env.XCODE_VERSION }}
+      - name: Configure Xcode path
+        if: inputs.platform != 'android'
+        run: |
+          echo "🔧 Configuring Xcode path to fix iOS SDK issues..."
+          # Fix for macOS 15 runner iOS SDK issues
+          # See: https://github.com/actions/runner-images/issues/12758
+          sudo xcode-select --switch /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+          echo "✅ Xcode path configured"
 
-      - name: Cache Yarn dependencies
+          # Verify Xcode setup
+          echo "Xcode version:"
+          xcodebuild -version
+          echo "Xcode path:"
+          xcode-select -p
+
+      - name: Cache Yarn artifacts
         id: yarn-cache
         uses: ./.github/actions/cache-yarn
         with:
           path: |
             .yarn/cache
-            node_modules
-            ${{ env.APP_PATH }}/node_modules
-          key: ${{ runner.os }}-node-${{ env.NODE_VERSION_SANITIZED }}-yarn-${{ env.GH_CACHE_VERSION }}-${{ env.GH_YARN_CACHE_VERSION }}-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-node-${{ env.NODE_VERSION_SANITIZED }}-yarn-${{ env.GH_CACHE_VERSION }}-${{ env.GH_YARN_CACHE_VERSION }}-
-            ${{ runner.os }}-node-${{ env.NODE_VERSION_SANITIZED }}-yarn-${{ env.GH_CACHE_VERSION }}-
+            .yarn/install-state.gz
+            .yarn/unplugged
+          cache-version: ${{ env.GH_CACHE_VERSION }}-node-${{ env.NODE_VERSION_SANITIZED }}-${{ hashFiles('.yarnrc.yml') }}
 
       - name: Cache Ruby gems
         id: gems-cache
         uses: ./.github/actions/cache-bundler
         with:
-          path: ${{ env.APP_PATH }}/vendor/bundle
-          key: ${{ runner.os }}-ruby${{ env.RUBY_VERSION }}-gems-${{ env.GH_CACHE_VERSION }}-${{ env.GH_GEMS_CACHE_VERSION }}-${{ hashFiles('app/Gemfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-ruby${{ env.RUBY_VERSION }}-gems-${{ env.GH_CACHE_VERSION }}-${{ env.GH_GEMS_CACHE_VERSION }}-
-            ${{ runner.os }}-ruby${{ env.RUBY_VERSION }}-gems-${{ env.GH_CACHE_VERSION }}-
+          path: ${{ env.APP_PATH }}/ios/vendor/bundle
+          lock-file: app/Gemfile.lock
+          cache-version: ${{ env.GH_CACHE_VERSION }}-${{ env.GH_GEMS_CACHE_VERSION }}-ruby${{ env.RUBY_VERSION }}
 
       - name: Cache CocoaPods
         id: pods-cache
@@ -160,6 +219,9 @@ jobs:
           echo "- Yarn cache hit: ${{ steps.yarn-cache.outputs.cache-hit }}"
           echo "- Gems cache hit: ${{ steps.gems-cache.outputs.cache-hit }}"
           echo "- Pods cache hit: ${{ steps.pods-cache.outputs.cache-hit }}"
+
+      - name: Disable Yarn hardened mode
+        run: echo "YARN_ENABLE_HARDENED_MODE=0" >> $GITHUB_ENV
 
       - name: Verify lock files are up to date
         run: |
@@ -181,8 +243,19 @@ jobs:
 
           echo "✅ Lock files exist"
 
-      - name: Install Mobile Dependencies
-        if: inputs.platform != 'android'
+      - name: Install Mobile Dependencies (main repo)
+        if: inputs.platform != 'android' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false)
+        uses: ./.github/actions/mobile-setup
+        with:
+          app_path: ${{ env.APP_PATH }}
+          node_version: ${{ env.NODE_VERSION }}
+          ruby_version: ${{ env.RUBY_VERSION }}
+          workspace: ${{ env.WORKSPACE }}
+        env:
+          SELFXYZ_INTERNAL_REPO_PAT: ${{ secrets.SELFXYZ_INTERNAL_REPO_PAT }}
+
+      - name: Install Mobile Dependencies (forked PRs - no secrets)
+        if: inputs.platform != 'android' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true
         uses: ./.github/actions/mobile-setup
         with:
           app_path: ${{ env.APP_PATH }}
@@ -396,10 +469,22 @@ jobs:
 
           echo "✅ Provisioning profile installation steps completed."
 
+      - name: Build Dependencies (iOS)
+        if: inputs.platform != 'android'
+        run: |
+          echo "🏗️ Building SDK dependencies..."
+          cd ${{ env.APP_PATH }}
+          yarn workspace @selfxyz/mobile-app run build:deps --silent || { echo "❌ Dependency build failed"; exit 1; }
+          echo "✅ Dependencies built successfully"
+
       # act won't work with macos, but you can test with `bundle exec fastlane ios ...`
       - name: Build and upload to App Store Connect/TestFlight
         if: inputs.platform != 'android' && !env.ACT
         env:
+          ENABLE_DEBUG_LOGS: ${{ secrets.ENABLE_DEBUG_LOGS }}
+          GRAFANA_LOKI_PASSWORD: ${{ secrets.GRAFANA_LOKI_PASSWORD }}
+          GRAFANA_LOKI_URL: ${{ secrets.GRAFANA_LOKI_URL }}
+          GRAFANA_LOKI_USERNAME: ${{ secrets.GRAFANA_LOKI_USERNAME }}
           IOS_APP_IDENTIFIER: ${{ secrets.IOS_APP_IDENTIFIER }}
           IOS_CONNECT_API_KEY_BASE64: ${{ secrets.IOS_CONNECT_API_KEY_BASE64 }}
           IOS_CONNECT_API_KEY_PATH: ${{ env.APP_PATH }}${{ env.IOS_CONNECT_API_KEY_PATH }}
@@ -412,13 +497,13 @@ jobs:
           IOS_PROV_PROFILE_NAME: ${{ secrets.IOS_PROV_PROFILE_NAME }}
           IOS_PROV_PROFILE_PATH: ${{ env.IOS_PROV_PROFILE_PATH }}
           IOS_SIGNING_CERTIFICATE: ${{ secrets.IOS_SIGNING_CERTIFICATE }}
-          IOS_TESTFLIGHT_GROUPS: ${{ secrets.IOS_TESTFLIGHT_GROUPS }}
           IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
           IOS_TEAM_NAME: ${{ secrets.IOS_TEAM_NAME }}
+          IOS_TESTFLIGHT_GROUPS: ${{ secrets.IOS_TESTFLIGHT_GROUPS }}
           NODE_OPTIONS: "--max-old-space-size=8192"
-          SLACK_API_TOKEN: ${{ secrets.SLACK_API_TOKEN }}
-          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
-          SLACK_ANNOUNCE_CHANNEL_NAME: ${{ secrets.SLACK_ANNOUNCE_CHANNEL_NAME }}
+          SEGMENT_KEY: ${{ secrets.SEGMENT_KEY }}
+          SELFXYZ_INTERNAL_REPO_PAT: ${{ secrets.SELFXYZ_INTERNAL_REPO_PAT }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         timeout-minutes: 90
         run: |
           cd ${{ env.APP_PATH }}
@@ -505,13 +590,6 @@ jobs:
         with:
           app_path: ${{ env.APP_PATH }}
 
-      - name: Commit updated build number
-        if: ${{ !env.ACT && success() }}
-        uses: ./.github/actions/push-changes
-        with:
-          commit_message: "incrementing ios build number for version ${{ env.VERSION }}"
-          commit_paths: "./app/version.json"
-
       - name: Monitor cache usage
         if: always()
         run: |
@@ -523,8 +601,8 @@ jobs:
             echo "Node modules: $NODE_SIZE"
           fi
 
-          if [ -d "${{ env.APP_PATH }}/vendor/bundle" ]; then
-            GEMS_SIZE=$(du -sh "${{ env.APP_PATH }}/vendor/bundle" | cut -f1)
+          if [ -d "${{ env.APP_PATH }}/ios/vendor/bundle" ]; then
+            GEMS_SIZE=$(du -sh "${{ env.APP_PATH }}/ios/vendor/bundle" | cut -f1)
             echo "Ruby gems: $GEMS_SIZE"
           fi
 
@@ -538,17 +616,91 @@ jobs:
 
   build-android:
     runs-on: ubuntu-latest
-    if: (inputs.platform == 'android' || inputs.platform == 'both')
+    if: |
+      (github.event_name != 'pull_request' || github.event.pull_request.merged == true) &&
+      (
+        (inputs.platform == 'android' || inputs.platform == 'both') ||
+        (github.event_name == 'pull_request')
+      )
     steps:
       - name: Mobile deployment status
         run: |
           echo "🚀 Mobile deployment is enabled - proceeding with Android build"
-          echo "📱 Platform: ${{ inputs.platform }}"
-          echo "🎯 Track: ${{ inputs.deployment_track }}"
-          echo "📦 Version bump: ${{ inputs.version_bump }}"
+          echo "📱 Platform: ${{ inputs.platform || 'both' }}"
+          echo "🎯 Track: ${{ inputs.deployment_track || 'internal' }}"
+          echo "📦 Version bump: ${{ inputs.version_bump || 'build' }}"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "🔀 Triggered by PR merge: #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}"
+            echo "👤 Merged by: ${{ github.event.pull_request.merged_by.login }}"
+          fi
 
       - uses: actions/checkout@v4
         if: inputs.platform != 'ios'
+        with:
+          fetch-depth: 0
+          ref: staging
+      - uses: "google-github-actions/auth@v2"
+        with:
+          project_id: "plucky-tempo-454713-r0"
+          workload_identity_provider: "projects/852920390127/locations/global/workloadIdentityPools/gh-self/providers/github-by-repos"
+          service_account: "self-xyz@plucky-tempo-454713-r0.iam.gserviceaccount.com"
+      # Fail fast: set up JDK for keytool and verify Android secrets early
+      - name: Setup Java environment
+        if: inputs.platform != 'ios'
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Decode Android Secrets
+        if: inputs.platform != 'ios'
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE }}" | base64 --decode > ${{ env.APP_PATH }}${{ env.ANDROID_KEYSTORE_PATH }}
+
+      - name: Verify Android Secrets
+        if: inputs.platform != 'ios'
+        run: |
+          # Verify Google Cloud auth via Workload Identity Federation (ADC)
+          if [ -z "$GOOGLE_APPLICATION_CREDENTIALS" ] || [ ! -f "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
+            echo "❌ Error: GOOGLE_APPLICATION_CREDENTIALS not set or file missing. Ensure google-github-actions/auth ran."
+            exit 1
+          fi
+          # Verify keystore file exists and is valid
+          if [ ! -f "${{ env.APP_PATH }}${{ env.ANDROID_KEYSTORE_PATH }}" ]; then
+            echo "❌ Error: Keystore file was not created successfully"
+            exit 1
+          fi
+          # Try to verify the keystore with the provided password
+          if ! keytool -list -v -keystore "${{ env.APP_PATH }}${{ env.ANDROID_KEYSTORE_PATH }}" -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >/dev/null 2>&1; then
+            echo "❌ Error: Invalid keystore password"
+            exit 1
+          fi
+          # Verify the key alias exists
+          if ! keytool -list -v -keystore "${{ env.APP_PATH }}${{ env.ANDROID_KEYSTORE_PATH }}" -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" -alias "${{ secrets.ANDROID_KEY_ALIAS }}" >/dev/null 2>&1; then
+            echo "❌ Error: Key alias '${{ secrets.ANDROID_KEY_ALIAS }}' not found in keystore"
+            exit 1
+          fi
+          # Verify the key password
+          if ! keytool -list -v -keystore "${{ env.APP_PATH }}${{ env.ANDROID_KEYSTORE_PATH }}" -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" -alias "${{ secrets.ANDROID_KEY_ALIAS }}" -keypass "${{ secrets.ANDROID_KEY_PASSWORD }}" >/dev/null 2>&1; then
+            echo "❌ Error: Invalid key password"
+            exit 1
+          fi
+
+          # Detect keystore type and export for later steps
+          KEYSTORE_TYPE=$(keytool -list -v -keystore "${{ env.APP_PATH }}${{ env.ANDROID_KEYSTORE_PATH }}" -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" 2>/dev/null | awk -F': ' '/Keystore type:/ {print $2; exit}')
+          if [ -z "$KEYSTORE_TYPE" ]; then
+            echo "❌ Error: Unable to determine keystore type"
+            exit 1
+          fi
+          echo "ANDROID_KEYSTORE_TYPE=$KEYSTORE_TYPE" >> "$GITHUB_ENV"
+          echo "Detected keystore type: $KEYSTORE_TYPE"
+
+          # Ensure the alias holds a PrivateKeyEntry (required for signing)
+          if ! keytool -list -v -keystore "${{ env.APP_PATH }}${{ env.ANDROID_KEYSTORE_PATH }}" -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" -alias "${{ secrets.ANDROID_KEY_ALIAS }}" -keypass "${{ secrets.ANDROID_KEY_PASSWORD }}" | grep -q "Entry type: PrivateKeyEntry"; then
+            echo "❌ Error: Alias '${{ secrets.ANDROID_KEY_ALIAS }}' is not a PrivateKeyEntry"
+            exit 1
+          fi
+          echo "✅ All Android secrets verified successfully!"
       - name: Read and sanitize Node.js version
         shell: bash
         run: |
@@ -563,28 +715,41 @@ jobs:
           echo "NODE_VERSION=$VERSION" >> "$GITHUB_ENV"
           echo "NODE_VERSION_SANITIZED=${VERSION//\//-}" >> "$GITHUB_ENV"
 
-      - name: Cache Yarn dependencies
+      - name: Verify branch and commit (Android)
+        if: inputs.platform != 'ios'
+        run: |
+          echo "🔍 Verifying we're building from the correct branch and commit..."
+          echo "Current branch: $(git branch --show-current || git symbolic-ref --short HEAD 2>/dev/null || echo 'detached')"
+          echo "Current commit: $(git rev-parse HEAD)"
+          echo "Current commit message: $(git log -1 --pretty=format:'%s')"
+          echo "Staging HEAD commit: $(git rev-parse origin/staging)"
+          echo "Staging HEAD message: $(git log -1 --pretty=format:'%s' origin/staging)"
+
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/staging)" ]; then
+            echo "⚠️ WARNING: Current commit differs from latest staging commit"
+            echo "This might indicate we're not building from the latest staging branch"
+            git log --oneline HEAD..origin/staging || true
+          else
+            echo "✅ Building from latest staging commit"
+          fi
+
+      - name: Cache Yarn artifacts
         id: yarn-cache
         uses: ./.github/actions/cache-yarn
         with:
           path: |
             .yarn/cache
-            node_modules
-            ${{ env.APP_PATH }}/node_modules
-          key: ${{ runner.os }}-node-${{ env.NODE_VERSION_SANITIZED }}-yarn-${{ env.GH_CACHE_VERSION }}-${{ env.GH_YARN_CACHE_VERSION }}-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-node-${{ env.NODE_VERSION_SANITIZED }}-yarn-${{ env.GH_CACHE_VERSION }}-${{ env.GH_YARN_CACHE_VERSION }}-
-            ${{ runner.os }}-node-${{ env.NODE_VERSION_SANITIZED }}-yarn-${{ env.GH_CACHE_VERSION }}-
+            .yarn/install-state.gz
+            .yarn/unplugged
+          cache-version: ${{ env.GH_CACHE_VERSION }}-node-${{ env.NODE_VERSION_SANITIZED }}-${{ hashFiles('.yarnrc.yml') }}
 
       - name: Cache Ruby gems
         id: gems-cache
         uses: ./.github/actions/cache-bundler
         with:
-          path: ${{ env.APP_PATH }}/vendor/bundle
-          key: ${{ runner.os }}-ruby${{ env.RUBY_VERSION }}-gems-${{ env.GH_CACHE_VERSION }}-${{ env.GH_GEMS_CACHE_VERSION }}-${{ hashFiles('app/Gemfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-ruby${{ env.RUBY_VERSION }}-gems-${{ env.GH_CACHE_VERSION }}-${{ env.GH_GEMS_CACHE_VERSION }}-
-            ${{ runner.os }}-ruby${{ env.RUBY_VERSION }}-gems-${{ env.GH_CACHE_VERSION }}-
+          path: ${{ env.APP_PATH }}/ios/vendor/bundle
+          lock-file: app/Gemfile.lock
+          cache-version: ${{ env.GH_CACHE_VERSION }}-${{ env.GH_GEMS_CACHE_VERSION }}-ruby${{ env.RUBY_VERSION }}
 
       - name: Cache Gradle dependencies
         id: gradle-cache
@@ -606,6 +771,9 @@ jobs:
           echo "- Gems cache hit: ${{ steps.gems-cache.outputs.cache-hit }}"
           echo "- Gradle cache hit: ${{ steps.gradle-cache.outputs.cache-hit }}"
           echo "- NDK cache hit: ${{ steps.ndk-cache.outputs.cache-hit }}"
+
+      - name: Disable Yarn hardened mode
+        run: echo "YARN_ENABLE_HARDENED_MODE=0" >> $GITHUB_ENV
 
       - name: Verify lock files are up to date
         run: |
@@ -635,14 +803,11 @@ jobs:
           node_version: ${{ env.NODE_VERSION }}
           ruby_version: ${{ env.RUBY_VERSION }}
           workspace: ${{ env.WORKSPACE }}
+        env:
+          SELFXYZ_INTERNAL_REPO_PAT: ${{ secrets.SELFXYZ_INTERNAL_REPO_PAT }}
+          PLATFORM: ${{ inputs.platform }}
 
       # android specific steps
-      - name: Setup Java environment
-        if: inputs.platform != 'ios'
-        uses: actions/setup-java@v4
-        with:
-          distribution: "temurin"
-          java-version: ${{ env.JAVA_VERSION }}
 
       - name: Setup Android SDK
         if: inputs.platform != 'ios'
@@ -650,16 +815,18 @@ jobs:
         with:
           accept-android-sdk-licenses: true
 
-      - name: Install NDK
+      - name: Install NDK and CMake
         if: inputs.platform != 'ios' && steps.ndk-cache.outputs.cache-hit != 'true'
         run: |
           max_attempts=5
           attempt=1
+
+          # Install NDK
           while [ $attempt -le $max_attempts ]; do
             echo "Attempt $attempt of $max_attempts to install NDK..."
             if sdkmanager "ndk;${{ env.ANDROID_NDK_VERSION }}"; then
               echo "Successfully installed NDK"
-              exit 0
+              break
             fi
             echo "Failed to install NDK on attempt $attempt"
             if [ $attempt -eq $max_attempts ]; then
@@ -673,67 +840,70 @@ jobs:
             attempt=$((attempt + 1))
           done
 
+          # Install CMake (required for native module builds)
+          echo "Installing CMake..."
+          attempt=1
+          while [ $attempt -le $max_attempts ]; do
+            echo "Attempt $attempt of $max_attempts to install CMake..."
+            if sdkmanager "cmake;3.22.1"; then
+              echo "Successfully installed CMake"
+              break
+            fi
+            echo "Failed to install CMake on attempt $attempt"
+            if [ $attempt -eq $max_attempts ]; then
+              echo "All attempts to install CMake failed"
+              exit 1
+            fi
+            # Exponential backoff: 2^attempt seconds
+            wait_time=$((2 ** attempt))
+            echo "Waiting $wait_time seconds before retrying..."
+            sleep $wait_time
+            attempt=$((attempt + 1))
+          done
+
       - name: Set Gradle JVM options
-        if: inputs.platform != 'ios' && env.ACT
+        if: inputs.platform != 'ios' # Apply to CI builds (not just ACT)
         run: |
-          echo "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=1024m -Dfile.encoding=UTF-8" >> ${{ env.APP_PATH }}/android/gradle.properties
+          echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m -Dfile.encoding=UTF-8" >> ${{ env.APP_PATH }}/android/gradle.properties
 
-      - name: Decode Android Secrets
+      - name: Install Python dependencies for Play Store upload
         if: inputs.platform != 'ios'
         run: |
-          echo "${{ secrets.ANDROID_KEYSTORE }}" | base64 --decode > ${{ env.APP_PATH }}${{ env.ANDROID_KEYSTORE_PATH }}
-          echo "${{ secrets.ANDROID_PLAY_STORE_JSON_KEY_BASE64 }}" | base64 --decode > ${{ env.APP_PATH }}${{ env.ANDROID_PLAY_STORE_JSON_KEY_PATH }}
+          python -m pip install --upgrade pip
+          pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
 
-      # run secrets check after keytool has been setup
-      - name: Verify Android Secrets
+      - name: Clone android-passport-nfc-reader
+        if: inputs.platform != 'ios'
+        uses: ./.github/actions/clone-android-passport-nfc-reader
+        with:
+          working_directory: ${{ env.APP_PATH }}
+          selfxyz_internal_pat: ${{ secrets.SELFXYZ_INTERNAL_REPO_PAT }}
+
+      - name: Build Dependencies (Android)
         if: inputs.platform != 'ios'
         run: |
-          # Verify Play Store JSON key base64 secret exists and is valid
-          if [ -z "${{ secrets.ANDROID_PLAY_STORE_JSON_KEY_BASE64 }}" ]; then
-            echo "❌ Error: Play Store JSON key base64 secret cannot be empty"
-            exit 1
-          fi
-          # Verify the base64 can be decoded
-          if ! echo "${{ secrets.ANDROID_PLAY_STORE_JSON_KEY_BASE64 }}" | base64 --decode >/dev/null 2>&1; then
-            echo "❌ Error: Invalid Play Store JSON key base64 format"
-            exit 1
-          fi
-          # Verify keystore file exists and is valid
-          if [ ! -f "${{ env.APP_PATH }}${{ env.ANDROID_KEYSTORE_PATH }}" ]; then
-            echo "❌ Error: Keystore file was not created successfully"
-            exit 1
-          fi
-          # Try to verify the keystore with the provided password
-          if ! keytool -list -v -keystore "${{ env.APP_PATH }}${{ env.ANDROID_KEYSTORE_PATH }}" -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >/dev/null 2>&1; then
-            echo "❌ Error: Invalid keystore password"
-            exit 1
-          fi
-          # Verify the key alias exists
-          if ! keytool -list -v -keystore "${{ env.APP_PATH }}${{ env.ANDROID_KEYSTORE_PATH }}" -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" -alias "${{ secrets.ANDROID_KEY_ALIAS }}" >/dev/null 2>&1; then
-            echo "❌ Error: Key alias '${{ secrets.ANDROID_KEY_ALIAS }}' not found in keystore"
-            exit 1
-          fi
-          # Verify the key password
-          if ! keytool -list -v -keystore "${{ env.APP_PATH }}${{ env.ANDROID_KEYSTORE_PATH }}" -storepass "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" -alias "${{ secrets.ANDROID_KEY_ALIAS }}" -keypass "${{ secrets.ANDROID_KEY_PASSWORD }}" >/dev/null 2>&1; then
-            echo "❌ Error: Invalid key password"
-            exit 1
-          fi
-          echo "✅ All Android secrets verified successfully!"
+          echo "🏗️ Building SDK dependencies..."
+          cd ${{ env.APP_PATH }}
+          yarn workspace @selfxyz/mobile-app run build:deps --silent || { echo "❌ Dependency build failed"; exit 1; }
+          echo "✅ Dependencies built successfully"
 
-      - name: Build and upload to Google Play Internal Testing
+      - name: Build AAB with Fastlane
         if: inputs.platform != 'ios'
         env:
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEYSTORE_PATH: ${{ env.APP_PATH }}${{ env.ANDROID_KEYSTORE_PATH }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
-          ANDROID_PLAY_STORE_JSON_KEY_PATH: ${{ env.APP_PATH }}${{ env.ANDROID_PLAY_STORE_JSON_KEY_PATH }}
-          NODE_OPTIONS: "--max-old-space-size=8192"
-          SLACK_API_TOKEN: ${{ secrets.SLACK_API_TOKEN }}
-          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
-          SLACK_ANNOUNCE_CHANNEL_NAME: ${{ secrets.SLACK_ANNOUNCE_CHANNEL_NAME }}
+          ENABLE_DEBUG_LOGS: ${{ secrets.ENABLE_DEBUG_LOGS }}
+          GOOGLE_SIGNIN_ANDROID_CLIENT_ID: ${{ secrets.GOOGLE_SIGNIN_ANDROID_CLIENT_ID }}
+          GRAFANA_LOKI_PASSWORD: ${{ secrets.GRAFANA_LOKI_PASSWORD }}
+          GRAFANA_LOKI_URL: ${{ secrets.GRAFANA_LOKI_URL }}
+          GRAFANA_LOKI_USERNAME: ${{ secrets.GRAFANA_LOKI_USERNAME }}
+          NODE_OPTIONS: "--max-old-space-size=6144"
+          SEGMENT_KEY: ${{ secrets.SEGMENT_KEY }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
           cd ${{ env.APP_PATH }}
 
@@ -742,25 +912,31 @@ jobs:
           VERSION_BUMP="${{ inputs.version_bump || 'build' }}"
           TEST_MODE="${{ inputs.test_mode || false }}"
 
-          echo "🤖 Deployment Configuration:"
+          echo "🤖 Build Configuration:"
           echo "  - Track: $DEPLOYMENT_TRACK"
           echo "  - Version Bump: $VERSION_BUMP"
           echo "  - Test Mode: $TEST_MODE"
 
-          if [ "$TEST_MODE" = "true" ]; then
-            echo "🧪 Running in TEST MODE - will skip upload to Play Store"
-            bundle exec fastlane android deploy_auto \
-              deployment_track:$DEPLOYMENT_TRACK \
-              version_bump:$VERSION_BUMP \
-              test_mode:true \
-              --verbose
-          else
-            echo "🚀 Deploying to Google Play Store..."
-            bundle exec fastlane android deploy_auto \
-              deployment_track:$DEPLOYMENT_TRACK \
-              version_bump:$VERSION_BUMP \
-              --verbose
-          fi
+          echo "🔨 Building AAB with Fastlane..."
+          bundle exec fastlane android build_only \
+            deployment_track:$DEPLOYMENT_TRACK \
+            version_bump:$VERSION_BUMP \
+            --verbose
+
+      - name: Upload to Google Play Store using WIF
+        if: inputs.platform != 'ios' && inputs.test_mode != true
+        timeout-minutes: 10
+        run: |
+          cd ${{ env.APP_PATH }}
+
+          # Determine deployment track
+          DEPLOYMENT_TRACK="${{ inputs.deployment_track || 'internal' }}"
+
+          echo "🚀 Uploading to Google Play Store using Workload Identity Federation..."
+          python scripts/upload_to_play_store.py \
+            --aab "android/app/build/outputs/bundle/release/app-release.aab" \
+            --package-name "${{ secrets.ANDROID_PACKAGE_NAME }}" \
+            --track "$DEPLOYMENT_TRACK"
 
       # Version updates moved to separate job to avoid race conditions
 
@@ -769,13 +945,6 @@ jobs:
         uses: ./.github/actions/get-version
         with:
           app_path: ${{ env.APP_PATH }}
-
-      - name: Commit updated build version
-        if: ${{ !env.ACT && success() }}
-        uses: ./.github/actions/push-changes
-        with:
-          commit_message: "incrementing android build version for version ${{ env.VERSION }}"
-          commit_paths: "./app/version.json"
 
       - name: Monitor cache usage
         if: always()
@@ -788,8 +957,8 @@ jobs:
             echo "Node modules: $NODE_SIZE"
           fi
 
-          if [ -d "${{ env.APP_PATH }}/vendor/bundle" ]; then
-            GEMS_SIZE=$(du -sh "${{ env.APP_PATH }}/vendor/bundle" | cut -f1)
+          if [ -d "${{ env.APP_PATH }}/ios/vendor/bundle" ]; then
+            GEMS_SIZE=$(du -sh "${{ env.APP_PATH }}/ios/vendor/bundle" | cut -f1)
             echo "Ruby gems: $GEMS_SIZE"
           fi
 
@@ -813,7 +982,7 @@ jobs:
     needs: [build-ios, build-android]
     if: |
       always() &&
-      inputs.test_mode != true &&
+      (inputs.test_mode != true || github.event_name == 'pull_request') &&
       (needs.build-ios.result == 'success' || needs.build-android.result == 'success')
     env:
       APP_PATH: ${{ github.workspace }}/app
@@ -822,6 +991,7 @@ jobs:
         with:
           token: ${{ github.token }}
           fetch-depth: 0
+          ref: dev
       - name: Read and sanitize Node.js version
         shell: bash
         run: |
@@ -867,37 +1037,46 @@ jobs:
             echo "ℹ️ Version already up to date or no version field in version.json"
           fi
 
-      - name: Commit and push version files
+      - name: Create PR with version files
         run: |
-          cd ${{ github.workspace }}
+          set -e
 
-          # Configure git
+          BRANCH_NAME="ci/update-version-${{ github.run_id }}"
+
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           # Check if there are any changes to commit
-          if git diff --quiet app/version.json app/package.json yarn.lock 2>/dev/null; then
-            echo "No changes to version files, skipping commit"
-          else
-            # Stage the changes
-            git add app/version.json app/package.json yarn.lock 2>/dev/null || true
-
-            # Create commit message based on which platforms were deployed
-            COMMIT_MSG="chore: update version files after"
-            if [ "${{ needs.build-ios.result }}" = "success" ] && [ "${{ needs.build-android.result }}" = "success" ]; then
-              COMMIT_MSG="$COMMIT_MSG iOS and Android deployment"
-            elif [ "${{ needs.build-ios.result }}" = "success" ]; then
-              COMMIT_MSG="$COMMIT_MSG iOS deployment"
-            else
-              COMMIT_MSG="$COMMIT_MSG Android deployment"
-            fi
-            COMMIT_MSG="$COMMIT_MSG [skip ci]"
-
-            # Commit and push
-            git commit -m "$COMMIT_MSG"
-            git push
-            echo "✅ Committed version file changes"
+          git add app/version.json app/package.json yarn.lock
+          if [[ -z $(git status -s) ]]; then
+            echo "No version file changes to commit. Skipping PR creation."
+            exit 0
           fi
+
+          # Commit the changes on a temporary local branch
+          git checkout -b temp-for-version-commit
+          git commit -m "chore: update version files after deployment [skip ci]"
+
+          # Create a new branch from dev
+          git fetch origin dev
+          git checkout -b ${BRANCH_NAME} origin/dev
+
+          # Cherry-pick the commit with the version changes
+          git cherry-pick temp-for-version-commit
+
+          # Clean up temporary branch
+          git branch -D temp-for-version-commit
+
+          # Push the new branch and create the PR
+          git push --set-upstream origin ${BRANCH_NAME}
+
+          gh pr create \
+            --base dev \
+            --head ${BRANCH_NAME} \
+            --title "chore: update version files after deployment" \
+            --body "Automated update of version files after successful deployment."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # Create git tags after successful deployment
   create-release-tags:
@@ -906,12 +1085,13 @@ jobs:
       always() &&
       needs.update-version.result == 'success' &&
       (needs.build-ios.result == 'success' || needs.build-android.result == 'success') &&
-      inputs.deployment_track == 'production'
+      (inputs.deployment_track == 'production')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: staging
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure Git

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2025 Social Connect Labs, Inc.
+// SPDX-License-Identifier: BUSL-1.1
+// NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
+
 // Browser-safe exports with explicit tree-shaking friendly imports
 
 // Types
@@ -13,12 +17,6 @@ export type {
   MRZValidation,
   NetworkAdapter,
   Progress,
-  ProofHandle,
-  ProofRequest,
-  RegistrationInput,
-  RegistrationStatus,
-  SDKEvent,
-  SDKEventMap,
   ScanMode,
   ScanOpts,
   ScanResult,
@@ -26,8 +24,6 @@ export type {
   SelfClient,
   StorageAdapter,
   Unsubscribe,
-  ValidationInput,
-  ValidationResult,
   WsAdapter,
   WsConn,
 } from './types/public';
@@ -38,11 +34,30 @@ export type { PassportValidationCallbacks } from './validation/document';
 export type { QRProofOptions } from './qr';
 export type { SdkErrorCategory } from './errors';
 
+export { type ProvingStateType } from './proving/provingMachine';
 export { SCANNER_ERROR_CODES, notImplemented, sdkError } from './errors';
-export { createSelfClient } from './client';
-export { defaultConfig } from './config/defaults';
-export { extractMRZInfo, formatDateToYYMMDD, scanMRZ } from './mrz';
 
+export { SdkEvents } from './types/events';
+
+export { SelfClientContext, SelfClientProvider, usePrepareDocumentProof, useSelfClient } from './context';
+
+export {
+  clearPassportData,
+  getAllDocuments,
+  hasAnyValidRegisteredDocument,
+  loadSelectedDocument,
+  markCurrentDocumentAsRegistered,
+  reStorePassportDataWithRightCSCA,
+} from './documents/utils';
+
+export { createListenersMap, createSelfClient } from './client';
+
+export { defaultConfig } from './config/defaults';
+
+/** @deprecated Use createSelfClient().extractMRZInfo or import from './mrz' */
+export { extractMRZInfo, extractNameFromMRZ, formatDateToYYMMDD, scanMRZ } from './mrz';
+
+export { generateMockDocument, signatureAlgorithmToStrictSignatureAlgorithm } from './mock/generator';
 // Core functions
 export { isPassportDataValid } from './validation/document';
 
@@ -50,6 +65,7 @@ export { mergeConfig } from './config/merge';
 
 export { parseNFCResponse, scanNFC } from './nfc';
 
+export { reactNativeScannerAdapter } from './adapters/react-native/scanner';
 export { scanQRProof } from './qr';
 
 export { webScannerShim } from './adapters/web/shims';
