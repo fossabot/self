@@ -6,7 +6,7 @@ include "../../selfrica/date/isOlderThan.circom";
 include "../../aadhaar/disclose/country_not_in_list.circom";
 include "../../passport/customHashers.circom";
 
-template DISCLOSE_SELFRICA(
+template DISCLOSE_PERSONA(
     MAX_FORBIDDEN_COUNTRIES_LIST_LENGTH
 ){
 
@@ -53,7 +53,7 @@ template DISCLOSE_SELFRICA(
 
   revealed_data[persona_max_length] <== is_older_than_result * majority_age;
 
-  component country_not_in_list_circuit = CountryNotInList(MAX_FORBIDDEN_COUNTRIES_LIST_LENGTH, 2);
+  component country_not_in_list_circuit = CountryNotInList(MAX_FORBIDDEN_COUNTRIES_LIST_LENGTH, 3);
 
   for (var i = 0; i < COUNTRY_LENGTH(); i++) {
         country_not_in_list_circuit.country[i] <== persona_data[COUNTRY_INDEX() + i];

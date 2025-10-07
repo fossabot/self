@@ -3,23 +3,23 @@
  *
  * | Field                | Index | Length |
  * |----------------------|-------|--------|
- * | Country              | 0     | 2      |
- * | ID Type              | 2     | 8      |
- * | ID Number            | 10    | 32     |
- * | Document Number      | 42    | 32     |
- * | Issuance Date        | 74    | 8      |
- * | Expiry Date          | 82    | 8      |
- * | Full Name            | 90    | 64     |
- * | Date of Birth        | 154   | 8      |
- * | Address Subdivision  | 162   | 24     |
- * | Address Postal Code  | 186   | 12     |
- * | Photo Hash           | 198   | 32     |
- * | Phone Number         | 230   | 12     |
- * | Gender               | 242   | 1      |
+ * | Country              | 0     | 3      |
+ * | ID Type              | 3     | 8      |
+ * | ID Number            | 11    | 32     |
+ * | Document Number      | 43    | 32     |
+ * | Issuance Date        | 75    | 8      |
+ * | Expiry Date          | 83    | 8      |
+ * | Full Name            | 91    | 64     |
+ * | Date of Birth        | 155   | 8      |
+ * | Address Subdivision  | 163   | 24     |
+ * | Address Postal Code  | 187   | 12     |
+ * | Photo Hash           | 199   | 32     |
+ * | Phone Number         | 231   | 12     |
+ * | Gender               | 243   | 1      |
  */
 
 export const PERSONA_COUNTRY_INDEX = 0;
-export const PERSONA_COUNTRY_LENGTH = 2;
+export const PERSONA_COUNTRY_LENGTH = 3;
 
 export const PERSONA_ID_TYPE_INDEX = PERSONA_COUNTRY_INDEX + PERSONA_COUNTRY_LENGTH;
 export const PERSONA_ID_TYPE_LENGTH = 8;

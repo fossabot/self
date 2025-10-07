@@ -22,6 +22,7 @@
     "test-disclose": "yarn test-base 'tests/disclose/vc_and_disclose.test.ts' --exit",
     "test-disclose-aadhaar": "yarn test-base 'tests/disclose/vc_and_disclose_aadhaar.test.ts' --exit",
     "test-disclose-selfrica": "yarn test-base 'tests/disclose/vc_and_disclose_selfrica.test.ts' --exit",
+    "test-disclose-persona": "yarn test-base 'tests/disclose/vc_and_disclose_persona.test.ts' --exit",
     "test-disclose-id": "yarn test-base 'tests/disclose/vc_and_disclose_id.test.ts' --exit",
     "test-dsc": "yarn test-base --max-old-space-size=51200 'tests/dsc/dsc.test.ts' --exit",
     "test-ecdsa": "yarn test-base 'tests/utils/ecdsa.test.ts' --exit",

@@ -5,19 +5,19 @@ pragma circom 2.1.9;
  *
  * | Field                | Index | Length |
  * |----------------------|-------|--------|
- * | Country              | 0     | 2      |
- * | ID Type              | 2     | 8      |
- * | ID Number            | 10    | 32     |
- * | Document Number      | 42    | 32     |
- * | Issuance Date        | 74    | 8      |
- * | Expiry Date          | 82    | 8      |
- * | Full Name            | 90    | 64     |
- * | Date of Birth        | 154   | 8      |
- * | Address Subdivision  | 162   | 24     |
- * | Address Postal Code  | 186   | 12     |
- * | Photo Hash           | 198   | 32     |
- * | Phone Number         | 230   | 12     |
- * | Gender               | 242   | 1      |
+ * | Country              | 0     | 3      |
+ * | ID Type              | 3     | 8      |
+ * | ID Number            | 11    | 32     |
+ * | Document Number      | 43    | 32     |
+ * | Issuance Date        | 75    | 8      |
+ * | Expiry Date          | 83    | 8      |
+ * | Full Name            | 91    | 64     |
+ * | Date of Birth        | 155   | 8      |
+ * | Address Subdivision  | 163   | 24     |
+ * | Address Postal Code  | 187   | 12     |
+ * | Photo Hash           | 199   | 32     |
+ * | Phone Number         | 231   | 12     |
+ * | Gender               | 243   | 1      |
  */
 
 function COUNTRY_INDEX() {
@@ -25,7 +25,7 @@ function COUNTRY_INDEX() {
 }
 
 function COUNTRY_LENGTH() {
-    return 2;
+    return 3;
 }
 
 function ID_TYPE_INDEX() {
@@ -126,4 +126,12 @@ function GENDER_LENGTH() {
 
 function PERSONA_MAX_LENGTH() {
     return GENDER_INDEX() + GENDER_LENGTH();
+}
+
+function PERSONA_DATA_PADDED() {
+    return 320;
+}
+
+function PERSONA_ID_PADDED() {
+    return 64;
 }

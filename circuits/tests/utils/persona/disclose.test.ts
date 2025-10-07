@@ -47,7 +47,7 @@ describe('disclose persona test', async () => {
             current_date: ['2', '0', '2', '5', '0', '1', '0', '1'],
             majority_age_ASCII: ['0', '0', '5'].map((x) => x.charCodeAt(0).toString()),
             selector_older_than: '1',
-            forbidden_countries_list: Array(20).fill('0'),
+            forbidden_countries_list: Array(30).fill('0'),
         };
         const w = await circuit.calculateWitness(inputs);
         await circuit.checkConstraints(w);
@@ -61,7 +61,7 @@ describe('disclose persona test', async () => {
             current_date: ['2', '0', '2', '5', '0', '1', '0', '1'],
             majority_age_ASCII: ['0', '0', '5'].map((x) => x.charCodeAt(0).toString()),
             selector_older_than: '1',
-            forbidden_countries_list: Array(20).fill('0'),
+            forbidden_countries_list: Array(30).fill('0'),
         };
 
         const w = await circuit.calculateWitness(inputs);
@@ -103,7 +103,7 @@ describe('disclose persona test', async () => {
             current_date: ['2', '0', '2', '5', '0', '1', '0', '1'],
             majority_age_ASCII: ['0', '0', '5'].map((x) => x.charCodeAt(0).toString()),
             selector_older_than: '0',
-            forbidden_countries_list: Array(20).fill('0'),
+            forbidden_countries_list: Array(30).fill('0'),
         };
 
         const w = await circuit.calculateWitness(inputs);
@@ -124,9 +124,9 @@ describe('disclose persona test', async () => {
         const gender = revealedDataUnpacked[PERSONA_GENDER_INDEX];
         assert(gender.charCodeAt(0) === 0, 'Gender should be null (not revealed)');
 
-        const country = revealedDataUnpacked.slice(PERSONA_COUNTRY_INDEX, PERSONA_COUNTRY_INDEX + 2);
+        const country = revealedDataUnpacked.slice(PERSONA_COUNTRY_INDEX, PERSONA_COUNTRY_INDEX + 3);
         const countryStr = country.map(c => c.charCodeAt(0) === 0 ? '' : c).join('');
-        assert(countryStr === 'US', 'Country should be US');
+        assert(countryStr === 'USA', 'Country should be USA');
 
         const idType = revealedDataUnpacked.slice(PERSONA_ID_TYPE_INDEX, PERSONA_ID_TYPE_INDEX + 8);
         const idTypeStr = idType.map(c => c.charCodeAt(0) === 0 ? '' : c).join('');
@@ -177,7 +177,7 @@ describe('disclose persona test', async () => {
             current_date: ['2', '0', '2', '5', '0', '1', '0', '1'],
             majority_age_ASCII: ['A', 'B', 'C'].map((x) => x.charCodeAt(0).toString()),
             selector_older_than: '0',
-            forbidden_countries_list: Array(20).fill('0'),
+            forbidden_countries_list: Array(30).fill('0'),
         };
 
         try {
@@ -199,7 +199,8 @@ describe('disclose persona test', async () => {
             forbidden_countries_list: [
                 'U'.charCodeAt(0).toString(),
                 'S'.charCodeAt(0).toString(),
-                ...Array(18).fill('0')
+                'A'.charCodeAt(0).toString(),
+                ...Array(27).fill('0')
             ]
         };
 

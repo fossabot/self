@@ -45,3 +45,17 @@ export const PersonaDataLimits = {
   phoneNumber: PERSONA_PHONE_NUMBER_LENGTH,
   gender: PERSONA_GENDER_LENGTH,
 };
+
+export interface PersonaDiscloseInput {
+  PersonaID_data_padded: string[];
+  compressed_disclose_sel: string[];
+  pubKey: string[];
+  msg_sig: string[];
+  id_num_sig: string[];
+  scope: string;
+  forbidden_countries_list: string[];
+  user_identifier: string;
+  current_date: string[];
+  majority_age_ASCII: string[];
+  selector_older_than: string;
+}
