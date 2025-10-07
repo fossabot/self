@@ -26,6 +26,7 @@
     "test-dsc": "yarn test-base --max-old-space-size=51200 'tests/dsc/dsc.test.ts' --exit",
     "test-ecdsa": "yarn test-base 'tests/utils/ecdsa.test.ts' --exit",
     "test-is-older-than": "yarn test-base 'tests/other_circuits/is_older_than.test.ts' --exit",
+    "test-persona-disclose": "yarn test-base 'tests/utils/persona/disclose.test.ts' --exit",
     "test-is-valid": "yarn test-base 'tests/other_circuits/is_valid.test.ts' --exit",
     "test-not-in-list": "yarn test-base 'tests/other_circuits/prove_country_is_not_in_list.test.ts' --exit",
     "test-ofac": "yarn test-base 'tests/ofac/ofac.test.ts' --exit",
