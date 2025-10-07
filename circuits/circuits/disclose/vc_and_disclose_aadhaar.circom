@@ -186,7 +186,7 @@ template VC_AND_DISCLOSE_Aadhaar(MAX_FORBIDDEN_COUNTRIES_LIST_LENGTH,nLevels, na
     var revealed_data_packed_chunk_length = computeIntChunkLength(119);
     signal output revealData_packed[revealed_data_packed_chunk_length] <== PackBytes(119)(revealData);
 
-    component country_not_in_list_circuit = CountryNotInList(MAX_FORBIDDEN_COUNTRIES_LIST_LENGTH);
+    component country_not_in_list_circuit = CountryNotInList(MAX_FORBIDDEN_COUNTRIES_LIST_LENGTH, 3);
 
     country_not_in_list_circuit.country[0] <== 73;
     country_not_in_list_circuit.country[1] <== 78;

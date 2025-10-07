@@ -81,7 +81,7 @@ template DISCLOSE_SELFRICA(
     revealed_data[selfrica_max_length + 3] <== older_than_verified[1] * selector_older_than;
     revealed_data[selfrica_max_length + 4] <== older_than_verified[2] * selector_older_than;
 
-    component country_not_in_list_circuit = CountryNotInList(MAX_FORBIDDEN_COUNTRIES_LIST_LENGTH);
+    component country_not_in_list_circuit = CountryNotInList(MAX_FORBIDDEN_COUNTRIES_LIST_LENGTH, 3);
 
     for (var i = 0; i < country_length; i++) {
         country_not_in_list_circuit.country[i] <== smile_data[country_index + i];

@@ -102,7 +102,7 @@ template DISCLOSE(
     signal output revealedData_packed[3] <== PackBytes(93)(revealedData);
 
     var chunkLength = computeIntChunkLength(MAX_FORBIDDEN_COUNTRIES_LIST_LENGTH * 3);
-    component proveCountryIsNotInList = CountryNotInList(MAX_FORBIDDEN_COUNTRIES_LIST_LENGTH);
+    component proveCountryIsNotInList = CountryNotInList(MAX_FORBIDDEN_COUNTRIES_LIST_LENGTH, 3);
     proveCountryIsNotInList.country[0] <== dg1[7];
     proveCountryIsNotInList.country[1] <== dg1[8];
     proveCountryIsNotInList.country[2] <== dg1[9];
