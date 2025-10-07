@@ -3,10 +3,10 @@ import * as path from 'path';
 import { expect } from 'chai';
 import { describe, before } from 'mocha';
 import { PERSONA_DUMMY_INPUT,generatePersonaCircuitInput } from '@selfxyz/common/utils/persona/utilis';
+import { customHasher } from '@selfxyz/common/utils/hash';
+
 describe('should verify signature on random inputs', () => {
     let circuit;
-
-
     before(async function () {
         this.timeout(0);
         circuit = await wasmTester(
@@ -29,12 +29,25 @@ describe('should verify signature on random inputs', () => {
     it('should compile and load the circuit', async function () {
         expect(circuit).to.not.be.undefined;
     });
-    it('should verify for correct Circuit Input and output ', async function () {
+
+    it('should verify for correct Circuit Input ', async function () {
       this.timeout(0);
       const input = generatePersonaCircuitInput(PERSONA_DUMMY_INPUT, ["gender", "dob"]);
       const witness = await circuit.calculateWitness(input);
       await circuit.checkConstraints(witness);
     });
+
+    it('should output correct nullifier', async function () {
+        this.timeout(0);
+        const input = generatePersonaCircuitInput(PERSONA_DUMMY_INPUT, ["gender", "dob"]);
+        const witness = await circuit.calculateWitness(input);
+        await circuit.checkConstraints(witness);
+
+        const nullifier = customHasher(input.id_num_sig);
+        const nullifier_circom = (await circuit.getOutput(witness, ['nullifier'])).nullifier;
+        expect(nullifier_circom).to.equal(nullifier);
+      });
+      
     it('should fail for incorrect Input  ', async function () {
         this.timeout(0);
         const input = generatePersonaCircuitInput(PERSONA_DUMMY_INPUT, ["gender", "dob"]);
@@ -47,6 +60,4 @@ describe('should verify signature on random inputs', () => {
             expect(error.message).to.include('Assert Failed');
         }
     });
-
-
 });

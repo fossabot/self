@@ -43,16 +43,16 @@ template VC_AND_DISCLOSE(
     component low_bits = Num2Bits(compressed_bit_len);
     low_bits.in <== compressed_disclose_sel[0];
 
-    // Convert disclose_sel_high (next 122 bits) to bit array
-    component high_bits = Num2Bits(compressed_bit_len + 1);
+    // Convert disclose_sel_high (next 123 bits) to bit array
+    component high_bits = Num2Bits(compressed_bit_len + 2);
     high_bits.in <== compressed_disclose_sel[1];
 
     // Combine the bit arrays (little-endian format)
     for(var i = 0; i < compressed_bit_len; i++){
         disclose_sel[i] <== low_bits.out[i];
     }
-    for(var i = 0; i < compressed_bit_len + 1; i++){
-        disclose_sel[compressed_bit_len + i] <== high_bits.out[i];
+    for(var i = compressed_bit_len; i < persona_length ; i++){
+        disclose_sel[i] <== high_bits.out[i - compressed_bit_len];
     }
 
     component msg_hasher = Sha256Bytes(PERSONA_DATA_PADDED());
