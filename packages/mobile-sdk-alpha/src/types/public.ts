@@ -20,6 +20,13 @@ export interface Config {
     scanMs?: number;
   };
   features?: Record<string, boolean>;
+  theme?: {
+    fonts?: {
+      body?: string;
+      heading?: string;
+      monospace?: string;
+    };
+  };
 }
 export interface CryptoAdapter {
   hash(input: Uint8Array, algo?: 'sha256'): Promise<Uint8Array>;

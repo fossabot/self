@@ -12,10 +12,10 @@ import {
   useCountries,
   useSelfClient,
 } from '@selfxyz/mobile-sdk-alpha';
+import { BodyText } from '@selfxyz/mobile-sdk-alpha/typography';
 
 import { RoundFlag } from '@/components/flag/RoundFlag';
 import { DocumentFlowNavBar } from '@/components/NavBar/DocumentFlowNavBar';
-import { BodyText } from '@/components/typography/BodyText';
 import { black, slate100, slate500 } from '@/utils/colors';
 import { advercase, dinot } from '@/utils/fonts';
 import { buttonTap } from '@/utils/haptic';

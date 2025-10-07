@@ -17,8 +17,7 @@ import { getPreRegistrationDescription } from '@selfxyz/mobile-sdk-alpha/onboard
 import successAnimation from '@/assets/animations/loading/success.json';
 import { PrimaryButton } from '@/components/buttons/PrimaryButton';
 import { DelayedLottieView } from '@/components/DelayedLottieView';
-import Description from '@/components/typography/Description';
-import { Title } from '@/components/typography/Title';
+import { Description, Title } from '@selfxyz/mobile-sdk-alpha/typography';
 import useHapticNavigation from '@/hooks/useHapticNavigation';
 import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
 import { styles } from '@/screens/prove/ProofRequestStatusScreen';

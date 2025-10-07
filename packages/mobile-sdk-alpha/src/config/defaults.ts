@@ -2,10 +2,19 @@
 // SPDX-License-Identifier: BUSL-1.1
 // NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
+import { Platform } from 'react-native';
+
 import type { Config } from '../types/public';
 
 export const defaultConfig: Required<Config> = {
   timeouts: { scanMs: 60000 },
   // in future this can be used to enable/disable experimental features
   features: {},
+  theme: {
+    fonts: {
+      body: 'DINOT-Medium',
+      heading: 'Advercase-Regular',
+      monospace: Platform.OS === 'ios' ? 'IBM Plex Mono' : 'IBMPlexMono-Regular',
+    },
+  },
 };

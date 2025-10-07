@@ -7,8 +7,7 @@ import { YStack } from 'tamagui';
 import { useNavigation } from '@react-navigation/native';
 
 import { PrimaryButton } from '@/components/buttons/PrimaryButton';
-import Description from '@/components/typography/Description';
-import { Title } from '@/components/typography/Title';
+import { Description, Title } from '@selfxyz/mobile-sdk-alpha/typography';
 import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
 import { black, white } from '@/utils/colors';
 import { confirmTap } from '@/utils/haptic';

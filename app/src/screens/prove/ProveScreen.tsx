@@ -28,8 +28,7 @@ import { ProofEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
 import miscAnimation from '@/assets/animations/loading/misc.json';
 import { HeldPrimaryButtonProveScreen } from '@/components/buttons/HeldPrimaryButtonProveScreen';
 import Disclosures from '@/components/Disclosures';
-import { BodyText } from '@/components/typography/BodyText';
-import { Caption } from '@/components/typography/Caption';
+import { BodyText, Caption } from '@selfxyz/mobile-sdk-alpha/typography';
 import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
 import {
   setDefaultDocumentTypeIfNeeded,

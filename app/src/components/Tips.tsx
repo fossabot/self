@@ -5,7 +5,7 @@
 import React from 'react';
 import { Text, View } from 'tamagui';
 
-import { Caption } from '@/components/typography/Caption';
+import { Caption } from '@selfxyz/mobile-sdk-alpha/typography';
 import { slate500 } from '@/utils/colors';
 
 export interface TipProps {

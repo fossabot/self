@@ -12,7 +12,7 @@ import type { AadhaarData } from '@selfxyz/common/utils/types';
 import { useSelfClient } from '@selfxyz/mobile-sdk-alpha';
 import { DocumentEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
 
-import { Caption } from '@/components/typography/Caption';
+import { Caption } from '@selfxyz/mobile-sdk-alpha/typography';
 import { usePassport } from '@/providers/passportDataProvider';
 import { black, slate200, white } from '@/utils/colors';
 import { extraYPadding } from '@/utils/constants';

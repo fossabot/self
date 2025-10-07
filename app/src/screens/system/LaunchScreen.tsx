@@ -11,8 +11,7 @@ import { Anchor, Text, YStack } from 'tamagui';
 import { AppEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
 
 import AbstractButton from '@/components/buttons/AbstractButton';
-import { BodyText } from '@/components/typography/BodyText';
-import { Caption } from '@/components/typography/Caption';
+import { BodyText, Caption } from '@selfxyz/mobile-sdk-alpha/typography';
 import { privacyUrl, termsUrl } from '@/consts/links';
 import useConnectionModal from '@/hooks/useConnectionModal';
 import useHapticNavigation from '@/hooks/useHapticNavigation';

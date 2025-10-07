@@ -6,7 +6,7 @@ import React, { useEffect } from 'react';
 
 import type { TipProps } from '@/components/Tips';
 import Tips from '@/components/Tips';
-import { Caption } from '@/components/typography/Caption';
+import { Caption } from '@selfxyz/mobile-sdk-alpha/typography';
 import useHapticNavigation from '@/hooks/useHapticNavigation';
 import Activity from '@/images/icons/activity.svg';
 import PassportCameraBulb from '@/images/icons/passport_camera_bulb.svg';

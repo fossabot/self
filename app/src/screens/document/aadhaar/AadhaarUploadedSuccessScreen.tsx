@@ -10,7 +10,7 @@ import { useSelfClient } from '@selfxyz/mobile-sdk-alpha';
 import { AadhaarEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
 
 import { PrimaryButton } from '@/components/buttons/PrimaryButton';
-import { BodyText } from '@/components/typography/BodyText';
+import { BodyText } from '@selfxyz/mobile-sdk-alpha/typography';
 import BlueCheckIcon from '@/images/blue_check.svg';
 import { useSafeAreaInsets } from '@/mocks/react-native-safe-area-context';
 import { black, slate100, slate200, slate500, white } from '@/utils/colors';

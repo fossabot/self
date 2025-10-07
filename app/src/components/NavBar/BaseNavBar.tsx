@@ -9,7 +9,7 @@ import type { TextProps, ViewProps, XStackProps } from 'tamagui';
 import { Button, View, XStack } from 'tamagui';
 import { ChevronLeft, X } from '@tamagui/lucide-icons';
 
-import { Title } from '@/components/typography/Title';
+import { Title } from '@selfxyz/mobile-sdk-alpha/typography';
 
 interface NavBarProps extends XStackProps {
   children: React.ReactNode;

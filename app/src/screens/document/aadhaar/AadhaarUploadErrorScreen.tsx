@@ -13,7 +13,7 @@ import { getErrorMessages } from '@selfxyz/mobile-sdk-alpha/onboarding/import-aa
 
 import { PrimaryButton } from '@/components/buttons/PrimaryButton';
 import { SecondaryButton } from '@/components/buttons/SecondaryButton';
-import { BodyText } from '@/components/typography/BodyText';
+import { BodyText } from '@selfxyz/mobile-sdk-alpha/typography';
 import WarningIcon from '@/images/warning.svg';
 import { useSafeAreaInsets } from '@/mocks/react-native-safe-area-context';
 import { black, slate100, slate200, slate500, white } from '@/utils/colors';

@@ -68,6 +68,12 @@
       "react-native": "./dist/esm/hooks/index.js",
       "import": "./dist/esm/hooks/index.js",
       "require": "./dist/cjs/hooks/index.cjs"
+    },
+    "./typography": {
+      "types": "./dist/esm/components/typography/index.d.ts",
+      "react-native": "./dist/esm/components/typography/index.js",
+      "import": "./dist/esm/components/typography/index.js",
+      "require": "./dist/cjs/components/typography/index.cjs"
     }
   },
   "main": "./dist/cjs/index.cjs",

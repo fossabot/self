@@ -14,7 +14,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Bug, FileText } from '@tamagui/lucide-icons';
 
 import { pressedStyle } from '@/components/buttons/pressedStyle';
-import { BodyText } from '@/components/typography/BodyText';
+import { BodyText } from '@selfxyz/mobile-sdk-alpha/typography';
 import {
   appStoreUrl,
   gitHubUrl,

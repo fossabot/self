@@ -109,3 +109,18 @@ export { scanQRProof } from './qr';
 
 export { useCountries } from './documents/useCountries';
 export { webScannerShim } from './adapters/web/shims';
+
+// Typography components
+export {
+  Additional,
+  BodyText,
+  Caption,
+  Caution,
+  Description,
+  DescriptionTitle,
+  SubHeader,
+  Title,
+  typography,
+  TypographyProvider,
+  useTypographyTheme,
+} from './components/typography';

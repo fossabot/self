@@ -12,9 +12,7 @@ import { useSelfClient } from '@selfxyz/mobile-sdk-alpha';
 import { PrimaryButton } from '@/components/buttons/PrimaryButton';
 import { SecondaryButton } from '@/components/buttons/SecondaryButton';
 import ButtonsContainer from '@/components/ButtonsContainer';
-import { BodyText } from '@/components/typography/BodyText';
-import Description from '@/components/typography/Description';
-import { Title } from '@/components/typography/Title';
+import { BodyText, Description, Title } from '@selfxyz/mobile-sdk-alpha/typography';
 import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
 import { white } from '@/utils/colors';
 

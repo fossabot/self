@@ -9,7 +9,7 @@ import { ScrollView, YStack } from 'tamagui';
 
 import { PrimaryButton } from '@/components/buttons/PrimaryButton';
 import { SecondaryButton } from '@/components/buttons/SecondaryButton';
-import { Title } from '@/components/typography/Title';
+import { Title } from '@selfxyz/mobile-sdk-alpha/typography';
 import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
 import { white } from '@/utils/colors';
 

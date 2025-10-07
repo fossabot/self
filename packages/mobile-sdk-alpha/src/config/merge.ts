@@ -10,5 +10,13 @@ export function mergeConfig(base: Required<Config>, override: Config): Required<
     ...override,
     timeouts: { ...base.timeouts, ...(override.timeouts ?? {}) },
     features: { ...base.features, ...(override.features ?? {}) },
+    theme: {
+      ...base.theme,
+      ...override.theme,
+      fonts: {
+        ...base.theme.fonts,
+        ...(override.theme?.fonts ?? {}),
+      },
+    },
   };
 }

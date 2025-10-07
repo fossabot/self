@@ -14,7 +14,7 @@ import { useSelfClient } from '@selfxyz/mobile-sdk-alpha';
 import { BackupEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
 
 import { SecondaryButton } from '@/components/buttons/SecondaryButton';
-import Description from '@/components/typography/Description';
+import { Description } from '@selfxyz/mobile-sdk-alpha/typography';
 import Paste from '@/images/icons/paste.svg';
 import { useAuth } from '@/providers/authProvider';
 import {

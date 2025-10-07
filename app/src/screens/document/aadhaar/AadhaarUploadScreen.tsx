@@ -13,7 +13,7 @@ import { AadhaarEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
 import { useAadhaar } from '@selfxyz/mobile-sdk-alpha/onboarding/import-aadhaar';
 
 import { PrimaryButton } from '@/components/buttons/PrimaryButton';
-import { BodyText } from '@/components/typography/BodyText';
+import { BodyText } from '@selfxyz/mobile-sdk-alpha/typography';
 import { useModal } from '@/hooks/useModal';
 import AadhaarImage from '@/images/512w.png';
 import { useSafeAreaInsets } from '@/mocks/react-native-safe-area-context';

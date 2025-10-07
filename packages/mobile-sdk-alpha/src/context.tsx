@@ -5,6 +5,7 @@
 import { createContext, type PropsWithChildren, useContext, useMemo } from 'react';
 
 import { createSelfClient } from './client';
+import { TypographyProvider } from './components/typography/context';
 import { SdkEvents } from './types/events';
 import type { Adapters, Config, SelfClient } from './types/public';
 
@@ -53,7 +54,13 @@ export function SelfClientProvider({
 }: PropsWithChildren<SelfClientProviderProps>) {
   const client = useMemo(() => createSelfClient({ config, adapters, listeners }), [config, adapters, listeners]);
 
-  return <SelfClientContext.Provider value={client}>{children}</SelfClientContext.Provider>;
+  return (
+    <SelfClientContext.Provider value={client}>
+      <TypographyProvider theme={config.theme}>
+        {children}
+      </TypographyProvider>
+    </SelfClientContext.Provider>
+  );
 }
 
 /**

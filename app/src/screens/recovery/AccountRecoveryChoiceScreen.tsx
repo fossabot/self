@@ -12,9 +12,7 @@ import { BackupEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
 
 import { PrimaryButton } from '@/components/buttons/PrimaryButton';
 import { SecondaryButton } from '@/components/buttons/SecondaryButton';
-import { Caption } from '@/components/typography/Caption';
-import Description from '@/components/typography/Description';
-import { Title } from '@/components/typography/Title';
+import { Caption, Description, Title } from '@selfxyz/mobile-sdk-alpha/typography';
 import useHapticNavigation from '@/hooks/useHapticNavigation';
 import Keyboard from '@/images/icons/keyboard.svg';
 import RestoreAccountSvg from '@/images/icons/restore_account.svg';

@@ -34,7 +34,15 @@ type GlobalCrypto = { crypto?: { subtle?: Crypto['subtle'] } };
  * - Web Crypto hashing with a stub signer
  */
 export const SelfClientProvider = ({ children }: PropsWithChildren) => {
-  const config = useMemo(() => ({}), []);
+  const config = useMemo(() => ({
+    theme: {
+      fonts: {
+        body: 'DINOT-Medium',
+        heading: 'Advercase-Regular',
+        monospace: Platform.OS === 'ios' ? 'IBM Plex Mono' : 'IBMPlexMono-Regular',
+      },
+    },
+  }), []);
   const adapters: Adapters = useMemo(
     () => ({
       scanner:
