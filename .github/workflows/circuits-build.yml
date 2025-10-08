@@ -20,6 +20,11 @@ on:
         required: false
         type: string
         default: ''
+      run-id:
+        description: 'Run ID to download artifacts from (optional). If provided, will download artifacts from that specific run instead of the latest.'
+        required: false
+        type: string
+        default: ''
 
 concurrency:
   group: circuits-build-${{ github.workflow }}-${{ github.ref }}
@@ -156,6 +161,8 @@ jobs:
         with:
           name: circuits
           path: output/
+          # If run-id is provided, download from that specific run, otherwise use latest
+          run-id: ${{ inputs.run-id != '' && inputs.run-id || '' }}
         continue-on-error: true
 
       - name: Build cpp circuits
