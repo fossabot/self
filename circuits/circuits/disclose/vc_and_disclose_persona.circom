@@ -16,7 +16,7 @@ template VC_AND_DISCLOSE(
 ) {
     var persona_length = PERSONA_MAX_LENGTH();
     var country_length = COUNTRY_LENGTH();
-    var compressed_bit_len = 121;
+    var compressed_bit_len = persona_length/2;
 
     signal input PersonaID_data_padded[PERSONA_DATA_PADDED()];
     signal input compressed_disclose_sel[2];
@@ -39,12 +39,12 @@ template VC_AND_DISCLOSE(
     // Convert the two decimal inputs back to bit array
     signal disclose_sel[persona_length];
 
-    // Convert disclose_sel_low (first 121 bits) to bit array
+    // Convert disclose_sel_low (first 122 bits) to bit array
     component low_bits = Num2Bits(compressed_bit_len);
     low_bits.in <== compressed_disclose_sel[0];
 
-    // Convert disclose_sel_high (next 123 bits) to bit array
-    component high_bits = Num2Bits(compressed_bit_len + 2);
+    // Convert disclose_sel_high (next 122 bits) to bit array
+    component high_bits = Num2Bits(compressed_bit_len);
     high_bits.in <== compressed_disclose_sel[1];
 
     // Combine the bit arrays (little-endian format)
@@ -132,6 +132,7 @@ component main {
     public [
         scope,
         user_identifier,
-        current_date
+        current_date,
+        pubKey
     ]
-} = VC_AND_DISCLOSE(10, 121, 17);
+} = VC_AND_DISCLOSE(40, 121, 17);

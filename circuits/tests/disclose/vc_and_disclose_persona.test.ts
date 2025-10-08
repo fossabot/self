@@ -47,7 +47,7 @@ describe('should verify signature on random inputs', () => {
         const nullifier_circom = (await circuit.getOutput(witness, ['nullifier'])).nullifier;
         expect(nullifier_circom).to.equal(nullifier);
       });
-      
+
     it('should fail for incorrect Input  ', async function () {
         this.timeout(0);
         const input = generatePersonaCircuitInput(PERSONA_DUMMY_INPUT, ["gender", "dob"]);

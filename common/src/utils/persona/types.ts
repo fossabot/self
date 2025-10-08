@@ -15,7 +15,7 @@ import {
 } from './constants.js';
 
 export interface PersonaData {
-  country: string;              // 2 bytes - ISO-3166-1 alpha-2
+  country: string;              // 3 bytes - ISO-3166-1 alpha-2
   idType: string;               // 8 bytes - id-class (pp, dl, nric, tribalid)
   idNumber: string;             // 32 bytes - identification-number
   documentNumber: string;       // 32 bytes - document-number (may be blank)

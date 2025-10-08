@@ -12,8 +12,8 @@ export const splitDiscloseSelPersona = (disclose_sel: string[]): string[] => {
   }
 
   // Split into two arrays of 133 bits each
-  const disclose_sel_low_bits = disclose_sel.slice(0, 121);
-  const disclose_sel_high_bits = disclose_sel.slice(121, PERSONA_MAX_LENGTH);
+  const disclose_sel_low_bits = disclose_sel.slice(0, PERSONA_MAX_LENGTH/2);
+  const disclose_sel_high_bits = disclose_sel.slice(PERSONA_MAX_LENGTH/2, PERSONA_MAX_LENGTH);
 
   // Convert little-endian bit arrays to decimal
   const bitsToDecimal = (bits: string[]): string => {
@@ -134,7 +134,7 @@ export const generatePersonaCircuitInput = (personaData: PersonaData, selector_f
     msg_sig: splitToWords(sigBigInt, 121, 17),
     scope: '0',
     id_num_sig: splitToWords(nullifierSigBigInt, 121, 17),
-    forbidden_countries_list: [...Array(30)].map((x) => '0'),
+    forbidden_countries_list: [...Array(120)].map((x) => '0'),
     user_identifier: '0',
     current_date: ['2', '0', '2', '5', '0', '1', '0', '1'],
     majority_age_ASCII: ['0', '0', '5'].map((x) => x.charCodeAt(0).toString()),
