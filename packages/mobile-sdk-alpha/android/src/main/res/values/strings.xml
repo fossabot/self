@@ -27,7 +27,7 @@
     <string name="label_passport">Passport</string>
     <string name="label_not_available">NA</string>
 
-    <string name="name">%1s %2s</string>
+    <string name="name" formatted="false">%1s %2s</string>
 
     <string name="doc_number">Doc Number: %1s</string>
     <string name="doc_dob">Date of Birth: %1s</string>

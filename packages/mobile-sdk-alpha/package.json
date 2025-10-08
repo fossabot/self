@@ -76,13 +76,14 @@
   "types": "./dist/esm/index.d.ts",
   "files": [
     "dist",
-    "android",
+    "dist/android",
     "ios",
     "mobile-sdk-alpha.podspec",
     "react-native.config.cjs"
   ],
   "scripts": {
     "build": "rm -rf dist && tsup && yarn postbuild",
+    "build:android": "sh ./scripts/build-android.sh",
     "postbuild": "node ./scripts/postBuild.mjs",
     "fmt": "prettier --check .",
     "fmt:fix": "prettier --write .",
