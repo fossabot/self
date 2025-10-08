@@ -762,14 +762,17 @@ const processNameAndDobSelfrica = (entry: any, i: number): bigint => {
 
   // console.log("name dob hash in utils", poseidon2([dobHash, nameHash]));
   return generateSmallKey(poseidon2([dobHash, nameHash]));
-}
+};
 
 export const getNameDobLeafSelfrica = (name: string, dob: string) => {
-  const paddedName = name.padEnd(40, '\0').split('').map(char => char.charCodeAt(0));
+  const paddedName = name
+    .padEnd(40, '\0')
+    .split('')
+    .map((char) => char.charCodeAt(0));
   const nameHash = BigInt(packBytesAndPoseidon(paddedName));
   const dobHash = BigInt(poseidon8(stringToAsciiBigIntArray(dob)));
   return generateSmallKey(poseidon2([dobHash, nameHash]));
-}
+};
 
 const processNameSelfrica = (firstName: string, lastName: string, i: number): bigint => {
   firstName = firstName.replace(/'/g, '');
@@ -780,9 +783,12 @@ const processNameSelfrica = (firstName: string, lastName: string, i: number): bi
   lastName = lastName.replace(/\./g, '');
 
   //TODO: check if smile id does first name and last name || last name and first name
-  const nameArr = (lastName + ' ' + firstName).padEnd(40, '\0').split('').map(char => char.charCodeAt(0));
+  const nameArr = (lastName + ' ' + firstName)
+    .padEnd(40, '\0')
+    .split('')
+    .map((char) => char.charCodeAt(0));
   return BigInt(packBytesAndPoseidon(nameArr));
-}
+};
 
 const processDobSelfrica = (day: string, month: string, year: string, i: number): bigint => {
   const monthMap: { [key: string]: string } = {
@@ -804,15 +810,18 @@ const processDobSelfrica = (day: string, month: string, year: string, i: number)
   const dob = year + month + day;
   let arr = stringToAsciiBigIntArray(dob);
   return BigInt(poseidon8(arr));
-}
+};
 
 export const getNameYobLeafSelfrica = (name: string, yob: string) => {
-  const paddedName = name.padEnd(40, '\0').split('').map(char => char.charCodeAt(0));
+  const paddedName = name
+    .padEnd(40, '\0')
+    .split('')
+    .map((char) => char.charCodeAt(0));
   const nameHash = BigInt(packBytesAndPoseidon(paddedName));
 
   const yearHash = processYearSelfrica(yob, 0);
   return generateSmallKey(poseidon2([yearHash, nameHash]));
-}
+};
 
 const processNameAndYobSelfrica = (entry: any, i: number): bigint => {
   const firstName = entry.First_Name;
@@ -826,9 +835,9 @@ const processNameAndYobSelfrica = (entry: any, i: number): bigint => {
   const nameHash = processNameSelfrica(firstName, lastName, i);
   const yearHash = processYearSelfrica(year, i);
   return generateSmallKey(poseidon2([yearHash, nameHash]));
-}
+};
 
 const processYearSelfrica = (year: string, i: number): bigint => {
   const yearArr = stringToAsciiBigIntArray(year);
   return BigInt(poseidon4(yearArr));
-}
+};

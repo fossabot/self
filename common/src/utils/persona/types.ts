@@ -15,19 +15,19 @@ import {
 } from './constants.js';
 
 export interface PersonaData {
-  country: string;              // 3 bytes - ISO-3166-1 alpha-2
-  idType: string;               // 8 bytes - id-class (pp, dl, nric, tribalid)
-  idNumber: string;             // 32 bytes - identification-number
-  documentNumber: string;       // 32 bytes - document-number (may be blank)
-  issuanceDate: string;         // 8 bytes - issue-date as YYYYMMDD
-  expiryDate: string;           // 8 bytes - expiration-date as YYYYMMDD
-  fullName: string;             // 64 bytes - name-first + name-middle? + name-last
-  dob: string;                  // 8 bytes - birthdate as YYYYMMDD
-  addressSubdivision: string;   // 24 bytes - address-subdivision
-  addressPostalCode: string;    // 12 bytes - address-postal-code
-  photoHash: string;            // 32 bytes - SHA-256 of stored ID image
-  phoneNumber: string;          // 12 bytes - E.164 format
-  gender: string;               // 1 byte - sex mapped to M/F/X/-
+  country: string; // 3 bytes - ISO-3166-1 alpha-2
+  idType: string; // 8 bytes - id-class (pp, dl, nric, tribalid)
+  idNumber: string; // 32 bytes - identification-number
+  documentNumber: string; // 32 bytes - document-number (may be blank)
+  issuanceDate: string; // 8 bytes - issue-date as YYYYMMDD
+  expiryDate: string; // 8 bytes - expiration-date as YYYYMMDD
+  fullName: string; // 64 bytes - name-first + name-middle? + name-last
+  dob: string; // 8 bytes - birthdate as YYYYMMDD
+  addressSubdivision: string; // 24 bytes - address-subdivision
+  addressPostalCode: string; // 12 bytes - address-postal-code
+  photoHash: string; // 32 bytes - SHA-256 of stored ID image
+  phoneNumber: string; // 12 bytes - E.164 format
+  gender: string; // 1 byte - sex mapped to M/F/X/-
 }
 
 export const PersonaDataLimits = {
