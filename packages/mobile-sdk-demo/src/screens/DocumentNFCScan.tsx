@@ -6,7 +6,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { getSKIPEM, initPassportDataParsing } from '@selfxyz/common';
-import { storePassportData, useSelfClient, type NFCScanResult } from '@selfxyz/mobile-sdk-alpha';
+import { storePassportData, useSelfClient } from '@selfxyz/mobile-sdk-alpha';
 
 import ScreenLayout from '../components/ScreenLayout';
 
