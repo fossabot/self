@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 // NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
-import { DocumentCategory } from '@selfxyz/common';
+import type { DocumentCategory } from '@selfxyz/common';
 
 import type { NFCScanContext, ProofContext } from '../proving/internal/logging';
 import type { LogLevel, Progress } from './public';
@@ -22,6 +22,20 @@ export enum SdkEvents {
    * **Recommended:** Use this to show progress indicators or loading states to improve user experience.
    */
   PROGRESS = 'PROGRESS',
+
+  /**
+   * Emitted when Aadhaar QR code upload is successful.
+   *
+   * **Required:** Navigate to the AadhaarUploadSuccess screen to inform users of the successful upload.
+   */
+  PROVING_AADHAAR_UPLOAD_SUCCESS = 'PROVING_AADHAAR_UPLOAD_SUCCESS',
+
+  /**
+   * Emitted when Aadhaar QR code upload fails.
+   *
+   * **Required:** Navigate to the AadhaarUploadError screen to inform users of the failure and provide troubleshooting steps.
+   */
+  PROVING_AADHAAR_UPLOAD_FAILURE = 'PROVING_AADHAAR_UPLOAD_FAILURE',
 
   /**
    * Emitted when no passport data is found on the device during initialization.
@@ -54,7 +68,7 @@ export enum SdkEvents {
    * Emitted when a passport from an unsupported country or document type is detected during validation.
    *
    * **Required:** Inform users that their document is not currently supported.
-   * **Recommended:** Navigate to an unsupported document screen showing the detected country code and
+   * **Recommended:** Navigate to an unsupported document / ComingSoon screen showing the detected country code and
    * document category, and provide guidance on alternative verification methods if available.
    */
   PROVING_PASSPORT_NOT_SUPPORTED = 'PROVING_PASSPORT_NOT_SUPPORTED',
@@ -68,6 +82,22 @@ export enum SdkEvents {
    * and guide them through the recovery process to regain access.
    */
   PROVING_ACCOUNT_RECOVERY_REQUIRED = 'PROVING_ACCOUNT_RECOVERY_REQUIRED',
+
+  /**
+   * Emitted when a user selects a country in the document flow.
+   *
+   * **Required:** Navigate the user to the screen where they will select the document type.
+   * The event includes the selected country code and available document types.
+   */
+  DOCUMENT_COUNTRY_SELECTED = 'DOCUMENT_COUNTRY_SELECTED',
+
+  /**
+   * Emitted when a user selects a document type for verification.
+   *
+   * **Required:** Navigate the user to the document type screen that was selected.
+   * The event includes the selected document type, country code, and document name.
+   */
+  DOCUMENT_TYPE_SELECTED = 'DOCUMENT_TYPE_SELECTED',
 
   /**
    * Emitted when the proving generation process begins.
@@ -92,6 +122,22 @@ export enum SdkEvents {
    * identify any issues that may arise.
    */
   NFC_EVENT = 'NFC_EVENT',
+
+  /**
+   * Emitted when document camera scan is successful and ready for NFC scanning.
+   *
+   * **Required:** Navigate to the DocumentNFCScan screen to continue the verification process.
+   * **Recommended:** This event is triggered after successful MRZ data extraction and validation.
+   */
+  DOCUMENT_MRZ_READ_SUCCESS = 'DOCUMENT_MRZ_READ_SUCCESS',
+
+  /**
+   * Emitted when document camera scan fails due to invalid MRZ data format.
+   *
+   * **Required:** Navigate to the DocumentCameraTrouble screen to show troubleshooting tips.
+   * **Recommended:** This event is triggered when MRZ data validation fails (invalid format, missing fields, etc.).
+   */
+  DOCUMENT_MRZ_READ_FAILURE = 'DOCUMENT_MRZ_READ_FAILURE',
 }
 
 export interface SDKEventMap {
@@ -105,11 +151,24 @@ export interface SDKEventMap {
     documentCategory: DocumentCategory | null;
   };
   [SdkEvents.PROVING_ACCOUNT_RECOVERY_REQUIRED]: undefined;
+  [SdkEvents.DOCUMENT_COUNTRY_SELECTED]: {
+    countryCode: string;
+    countryName: string;
+    documentTypes: string[];
+  };
+  [SdkEvents.DOCUMENT_TYPE_SELECTED]: {
+    documentType: string;
+    documentName: string;
+    countryCode: string;
+    countryName: string;
+  };
   [SdkEvents.PROVING_BEGIN_GENERATION]: {
     uuid: string;
     isMock: boolean;
     context: ProofContext;
   };
+  [SdkEvents.PROVING_AADHAAR_UPLOAD_SUCCESS]: undefined;
+  [SdkEvents.PROVING_AADHAAR_UPLOAD_FAILURE]: { errorType: 'expired' | 'general' };
 
   [SdkEvents.PROGRESS]: Progress;
   [SdkEvents.ERROR]: Error;
@@ -125,6 +184,8 @@ export interface SDKEventMap {
     event: string;
     details?: Record<string, unknown>;
   };
+  [SdkEvents.DOCUMENT_MRZ_READ_SUCCESS]: undefined;
+  [SdkEvents.DOCUMENT_MRZ_READ_FAILURE]: undefined;
 }
 
 export type SDKEvent = keyof SDKEventMap;

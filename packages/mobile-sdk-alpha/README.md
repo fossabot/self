@@ -13,29 +13,71 @@ Alpha SDK for registering and proving. Adapters-first, React Native-first with w
 ## Minimal API
 
 - `createSelfClient({ config, adapters })`
-- `scanDocument(opts)`, `validateDocument(input)`, `checkRegistration(input)`, `generateProof(req, { signal, onProgress, timeoutMs })`
-- Eventing: `on(event, cb)`
-- Web shim: `webScannerShim` (QR stub only)
+- `scanNFC(opts)`, `validateDocument(input)`, `checkRegistration(input)`, `generateProof(req, { signal, onProgress, timeoutMs })`
+- Eventing: `on(event, cb)`, `emit(event, payload)`
+- Web shim: `webNFCScannerShim` (throws for unsupported NFC on web)
 
 ## Environment shims
 
-- The `browser` build replaces the scanner with `webScannerShim`, which only stubs QR scanning and throws for unsupported modes.
+- The `browser` build replaces the scanner with `webNFCScannerShim`, which throws for NFC scanning (not supported on web).
 
 ## Quick start (local, monorepo)
 
 Provide `scanner`, `network`, and `crypto` adapters. `storage`, `clock`, and `logger` default to no-ops.
 
 ```ts
-import { createSelfClient, webScannerShim, extractMRZInfo } from '@selfxyz/mobile-sdk-alpha';
+import { createSelfClient, webNFCScannerShim, extractMRZInfo } from '@selfxyz/mobile-sdk-alpha';
 const sdk = createSelfClient({
   config: {},
   adapters: {
-    scanner: webScannerShim,
+    scanner: webNFCScannerShim, // Note: NFC not supported on web
     network: yourNetworkAdapter,
     crypto: yourCryptoAdapter,
   },
 });
 ```
+
+## SDK Events
+
+The SDK emits events throughout the verification lifecycle. Subscribe using `selfClient.on(event, callback)`.
+
+### Document Selection Events
+
+**`SdkEvents.DOCUMENT_COUNTRY_SELECTED`** - Emitted when user selects a country during document flow
+
+```ts
+selfClient.on(SdkEvents.DOCUMENT_COUNTRY_SELECTED, payload => {
+  // payload: { countryCode: string, countryName: string, documentTypes: string[] }
+  console.log(`Country selected: ${payload.countryName} (${payload.countryCode})`);
+  console.log(`Available types: ${payload.documentTypes.join(', ')}`);
+});
+```
+
+**`SdkEvents.DOCUMENT_TYPE_SELECTED`** - Emitted when user selects a document type
+
+```ts
+selfClient.on(SdkEvents.DOCUMENT_TYPE_SELECTED, payload => {
+  // payload: { documentType: string, documentName: string, countryCode: string, countryName: string }
+  console.log(`Document selected: ${payload.documentName} from ${payload.countryName}`);
+});
+```
+
+### Verification Flow Events
+
+- **`PROVING_PASSPORT_DATA_NOT_FOUND`** - No passport data found; navigate to scanning screen
+- **`PROVING_ACCOUNT_VERIFIED_SUCCESS`** - Identity verification successful
+- **`PROVING_REGISTER_ERROR_OR_FAILURE`** - Registration failed; check `hasValidDocument` flag
+- **`PROVING_PASSPORT_NOT_SUPPORTED`** - Unsupported country/document; includes `countryCode` and `documentCategory`
+- **`PROVING_ACCOUNT_RECOVERY_REQUIRED`** - Document registered with different credentials
+
+### System Events
+
+- **`ERROR`** - SDK operation errors and timeouts
+- **`PROGRESS`** - Long-running operation progress updates
+- **`PROOF_EVENT`** - Detailed proof generation events (for debugging)
+- **`NFC_EVENT`** - NFC scanning lifecycle events (for debugging)
+
+See `SdkEvents` enum and `SDKEventMap` in `src/types/events.ts` for complete payload definitions.
 
 ## Processing utilities
 

@@ -18,11 +18,11 @@ export type {
   UserIdType,
 } from './src/utils/index.js';
 
-// Additional type exports
-export type { Environment } from './src/utils/types.js';
-
 // Constants exports
 export type { Country3LetterCode } from './src/constants/index.js';
+
+// Additional type exports
+export type { Environment } from './src/utils/types.js';
 
 // Utils exports
 export {
@@ -50,6 +50,8 @@ export {
   TREE_URL_STAGING,
   WS_DB_RELAYER,
   WS_DB_RELAYER_STAGING,
+  alpha2ToAlpha3,
+  alpha3ToAlpha2,
   attributeToPosition,
   attributeToPosition_ID,
   commonNames,
@@ -67,6 +69,7 @@ export {
   buildSMT,
   calculateContentHash,
   calculateUserIdentifierHash,
+  fetchOfacTrees,
   findStartPubKeyIndex,
   formatEndpoint,
   formatMrz,
@@ -80,12 +83,11 @@ export {
   generateCommitment,
   generateMockDSC,
   generateNullifier,
+  generateTEEInputsDiscloseStateless,
   getCircuitNameFromPassportData,
   getLeafCscaTree,
   getLeafDscTree,
-  fetchOfacTrees,
   getSKIPEM,
-  generateTEEInputsDiscloseStateless,
   getSolidityPackedUserContextData,
   getUniversalLink,
   hashEndpointWithScope,
