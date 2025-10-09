@@ -91,11 +91,7 @@ export default function useRecoveryPrompts({
       }
       const shouldPrompt =
         loginCount > 0 && (loginCount <= 3 || (loginCount - 3) % 5 === 0);
-      if (
-        shouldPrompt &&
-        !visible &&
-        lastPromptCount.current !== loginCount
-      ) {
+      if (shouldPrompt && !visible && lastPromptCount.current !== loginCount) {
         showModal();
         lastPromptCount.current = loginCount;
       }
@@ -115,7 +111,9 @@ export default function useRecoveryPrompts({
   ]);
 
   useEffect(() => {
-    void maybePrompt();
+    maybePrompt().catch(() => {
+      // Ignore promise rejection - already handled in maybePrompt
+    });
   }, [maybePrompt]);
 
   useEffect(() => {
@@ -126,7 +124,9 @@ export default function useRecoveryPrompts({
         (previousState === 'background' || previousState === 'inactive') &&
         nextState === 'active'
       ) {
-        void maybePrompt();
+        maybePrompt().catch(() => {
+          // Ignore promise rejection - already handled in maybePrompt
+        });
       }
     };
     const subscription = AppState.addEventListener(
@@ -140,7 +140,9 @@ export default function useRecoveryPrompts({
 
   useEffect(() => {
     const unsubscribe = navigationRef.addListener?.('state', () => {
-      void maybePrompt();
+      maybePrompt().catch(() => {
+        // Ignore promise rejection - already handled in maybePrompt
+      });
     });
     return () => {
       if (typeof unsubscribe === 'function') {

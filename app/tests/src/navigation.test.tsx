@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 // NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { render } from '@testing-library/react-native';
 
 import { RECOVERY_PROMPT_ALLOWED_ROUTES } from '@/consts/recoveryPrompts';
@@ -21,25 +21,29 @@ jest.mock('@selfxyz/mobile-sdk-alpha', () => ({
 jest.mock('@/utils/deeplinks', () => ({
   setupUniversalLinkListenerInNavigation: jest.fn(() => jest.fn()),
 }));
-jest.mock('@/utils/analytics', () => jest.fn(() => ({
-  trackScreenView: jest.fn(),
-})));
+jest.mock('@/utils/analytics', () =>
+  jest.fn(() => ({
+    trackScreenView: jest.fn(),
+  })),
+);
 jest.mock('react-native-gesture-handler', () => ({
-  GestureHandlerRootView: ({ children }: { children: React.ReactNode }) => (
-    <>{children}</>
-  ),
+  GestureHandlerRootView: ({ children }: { children: React.ReactNode }) =>
+    children,
 }));
 jest.mock('@react-navigation/native', () => {
-  const React = require('react');
   return {
     createNavigationContainerRef: jest.fn(() => mockNavigationRef),
-    createStaticNavigation: jest.fn(() =>
-      React.forwardRef((props: any) => <>{props.children}</>),
-    ),
+    createStaticNavigation: jest.fn(() => {
+      const MockNavigator = forwardRef(
+        (props: any, _ref: any) => props.children,
+      );
+      MockNavigator.displayName = 'MockNavigator';
+      return MockNavigator;
+    }),
   };
 });
 jest.mock('@react-navigation/native-stack', () => ({
-  createNativeStackNavigator: jest.fn((config) => config),
+  createNativeStackNavigator: jest.fn(config => config),
 }));
 
 describe('navigation', () => {
@@ -102,7 +106,8 @@ describe('navigation', () => {
   });
 
   it('wires recovery prompts hook into navigation', () => {
-    const useRecoveryPrompts = require('@/hooks/useRecoveryPrompts') as jest.Mock;
+    const useRecoveryPrompts =
+      require('@/hooks/useRecoveryPrompts') as jest.Mock;
     jest.isolateModules(() => {
       const NavigationWithTracking = require('@/navigation').default;
       render(<NavigationWithTracking />);

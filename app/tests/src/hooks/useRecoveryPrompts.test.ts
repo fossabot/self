@@ -4,6 +4,15 @@
 
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 
+import {
+  CRITICAL_RECOVERY_PROMPT_ROUTES,
+  RECOVERY_PROMPT_ALLOWED_ROUTES,
+} from '@/consts/recoveryPrompts';
+import { useModal } from '@/hooks/useModal';
+import useRecoveryPrompts from '@/hooks/useRecoveryPrompts';
+import { usePassport } from '@/providers/passportDataProvider';
+import { useSettingStore } from '@/stores/settingStore';
+
 const navigationStateListeners: Array<() => void> = [];
 let isNavigationReady = true;
 const navigationRef = {
@@ -34,29 +43,22 @@ jest.mock('react-native', () => {
     ...actual,
     AppState: {
       currentState: 'active',
-      addEventListener: jest.fn((_: string, handler: (state: string) => void) => {
-        appStateListeners.push(handler);
-        return {
-          remove: () => {
-            const index = appStateListeners.indexOf(handler);
-            if (index >= 0) {
-              appStateListeners.splice(index, 1);
-            }
-          },
-        };
-      }),
+      addEventListener: jest.fn(
+        (_: string, handler: (state: string) => void) => {
+          appStateListeners.push(handler);
+          return {
+            remove: () => {
+              const index = appStateListeners.indexOf(handler);
+              if (index >= 0) {
+                appStateListeners.splice(index, 1);
+              }
+            },
+          };
+        },
+      ),
     },
   };
 });
-
-import {
-  CRITICAL_RECOVERY_PROMPT_ROUTES,
-  RECOVERY_PROMPT_ALLOWED_ROUTES,
-} from '@/consts/recoveryPrompts';
-import { useModal } from '@/hooks/useModal';
-import useRecoveryPrompts from '@/hooks/useRecoveryPrompts';
-import { usePassport } from '@/providers/passportDataProvider';
-import { useSettingStore } from '@/stores/settingStore';
 
 const showModal = jest.fn();
 const getAllDocuments = jest.fn();
@@ -111,7 +113,7 @@ describe('useRecoveryPrompts', () => {
     });
 
     isNavigationReady = true;
-    navigationStateListeners.forEach((listener) => listener());
+    navigationStateListeners.forEach(listener => listener());
 
     await waitFor(() => {
       expect(showModal).toHaveBeenCalled();
@@ -120,7 +122,7 @@ describe('useRecoveryPrompts', () => {
 
   it.each([...CRITICAL_RECOVERY_PROMPT_ROUTES])(
     'does not show modal when route %s is disallowed',
-    async (routeName) => {
+    async routeName => {
       navigationRef.getCurrentRoute.mockReturnValue({ name: routeName });
       act(() => {
         useSettingStore.setState({ loginCount: 1 });
@@ -168,7 +170,7 @@ describe('useRecoveryPrompts', () => {
     renderHook(() => useRecoveryPrompts());
     expect(showModal).not.toHaveBeenCalled();
 
-    appStateListeners.forEach((listener) => listener('active'));
+    appStateListeners.forEach(listener => listener('active'));
 
     await waitFor(() => {
       expect(showModal).toHaveBeenCalled();
