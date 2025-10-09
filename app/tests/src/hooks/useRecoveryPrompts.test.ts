@@ -15,28 +15,10 @@ import { useSettingStore } from '@/stores/settingStore';
 
 const navigationStateListeners: Array<() => void> = [];
 let isNavigationReady = true;
-const navigationRef = {
-  isReady: jest.fn(() => isNavigationReady),
-  navigate: jest.fn(),
-  addListener: jest.fn((_: string, callback: () => void) => {
-    navigationStateListeners.push(callback);
-    return () => {
-      const index = navigationStateListeners.indexOf(callback);
-      if (index >= 0) {
-        navigationStateListeners.splice(index, 1);
-      }
-    };
-  }),
-  getCurrentRoute: jest.fn(() => ({ name: 'Home' })),
-} as any;
-
 const appStateListeners: Array<(state: string) => void> = [];
 
 jest.mock('@/hooks/useModal');
 jest.mock('@/providers/passportDataProvider');
-jest.mock('@/navigation', () => ({
-  navigationRef,
-}));
 jest.mock('react-native', () => {
   const actual = jest.requireActual('react-native');
   return {
@@ -76,8 +58,24 @@ describe('useRecoveryPrompts', () => {
     navigationStateListeners.length = 0;
     appStateListeners.length = 0;
     isNavigationReady = true;
-    navigationRef.isReady.mockImplementation(() => isNavigationReady);
-    navigationRef.getCurrentRoute.mockReturnValue({ name: 'Home' });
+
+    // Setup the global navigation ref mock
+    global.mockNavigationRef.isReady.mockImplementation(
+      () => isNavigationReady,
+    );
+    global.mockNavigationRef.getCurrentRoute.mockReturnValue({ name: 'Home' });
+    global.mockNavigationRef.addListener.mockImplementation(
+      (_: string, callback: () => void) => {
+        navigationStateListeners.push(callback);
+        return () => {
+          const index = navigationStateListeners.indexOf(callback);
+          if (index >= 0) {
+            navigationStateListeners.splice(index, 1);
+          }
+        };
+      },
+    );
+
     (useModal as jest.Mock).mockReturnValue({ showModal, visible: false });
     getAllDocuments.mockResolvedValue({ doc1: {} as any });
     const AppState = getAppState();
@@ -103,7 +101,9 @@ describe('useRecoveryPrompts', () => {
 
   it('waits for navigation readiness before prompting', async () => {
     isNavigationReady = false;
-    navigationRef.isReady.mockImplementation(() => isNavigationReady);
+    global.mockNavigationRef.isReady.mockImplementation(
+      () => isNavigationReady,
+    );
     act(() => {
       useSettingStore.setState({ loginCount: 1 });
     });
@@ -123,7 +123,9 @@ describe('useRecoveryPrompts', () => {
   it.each([...CRITICAL_RECOVERY_PROMPT_ROUTES])(
     'does not show modal when route %s is disallowed',
     async routeName => {
-      navigationRef.getCurrentRoute.mockReturnValue({ name: routeName });
+      global.mockNavigationRef.getCurrentRoute.mockReturnValue({
+        name: routeName,
+      });
       act(() => {
         useSettingStore.setState({ loginCount: 1 });
       });
@@ -147,7 +149,9 @@ describe('useRecoveryPrompts', () => {
     });
 
     showModal.mockClear();
-    navigationRef.getCurrentRoute.mockReturnValue({ name: 'Settings' });
+    global.mockNavigationRef.getCurrentRoute.mockReturnValue({
+      name: 'Settings',
+    });
 
     renderHook(() =>
       useRecoveryPrompts({

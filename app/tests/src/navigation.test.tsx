@@ -2,17 +2,10 @@
 // SPDX-License-Identifier: BUSL-1.1
 // NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
-import React, { forwardRef } from 'react';
+import React from 'react';
 import { render } from '@testing-library/react-native';
 
 import { RECOVERY_PROMPT_ALLOWED_ROUTES } from '@/consts/recoveryPrompts';
-
-const mockNavigationRef = {
-  isReady: jest.fn(() => true),
-  navigate: jest.fn(),
-  addListener: jest.fn(() => jest.fn()),
-  getCurrentRoute: jest.fn(() => ({ name: 'Home' })),
-} as any;
 
 jest.mock('@/hooks/useRecoveryPrompts', () => jest.fn());
 jest.mock('@selfxyz/mobile-sdk-alpha', () => ({
@@ -26,25 +19,6 @@ jest.mock('@/utils/analytics', () =>
     trackScreenView: jest.fn(),
   })),
 );
-jest.mock('react-native-gesture-handler', () => ({
-  GestureHandlerRootView: ({ children }: { children: React.ReactNode }) =>
-    children,
-}));
-jest.mock('@react-navigation/native', () => {
-  return {
-    createNavigationContainerRef: jest.fn(() => mockNavigationRef),
-    createStaticNavigation: jest.fn(() => {
-      const MockNavigator = forwardRef(
-        (props: any, _ref: any) => props.children,
-      );
-      MockNavigator.displayName = 'MockNavigator';
-      return MockNavigator;
-    }),
-  };
-});
-jest.mock('@react-navigation/native-stack', () => ({
-  createNativeStackNavigator: jest.fn(config => config),
-}));
 
 describe('navigation', () => {
   beforeEach(() => {
@@ -52,6 +26,8 @@ describe('navigation', () => {
   });
 
   it('should have the correct navigation screens', () => {
+    // Unmock @/navigation for this test to get the real navigationScreens
+    jest.unmock('@/navigation');
     jest.isolateModules(() => {
       const navigationScreens = require('@/navigation').navigationScreens;
       const listOfScreens = Object.keys(navigationScreens).sort();
@@ -106,12 +82,21 @@ describe('navigation', () => {
   });
 
   it('wires recovery prompts hook into navigation', () => {
+    // Temporarily restore the React mock and unmock @/navigation for this test
+    jest.unmock('@/navigation');
     const useRecoveryPrompts =
       require('@/hooks/useRecoveryPrompts') as jest.Mock;
-    jest.isolateModules(() => {
-      const NavigationWithTracking = require('@/navigation').default;
-      render(<NavigationWithTracking />);
-    });
+
+    // Since we're testing the wiring and not the actual rendering,
+    // we can just check if the module exports the default component
+    // and verify the hook is called when the component is imported
+    const navigation = require('@/navigation');
+    expect(navigation.default).toBeDefined();
+
+    // Render the component to trigger the hooks
+    const NavigationWithTracking = navigation.default;
+    render(<NavigationWithTracking />);
+
     expect(useRecoveryPrompts).toHaveBeenCalledWith({
       allowedRoutes: RECOVERY_PROMPT_ALLOWED_ROUTES,
     });

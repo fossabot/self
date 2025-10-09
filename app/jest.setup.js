@@ -682,9 +682,25 @@ jest.mock('./src/utils/notifications/notificationService', () =>
   require('./tests/__setup__/notificationServiceMock.js'),
 );
 
+// Create a global mock navigation ref that can be used by all tests
+global.mockNavigationRef = {
+  isReady: jest.fn(() => true),
+  navigate: jest.fn(),
+  goBack: jest.fn(),
+  canGoBack: jest.fn(() => true),
+  dispatch: jest.fn(),
+  addListener: jest.fn(() => jest.fn()),
+  removeListener: jest.fn(),
+  getCurrentRoute: jest.fn(() => ({ name: 'Home' })),
+  getState: jest.fn(() => ({ routes: [{ name: 'Home' }], index: 0 })),
+  resetRoot: jest.fn(),
+  getRootState: jest.fn(),
+};
+
 // Mock React Navigation
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
+  const React = jest.requireActual('react');
   return {
     ...actualNav,
     useNavigation: jest.fn(() => ({
@@ -692,18 +708,27 @@ jest.mock('@react-navigation/native', () => {
       goBack: jest.fn(),
       canGoBack: jest.fn(() => true),
       dispatch: jest.fn(),
+      getState: jest.fn(() => ({ routes: [{ name: 'Home' }], index: 0 })),
     })),
-    createNavigationContainerRef: jest.fn(() => ({
-      current: null,
-      getCurrentRoute: jest.fn(),
-    })),
-    createStaticNavigation: jest.fn(() => ({ displayName: 'MockNavigation' })),
+    createNavigationContainerRef: jest.fn(() => global.mockNavigationRef),
+    createStaticNavigation: jest.fn(() => {
+      const MockNavigator = React.forwardRef((props, _ref) => props.children);
+      MockNavigator.displayName = 'MockNavigator';
+      return MockNavigator;
+    }),
   };
 });
 
 jest.mock('@react-navigation/native-stack', () => ({
-  createNativeStackNavigator: jest.fn(() => ({
-    displayName: 'MockStackNavigator',
-  })),
+  createNativeStackNavigator: jest.fn(config => config),
   createNavigatorFactory: jest.fn(),
+}));
+
+// Mock the navigation module to provide navigationRef to all components/hooks
+// This mock will be used by default, but individual tests can override it
+jest.mock('./src/navigation', () => ({
+  __esModule: true,
+  navigationRef: global.mockNavigationRef,
+  navigationScreens: {},
+  default: () => null,
 }));
