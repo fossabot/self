@@ -21,3 +21,7 @@ dataInput.d.ts
 
 # Private Android modules (cloned at build time)
 app/android/android-passport-nfc-reader/
+
+# Foundry
+contracts/out/
+contracts/cache_forge/
