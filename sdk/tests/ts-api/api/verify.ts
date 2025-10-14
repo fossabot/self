@@ -56,6 +56,7 @@ export const verifyHandler = async (
   }
 
   try {
+    console.log("Received verification request");
     const { attestationId, proof, publicSignals, userContextData } = req.body;
 
     if (!proof || !publicSignals || !attestationId || !userContextData) {
@@ -82,6 +83,8 @@ export const verifyHandler = async (
     );
 
     if (!result.isValidDetails.isValid) {
+      console.log("Verification failed - invalid result");
+      console.log("Validation details:", JSON.stringify(result.isValidDetails, null, 2));
       return res.status(500).json({
         status: "error",
         result: false,

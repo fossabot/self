@@ -11,15 +11,19 @@ COPY package.json yarn.lock* ./
 COPY sdk/tests/ts-api/package.json ./sdk/tests/ts-api/
 COPY sdk/core/package.json ./sdk/core/
 COPY common/package.json ./common/
+COPY circuits/package.json ./circuits/
 
 # Copy source code
 COPY common/ ./common/
+COPY circuits/ ./circuits/
 COPY sdk/core/ ./sdk/core/
 COPY sdk/tests/ts-api/ ./sdk/tests/ts-api/
 
 # Install dependencies and build
-RUN yarn install
+# Use --mode=skip-build to skip postinstall scripts (like patch-package) that aren't needed in Docker
+RUN yarn install --mode=skip-build
 RUN yarn workspace @selfxyz/common run build
+# Skip circuits build - we only need the JSON test data files, not compiled circuits
 RUN yarn workspace @selfxyz/core run build
 RUN yarn workspace @selfxyz/ts-api-test run build
 
@@ -42,19 +46,23 @@ COPY --from=builder --chown=apiuser:nodejs /app/yarn.lock ./yarn.lock
 # Copy built workspace dependencies
 COPY --from=builder --chown=apiuser:nodejs /app/common/dist ./common/dist
 COPY --from=builder --chown=apiuser:nodejs /app/common/package.json ./common/package.json
+# Copy only the OFAC JSON data files from circuits (no circuit files needed)
+COPY --from=builder --chown=apiuser:nodejs /app/circuits/tests/consts/ofac ./circuits/tests/consts/ofac
+COPY --from=builder --chown=apiuser:nodejs /app/circuits/package.json ./circuits/package.json
 COPY --from=builder --chown=apiuser:nodejs /app/sdk/core/dist ./sdk/core/dist
 COPY --from=builder --chown=apiuser:nodejs /app/sdk/core/package.json ./sdk/core/package.json
 
 # Copy the API application
-COPY --from=builder --chown=apiuser:nodejs /app/sdk/tests/ts-api/dist ./sdk/tests/ts-api/dist
-COPY --from=builder --chown=apiuser:nodejs /app/sdk/tests/ts-api/package.json ./sdk/tests/ts-api/package.json
+COPY --from=builder /app/sdk/tests/ts-api/dist ./sdk/tests/ts-api/dist
+COPY --from=builder /app/sdk/tests/ts-api/package.json ./sdk/tests/ts-api/package.json
 
-# Copy node_modules with all workspace links intact
-COPY --from=builder --chown=apiuser:nodejs /app/node_modules ./node_modules
+RUN yarn workspaces focus @selfxyz/ts-api-test --production
+
+# Fix ownership after install
+RUN chown -R apiuser:nodejs /app
 
 # Set working directory to the API
 WORKDIR /app/sdk/tests/ts-api
-
 
 USER apiuser
 

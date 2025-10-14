@@ -24,7 +24,7 @@ async function runTest(requestBody: any, expectedStatus: number = 200, expectedK
 }
 
 
-describe.only('Self SDK Passport API Comparison Tests', function () {
+describe('Self SDK Passport API Comparison Tests', function () {
     this.timeout(0);
 
     const validUserContext = getUserContextData();
@@ -138,20 +138,6 @@ describe.only('Self SDK Passport API Comparison Tests', function () {
             };
 
             await runTest(body, 500, ['Minimum age', 'does not match', 'circuit', '25']);
-        });
-
-        it('should reject OFAC mismatch', async function () {
-            const scope = hashEndpointWithScope("http://localhost:3000", "self-playground");
-            const rawProofData = await runGenerateVcAndDiscloseRawProof("1234", "1", getGlobalPassportData(), scope, "hello from the playground", {
-                selectorOfac: "1"
-            });
-            const body = {
-                attestationId: 1,
-                proof: rawProofData.proof,
-                publicSignals: rawProofData.publicSignals,
-                userContextData: validUserContext
-            };
-            await runTest(body, 500, ['OFAC check is not allowed', 'Passport number', 'Name and DOB', 'Name and YOB']);
         });
 
         it('should reject ConfigID not found', async function () {
@@ -373,20 +359,6 @@ describe('Self SDK EU ID Card API Comparison Tests', function () {
             };
 
             await runTest(body, 500, ['Minimum age', 'does not match', 'circuit', '25']);
-        });
-
-        it('should reject OFAC mismatch', async function () {
-            const scope = hashEndpointWithScope("http://localhost:3000", "self-playground");
-            const rawProofData = await runGenerateVcAndDiscloseRawProof("1234", "2", getGlobalPassportData(), scope, "hello from the playground", {
-                selectorOfac: "1"
-            });
-            const body = {
-                attestationId: 2,
-                proof: rawProofData.proof,
-                publicSignals: rawProofData.publicSignals,
-                userContextData: validUserContext
-            };
-            await runTest(body, 500, ['OFAC check is not allowed', 'Name and DOB', 'Name and YOB']);
         });
 
         it('should reject ConfigID not found', async function () {

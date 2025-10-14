@@ -1,0 +1,101 @@
+# Dependencies
+**/node_modules/
+**/.pnp
+**/.pnp.js
+node_modules
+
+# Build outputs
+**/dist/
+**/build/
+**/.next/
+**/out/
+
+# Testing
+**/coverage/
+**/.nyc_output/
+
+# Yarn (keep .yarnrc.yml and .yarn/releases for Docker)
+**/.yarn/cache/
+**/.yarn/unplugged/
+**/.yarn/build-state.yml
+**/.yarn/install-state.gz
+# !.yarnrc.yml is not ignored - we need it for Docker
+# !.yarn/releases/ is not ignored - we need it for Docker
+
+# Environment variables
+**/.env*
+!**/.env.example
+
+# Logs
+**/*.log
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+
+# OS files
+.DS_Store
+**/.DS_Store
+Thumbs.db
+
+# IDEs
+**/.vscode/
+**/.idea/
+**/*.swp
+**/*.swo
+**/*~
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# CI/CD
+**/.github/
+**/.gitlab/
+**/.circleci/
+
+# Documentation
+**/README.md
+**/docs/
+**/*.md
+!package.json
+
+# Compiled circuits (large files)
+circuits/build/
+circuits/output/
+**/ptau/
+**/*.sym
+**/*.r1cs
+# Exclude large circuit files but keep the ones needed by ts-api
+**/*.zkey
+**/*.wasm
+!sdk/tests/ts-api/utils/assests/*.zkey
+!sdk/tests/ts-api/utils/assests/*.wasm
+
+# Contract artifacts
+contracts/artifacts/
+contracts/cache/
+contracts/typechain-types/
+
+# Mobile app builds
+app/ios/build/
+app/android/build/
+app/android/.gradle/
+app/android/app/build/
+
+# Noir build artifacts
+noir/target/
+
+# Temp files
+**/*.tsbuildinfo
+**/tmp/
+**/temp/
+**/.cache/
+
+# Private modules
+app/android/android-passport-nfc-reader/
+
+# CI-generated tarballs
+mobile-sdk-alpha-ci.tgz
+**/mobile-sdk-alpha-*.tgz
+/tmp/mobile-sdk-alpha*.tgz

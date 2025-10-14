@@ -31,7 +31,6 @@ import nameAndDobjsonID from "@selfxyz/circuits/tests/consts/ofac/nameAndDobSMT_
 import nameAndYobjsonID from "@selfxyz/circuits/tests/consts/ofac/nameAndYobSMT_ID.json";
 
 import { calculateUserIdentifierHash } from "@selfxyz/common";
-import { generateCommitment } from '@selfxyz/common/utils/passports/passport';
 
 const { ec: EC } = elliptic;
 const ec = new EC("p256");
@@ -104,9 +103,10 @@ export async function generateVcAndDiscloseRawProof(
   let wasmPath:any;
   let zkeyPath:any;
   let vKey:any;
+
   if(attestationId === "1"){
     wasmPath = path.resolve(__dirnameHelper, "assests/vc_and_disclose.wasm");
-    zkeyPath = path.resolve(__dirnameHelper, "assests/vc_and_disclose_00008.zkey");
+    zkeyPath = path.resolve(__dirnameHelper, "assests/vc_and_disclose.zkey");
     vKey = JSON.parse(fs.readFileSync(path.resolve(__dirnameHelper, "assests/verification_key.json"), "utf8"));
   }
   else{
@@ -115,17 +115,21 @@ export async function generateVcAndDiscloseRawProof(
     vKey = JSON.parse(fs.readFileSync(path.resolve(__dirnameHelper, "assests/verification_key_id.json"), "utf8"));
   }
 
+  console.log("Verifying disclose proof generation started");
   const vcAndDiscloseProof = await groth16.fullProve(
     vcAndDiscloseCircuitInputs,
     wasmPath,
     zkeyPath,
   );
+  console.log("Verifying disclose proof generation completed");
 
 
   const isValid = await groth16.verify(vKey, vcAndDiscloseProof.publicSignals, vcAndDiscloseProof.proof);
   if (!isValid) {
     throw new Error("Generated disclose proof verification failed");
   }
+
+  console.log("Generated disclose proof verification successful");
 
   return vcAndDiscloseProof;
 }
@@ -180,10 +184,6 @@ export async function runGenerateVcAndDiscloseRawProof(
   );
 
   merkleTree.insertMany(identityTree[0]);
-
-  // Insert test identity commitment
-  const commitment = generateCommitment(secret, attestationId, passportData);
-  merkleTree.insert(BigInt(commitment));
 
   const hash2 = (childNodes: ChildNodes) =>
     childNodes.length === 2 ? poseidon2(childNodes) : poseidon3(childNodes);
@@ -240,7 +240,7 @@ function encryptAES256GCM(plaintext: string, key: Buffer<ArrayBuffer>) {
 export const handshakeAndGetUuid = async (
   wsUrl: string,
   inputs: any,
-  proofType: "register" | "dsc" | "disclose" | "register_id" ,
+  proofType: "register" | "dsc" | "disclose" | "register_id" | "dsc_id",
   circuitName: string
 ): Promise<string> => {
   const pubkey = key1.getPublic(true, "hex");
