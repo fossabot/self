@@ -70,6 +70,8 @@ export { SdkEvents } from './types/events';
 // Documents utils
 export { SelfClientContext, SelfClientProvider, useSelfClient } from './context';
 
+export { advercase, dinot, plexMono } from './constants/fonts';
+
 export {
   clearPassportData,
   getAllDocuments,
