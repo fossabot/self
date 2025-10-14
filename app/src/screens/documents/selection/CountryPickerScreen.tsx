@@ -132,7 +132,12 @@ const CountryPickerScreen: React.FC = () => {
   return (
     <YStack flex={1} backgroundColor={slate100}>
       <DocumentFlowNavBar title="GETTING STARTED" />
-      <YStack flex={1} paddingTop="$4" paddingHorizontal="$4">
+      <YStack
+        flex={1}
+        paddingTop="$4"
+        paddingHorizontal="$4"
+        backgroundColor={slate100}
+      >
         <YStack marginTop="$4" marginBottom="$6">
           <BodyText style={{ fontSize: 29, fontFamily: advercase }}>
             Select the country that issued your ID
