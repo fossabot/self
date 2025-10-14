@@ -3,7 +3,6 @@
 // NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
 import { Platform, Vibration } from 'react-native';
-import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
 import type { HapticOptions, HapticType } from './shared';
 import { defaultOptions } from './shared';
@@ -23,16 +22,31 @@ export const triggerFeedback = (type: HapticType | 'custom', options: HapticOpti
         type = 'impactHeavy';
       }
     }
-
-    ReactNativeHapticFeedback.trigger(type, {
-      enableVibrateFallback: mergedOptions.enableVibrateFallback,
-      ignoreAndroidSystemSettings: mergedOptions.ignoreAndroidSystemSettings,
-    });
+    // Use dynamic import to avoid loading the module on Android or if its not installed
+    (async () => {
+      try {
+        const trigger = await import('react-native-haptic-feedback').then(mod => mod.trigger);
+        trigger(type, {
+          enableVibrateFallback: mergedOptions.enableVibrateFallback,
+          ignoreAndroidSystemSettings: mergedOptions.ignoreAndroidSystemSettings,
+        });
+      } catch {
+        standardVibration(mergedOptions);
+      }
+    })();
   } else {
-    if (mergedOptions.pattern) {
-      Vibration.vibrate(mergedOptions.pattern, false);
-    } else {
-      Vibration.vibrate(100);
-    }
+    standardVibration(mergedOptions);
   }
 };
+function standardVibration(mergedOptions: {
+  enableVibrateFallback?: boolean;
+  ignoreAndroidSystemSettings?: boolean;
+  pattern?: number[];
+  increaseIosIntensity?: boolean;
+}) {
+  if (mergedOptions.pattern) {
+    Vibration.vibrate(mergedOptions.pattern, false);
+  } else {
+    Vibration.vibrate(100);
+  }
+}
