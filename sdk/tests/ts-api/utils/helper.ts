@@ -1,42 +1,41 @@
-import { v4 } from "uuid";
+import { v4 } from 'uuid';
 // @ts-ignore
-import WebSocket from "ws";
-import elliptic from "elliptic";
-import crypto from "crypto";
+import WebSocket from 'ws';
+import elliptic from 'elliptic';
+import crypto from 'crypto';
 
 import forge from 'node-forge';
 // @ts-ignore
 
-import { io } from "socket.io-client";
-import { WSS_URL } from "./constant.js";
-import { PassportData } from "@selfxyz/common/types/passport";
-import { LeanIMT } from "@openpassport/zk-kit-lean-imt";
-import { SMT } from "@openpassport/zk-kit-smt";
-import { CircuitSignals, groth16, Groth16Proof, PublicSignals } from "snarkjs";
-import { generateCircuitInputsVCandDisclose } from "@selfxyz/common/utils/circuits/generateInputs";
-import * as fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-import { poseidon2, poseidon3 } from "poseidon-lite";
-import { ChildNodes } from "@openpassport/zk-kit-smt";
+import { io } from 'socket.io-client';
+import { WSS_URL } from './constant.js';
+import { PassportData } from '@selfxyz/common/types/passport';
+import { LeanIMT } from '@openpassport/zk-kit-lean-imt';
+import { SMT } from '@openpassport/zk-kit-smt';
+import { CircuitSignals, groth16, Groth16Proof, PublicSignals } from 'snarkjs';
+import { generateCircuitInputsVCandDisclose } from '@selfxyz/common/utils/circuits/generateInputs';
+import * as fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { poseidon2, poseidon3 } from 'poseidon-lite';
+import { ChildNodes } from '@openpassport/zk-kit-smt';
 // @ts-ignore
-import passportNojson from "@selfxyz/circuits/tests/consts/ofac/passportNoAndNationalitySMT.json";
+import passportNojson from '@selfxyz/circuits/tests/consts/ofac/passportNoAndNationalitySMT.json';
 // @ts-ignore
-import nameAndDobjson from "@selfxyz/circuits/tests/consts/ofac/nameAndDobSMT.json";
+import nameAndDobjson from '@selfxyz/circuits/tests/consts/ofac/nameAndDobSMT.json';
 // @ts-ignore
-import nameAndYobjson from "@selfxyz/circuits/tests/consts/ofac/nameAndYobSMT.json";
+import nameAndYobjson from '@selfxyz/circuits/tests/consts/ofac/nameAndYobSMT.json';
 // @ts-ignore
-import nameAndDobjsonID from "@selfxyz/circuits/tests/consts/ofac/nameAndDobSMT_ID.json";
+import nameAndDobjsonID from '@selfxyz/circuits/tests/consts/ofac/nameAndDobSMT_ID.json';
 // @ts-ignore
-import nameAndYobjsonID from "@selfxyz/circuits/tests/consts/ofac/nameAndYobSMT_ID.json";
+import nameAndYobjsonID from '@selfxyz/circuits/tests/consts/ofac/nameAndYobSMT_ID.json';
 
-import { calculateUserIdentifierHash } from "@selfxyz/common";
+import { calculateUserIdentifierHash } from '@selfxyz/common';
 
 const { ec: EC } = elliptic;
-const ec = new EC("p256");
+const ec = new EC('p256');
 
 const key1 = ec.genKeyPair();
-
 
 export async function generateVcAndDiscloseRawProof(
   secret: string,
@@ -44,22 +43,21 @@ export async function generateVcAndDiscloseRawProof(
   passportData: PassportData,
   scope: string,
   selectorDg1: string[],
-  selectorOlderThan: string | number = "1",
+  selectorOlderThan: string | number = '1',
   merkletree: LeanIMT<bigint>,
-  majority: string = "18",
+  majority: string = '18',
   passportNo_smt: SMT,
   nameAndDob_smt: SMT,
   nameAndYob_smt: SMT,
-  selectorOfac: string | number = "1",
+  selectorOfac: string | number = '1',
   forbiddenCountriesList: string[] = ['PAK', 'IRN'],
-  userIdentifier: string = "0000000000000000000000000000000000000000",
+  userIdentifier: string = '0000000000000000000000000000000000000000',
 ): Promise<{
   proof: Groth16Proof;
   publicSignals: PublicSignals;
 }> {
-
   let vcAndDiscloseCircuitInputs: CircuitSignals;
-  if(attestationId === "1"){
+  if (attestationId === '1') {
     vcAndDiscloseCircuitInputs = generateCircuitInputsVCandDisclose(
       secret,
       attestationId,
@@ -76,9 +74,8 @@ export async function generateVcAndDiscloseRawProof(
       forbiddenCountriesList,
       userIdentifier,
     );
-  }
-  else {
-     vcAndDiscloseCircuitInputs = generateCircuitInputsVCandDisclose(
+  } else {
+    vcAndDiscloseCircuitInputs = generateCircuitInputsVCandDisclose(
       secret,
       attestationId,
       passportData,
@@ -96,40 +93,46 @@ export async function generateVcAndDiscloseRawProof(
     );
   }
 
-
-
   const __filenameHelper = fileURLToPath(import.meta.url);
   const __dirnameHelper = path.dirname(__filenameHelper);
-  let wasmPath:any;
-  let zkeyPath:any;
-  let vKey:any;
+  let wasmPath: any;
+  let zkeyPath: any;
+  let vKey: any;
 
-  if(attestationId === "1"){
-    wasmPath = path.resolve(__dirnameHelper, "assests/vc_and_disclose.wasm");
-    zkeyPath = path.resolve(__dirnameHelper, "assests/vc_and_disclose.zkey");
-    vKey = JSON.parse(fs.readFileSync(path.resolve(__dirnameHelper, "assests/verification_key.json"), "utf8"));
-  }
-  else{
-    wasmPath = path.resolve(__dirnameHelper, "assests/vc_and_disclose_id.wasm");
-    zkeyPath = path.resolve(__dirnameHelper, "assests/vc_and_disclose_id.zkey");
-    vKey = JSON.parse(fs.readFileSync(path.resolve(__dirnameHelper, "assests/verification_key_id.json"), "utf8"));
+  if (attestationId === '1') {
+    wasmPath = path.resolve(__dirnameHelper, 'assests/vc_and_disclose.wasm');
+    zkeyPath = path.resolve(__dirnameHelper, 'assests/vc_and_disclose.zkey');
+    vKey = JSON.parse(
+      fs.readFileSync(
+        path.resolve(__dirnameHelper, 'assests/verification_key.json'),
+        'utf8',
+      ),
+    );
+  } else {
+    wasmPath = path.resolve(__dirnameHelper, 'assests/vc_and_disclose_id.wasm');
+    zkeyPath = path.resolve(__dirnameHelper, 'assests/vc_and_disclose_id.zkey');
+    vKey = JSON.parse(
+      fs.readFileSync(
+        path.resolve(__dirnameHelper, 'assests/verification_key_id.json'),
+        'utf8',
+      ),
+    );
   }
 
-  console.log("Verifying disclose proof generation started");
   const vcAndDiscloseProof = await groth16.fullProve(
     vcAndDiscloseCircuitInputs,
     wasmPath,
     zkeyPath,
   );
-  console.log("Verifying disclose proof generation completed");
 
-
-  const isValid = await groth16.verify(vKey, vcAndDiscloseProof.publicSignals, vcAndDiscloseProof.proof);
+  const isValid = await groth16.verify(
+    vKey,
+    vcAndDiscloseProof.publicSignals,
+    vcAndDiscloseProof.proof,
+  );
   if (!isValid) {
-    throw new Error("Generated disclose proof verification failed");
+    throw new Error('Generated disclose proof verification failed');
   }
-
-  console.log("Generated disclose proof verification successful");
 
   return vcAndDiscloseProof;
 }
@@ -149,39 +152,44 @@ export async function runGenerateVcAndDiscloseRawProof(
   },
 ) {
   let selectorDg1: string[];
-  if(attestationId === "1"){
-   selectorDg1 = (options?.selectorDg1 && options.selectorDg1.length === 88)
-    ? options.selectorDg1
-    : new Array(88).fill("1");
+  if (attestationId === '1') {
+    selectorDg1 =
+      options?.selectorDg1 && options.selectorDg1.length === 88
+        ? options.selectorDg1
+        : new Array(88).fill('1');
+  } else {
+    selectorDg1 =
+      options?.selectorDg1 && options.selectorDg1.length === 90
+        ? options.selectorDg1
+        : new Array(90).fill('1');
   }
-  else{
-    selectorDg1 = (options?.selectorDg1 && options.selectorDg1.length === 90)
-    ? options.selectorDg1
-    : new Array(90).fill("1");
-  }
-  const selectorOlderThan = options?.selectorOlderThan ?? "1";
-  const majority = options?.majority ?? "18";
-  const selectorOfac = options?.selectorOfac ?? "1";
-  const forbiddenCountriesList = options?.forbiddenCountriesList ?? ["PAK", "IRN"];
-  const userIdentifier= calculateUserIdentifierHash(42220, "94ba0DB8A9Db66979905784A9d6B2D286e55Bd27", userContextData);
+  const selectorOlderThan = options?.selectorOlderThan ?? '1';
+  const majority = options?.majority ?? '18';
+  const selectorOfac = options?.selectorOfac ?? '1';
+  const forbiddenCountriesList = options?.forbiddenCountriesList ?? [
+    'PAK',
+    'IRN',
+  ];
+  const userIdentifier = calculateUserIdentifierHash(
+    42220,
+    '94ba0DB8A9Db66979905784A9d6B2D286e55Bd27',
+    userContextData,
+  );
 
   const merkleTree: any = new LeanIMT<bigint>((a, b) => poseidon2([a, b]), []);
 
   let identityTreeHeader: any;
-  if(attestationId === "1"){
+  if (attestationId === '1') {
+    identityTreeHeader = await fetch('http://tree.staging.self.xyz/identity');
+  } else {
     identityTreeHeader = await fetch(
-      "http://tree.staging.self.xyz/identity"
-    );
-  }
-  else{
-    identityTreeHeader = await fetch(
-      "http://tree.staging.self.xyz/identity-id"
+      'http://tree.staging.self.xyz/identity-id',
     );
   }
 
-  const identityTree = JSON.parse((await identityTreeHeader.json() as any).data).map(
-    (x: string[]) => x.map((y: string) => BigInt(y))
-  );
+  const identityTree = JSON.parse(
+    ((await identityTreeHeader.json()) as any).data,
+  ).map((x: string[]) => x.map((y: string) => BigInt(y)));
 
   merkleTree.insertMany(identityTree[0]);
 
@@ -193,11 +201,10 @@ export async function runGenerateVcAndDiscloseRawProof(
   const nameAndYob_smt = new SMT(hash2, true);
 
   passportNo_smt.import(passportNojson as any);
-  if(attestationId === "1"){
+  if (attestationId === '1') {
     nameAndDob_smt.import(nameAndDobjson as any);
     nameAndYob_smt.import(nameAndYobjson as any);
-  }
-  else{
+  } else {
     nameAndDob_smt.import(nameAndDobjsonID as any);
     nameAndYob_smt.import(nameAndYobjsonID as any);
   }
@@ -223,61 +230,67 @@ export async function runGenerateVcAndDiscloseRawProof(
 function encryptAES256GCM(plaintext: string, key: Buffer<ArrayBuffer>) {
   const iv = crypto.randomBytes(12); // GCM standard uses a 12-byte IV
 
-  const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
+  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
 
-  let encrypted = cipher.update(plaintext, "utf8", "hex");
-  encrypted += cipher.final("hex");
+  let encrypted = cipher.update(plaintext, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
 
   const authTag = cipher.getAuthTag();
 
   return {
-    nonce: Array.from(Buffer.from(iv.toString("hex"), "hex")),
-    cipher_text: Array.from(Buffer.from(encrypted, "hex")),
-    auth_tag: Array.from(Buffer.from(authTag.toString("hex"), "hex")),
+    nonce: Array.from(Buffer.from(iv.toString('hex'), 'hex')),
+    cipher_text: Array.from(Buffer.from(encrypted, 'hex')),
+    auth_tag: Array.from(Buffer.from(authTag.toString('hex'), 'hex')),
   };
 }
 
 export const handshakeAndGetUuid = async (
   wsUrl: string,
   inputs: any,
-  proofType: "register" | "dsc" | "disclose" | "register_id" | "dsc_id" | "register_aadhaar",
-  circuitName: string
+  proofType:
+    | 'register'
+    | 'dsc'
+    | 'disclose'
+    | 'register_id'
+    | 'dsc_id'
+    | 'register_aadhaar',
+  circuitName: string,
 ): Promise<string> => {
-  const pubkey = key1.getPublic(true, "hex");
+  const pubkey = key1.getPublic(true, 'hex');
 
   const helloBody = {
-    jsonrpc: "2.0",
-    method: "openpassport_hello",
+    jsonrpc: '2.0',
+    method: 'openpassport_hello',
     id: 1,
     params: {
-      user_pubkey: [...Array.from(Buffer.from(pubkey, "hex"))],
+      user_pubkey: [...Array.from(Buffer.from(pubkey, 'hex'))],
       uuid: v4(),
     },
   };
 
   const ws = new WebSocket(wsUrl);
 
-  ws.on("open", async () => {
+  ws.on('open', async () => {
     ws.send(JSON.stringify(helloBody));
   });
 
   return new Promise((resolve, reject) => {
-    ws.on("message", async (data) => {
+    ws.on('message', async data => {
       let textDecoder = new TextDecoder();
       //@ts-ignore
       let result = JSON.parse(textDecoder.decode(Buffer.from(data)));
-      console.log(result);
       if (result.result.attestation !== undefined) {
-        const { userPubkey, serverPubkey, imageHash, verified } = await validatePKIToken(
-          Buffer.from(result.result.attestation).toString('utf-8')
-        );
+        const { userPubkey, serverPubkey, imageHash, verified } =
+          await validatePKIToken(
+            Buffer.from(result.result.attestation).toString('utf-8'),
+          );
         //check if key1 is the same as userPubkey
-        const key2 = ec.keyFromPublic(serverPubkey, "hex");
+        const key2 = ec.keyFromPublic(serverPubkey, 'hex');
         const sharedKey = key1.derive(key2.getPublic());
 
         const endpoint = {
-          endpointType: "staging_celo",
-          endpoint: "0x3Dd6fc52d2bA4221E02ae3A0707377B56FEA845a",
+          endpointType: 'staging_celo',
+          endpoint: '0x3Dd6fc52d2bA4221E02ae3A0707377B56FEA845a',
         };
         const encryptionData = encryptAES256GCM(
           JSON.stringify({
@@ -289,11 +302,11 @@ export const handshakeAndGetUuid = async (
               inputs: JSON.stringify(inputs),
             },
           }),
-          Buffer.from(sharedKey.toString("hex").padStart(64, "0"), "hex")
+          Buffer.from(sharedKey.toString('hex').padStart(64, '0'), 'hex'),
         );
         const submitBody = {
-          jsonrpc: "2.0",
-          method: "openpassport_submit_request",
+          jsonrpc: '2.0',
+          method: 'openpassport_submit_request',
           id: 1,
           params: {
             uuid: result.result.uuid,
@@ -310,26 +323,21 @@ export const handshakeAndGetUuid = async (
 };
 
 export const getProofGeneratedUpdate = async (
-  uuid: string
+  uuid: string,
 ): Promise<{
   created_at: string;
   witness_generated_at: string;
   proof_generated_at: string;
 }> => {
-  const socket2 = io(WSS_URL, { transports: ["websocket"] });
-  socket2.on("connect", () => {
-    socket2.emit("subscribe", uuid);
-  });
-  socket2.on("error", (err) => {
-    console.error("Socket.IO error:", err);
+  const socket2 = io(WSS_URL, { transports: ['websocket'] });
+  socket2.on('connect', () => {
+    socket2.emit('subscribe', uuid);
   });
 
   return new Promise((resolve, reject) => {
-    socket2.on("status", (data) => {
+    socket2.on('status', data => {
       try {
         if (data.status === 3 || data.status === 5) {
-          console.error("TEE PROOF GENERATION FAILED:");
-          console.error(JSON.stringify(data, null, 2));
           socket2.close();
           reject(`Proof generation failed:  ${data.request_id}`);
         } else if (data.status === 4) {
@@ -337,7 +345,7 @@ export const getProofGeneratedUpdate = async (
           resolve(data);
         }
       } catch (e) {
-        console.error("Error parsing message:", e);
+        reject(`Error parsing message: ${e}`);
       }
     });
   });
@@ -345,8 +353,8 @@ export const getProofGeneratedUpdate = async (
 
 export const createRandomString = (length: number) => {
   const chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let result = "";
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
   for (let i = 0; i < length; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
@@ -391,7 +399,6 @@ uyT5CnJulxSC5CT1
 -----END CERTIFICATE-----
 `;
 
-
 function base64UrlDecodeToBytes(input: string): string {
   const base64 = input.replace(/-/g, '+').replace(/_/g, '/');
   const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
@@ -421,7 +428,10 @@ function extractCertificates(x5c: string[]): PKICertificates {
   };
 }
 
-function compareCertificates(cert1: forge.pki.Certificate, cert2: forge.pki.Certificate): boolean {
+function compareCertificates(
+  cert1: forge.pki.Certificate,
+  cert2: forge.pki.Certificate,
+): boolean {
   const hash1 = forge.md.sha256
     .create()
     .update(forge.asn1.toDer(forge.pki.certificateToAsn1(cert1)).getBytes())
@@ -445,7 +455,7 @@ function verifyCertificateChain({ leaf, intermediate, root }: PKICertificates) {
     return true;
   });
 
-  [leaf, intermediate, root].forEach((cert) => {
+  [leaf, intermediate, root].forEach(cert => {
     const now = new Date();
     if (now < cert.validity.notBefore || now > cert.validity.notAfter) {
       throw new Error('Certificate is not within validity period');
@@ -455,7 +465,7 @@ function verifyCertificateChain({ leaf, intermediate, root }: PKICertificates) {
 
 export function validatePKIToken(
   attestationToken: string,
-  dev: boolean = true
+  dev: boolean = true,
 ): {
   userPubkey: Buffer;
   serverPubkey: Buffer;
@@ -463,12 +473,16 @@ export function validatePKIToken(
   verified: boolean;
 } {
   // Decode JWT header
-  const [encodedHeader, encodedPayload, encodedSignature] = attestationToken.split('.');
-  const header = JSON.parse(forge.util.decodeUtf8(forge.util.decode64(encodedHeader)));
+  const [encodedHeader, encodedPayload, encodedSignature] =
+    attestationToken.split('.');
+  const header = JSON.parse(
+    forge.util.decodeUtf8(forge.util.decode64(encodedHeader)),
+  );
   if (header.alg !== 'RS256') throw new Error(`Invalid alg: ${header.alg}`);
 
   const x5c = header.x5c;
-  if (!x5c || x5c.length !== 3) throw new Error('x5c header must contain exactly 3 certificates');
+  if (!x5c || x5c.length !== 3)
+    throw new Error('x5c header must contain exactly 3 certificates');
   const certificates = extractCertificates(x5c);
   const storedRootCert = forge.pki.certificateFromPem(GCP_ROOT_CERT);
   // Compare root certificate fingerprint
@@ -505,7 +519,6 @@ export function validatePKIToken(
       imageHash: payload.submods.container.image_digest.slice(7),
     };
   } catch (err) {
-    console.error('TEE JWT signature verification failed:', err);
     return {
       verified: false,
       userPubkey: Buffer.from([]),
