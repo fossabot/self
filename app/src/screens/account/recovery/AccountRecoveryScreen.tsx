@@ -12,10 +12,12 @@ import {
   Title,
 } from '@selfxyz/mobile-sdk-alpha/components';
 import { BackupEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import useHapticNavigation from '@/hooks/useHapticNavigation';
 import RestoreAccountSvg from '@/images/icons/restore_account.svg';
 import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
+import useCompactLayout from '@/hooks/useCompactLayout';
 import { black, slate600, white } from '@/utils/colors';
 
 const AccountRecoveryScreen: React.FC = () => {
@@ -25,6 +27,30 @@ const AccountRecoveryScreen: React.FC = () => {
       nextScreen: 'SaveRecoveryPhrase',
     },
   });
+  const { selectResponsiveValues, getResponsiveHorizontalPadding } = useCompactLayout();
+  const { bottom } = useSafeAreaInsets();
+
+  const {
+    iconSize,
+    iconPadding,
+    contentGap,
+    descriptionSize,
+    titleSize,
+    buttonStackGap,
+    buttonPaddingTop,
+    extraBottomPadding,
+  } = selectResponsiveValues({
+    iconSize: { compact: 64, regular: 80 },
+    iconPadding: { compact: '$4', regular: '$5' },
+    contentGap: { compact: '$2', regular: '$2.5' },
+    descriptionSize: { compact: 15, regular: 16 },
+    titleSize: { compact: 26, regular: 32 },
+    buttonStackGap: { compact: '$2', regular: '$2.5' },
+    buttonPaddingTop: { compact: '$4', regular: '$6' },
+    extraBottomPadding: { compact: 16, regular: 24 },
+  });
+  const horizontalPadding = getResponsiveHorizontalPadding({ percent: 0.06 });
+  const bottomPadding = bottom + extraBottomPadding;
 
   return (
     <ExpandableBottomLayout.Layout backgroundColor={black}>
@@ -33,20 +59,28 @@ const AccountRecoveryScreen: React.FC = () => {
           borderColor={slate600}
           borderWidth="$1"
           borderRadius="$10"
-          padding="$5"
+          padding={iconPadding}
         >
-          <RestoreAccountSvg height={80} width={80} color={white} />
+          <RestoreAccountSvg height={iconSize} width={iconSize} color={white} />
         </View>
       </ExpandableBottomLayout.TopSection>
-      <ExpandableBottomLayout.BottomSection backgroundColor={white}>
-        <YStack alignItems="center" gap="$2.5" paddingBottom="$2.5">
-          <Title>Restore your Self account</Title>
-          <Description>
+      <ExpandableBottomLayout.BottomSection
+        backgroundColor={white}
+        paddingBottom={bottomPadding}
+        paddingHorizontal={horizontalPadding}
+      >
+        <YStack alignItems="center" gap={contentGap} paddingBottom="$2">
+          <Title style={{ fontSize: titleSize, textAlign: 'center' }}>
+            Restore your Self account
+          </Title>
+          <Description
+            style={{ fontSize: descriptionSize, textAlign: 'center' }}
+          >
             By continuing, you certify that this passport belongs to you and is
             not stolen or forged.
           </Description>
 
-          <YStack gap="$2.5" width="100%" paddingTop="$6">
+          <YStack gap={buttonStackGap} width="100%" paddingTop={buttonPaddingTop}>
             <PrimaryButton
               trackEvent={BackupEvents.ACCOUNT_RECOVERY_STARTED}
               onPress={onRestoreAccountPress}

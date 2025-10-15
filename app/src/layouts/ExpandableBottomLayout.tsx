@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 // NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Dimensions,
   PixelRatio,
@@ -17,6 +17,7 @@ import { View } from 'tamagui';
 
 import { black, white } from '@/utils/colors';
 import { extraYPadding } from '@/utils/constants';
+import useCompactLayout from '@/hooks/useCompactLayout';
 
 // Get the current font scale factor
 const fontScale = PixelRatio.getFontScale();
@@ -57,7 +58,17 @@ const TopSection: React.FC<TopSectionProps> = ({
   ...props
 }) => {
   const { top } = useSafeAreaInsets();
-  const { roundTop, ...restProps } = props;
+  const { roundTop, style: incomingStyle, ...restProps } = props;
+  const { selectResponsiveValue } = useCompactLayout({
+    compactHeight: 760,
+  });
+  const spacingStyle = useMemo(
+    () => ({
+      paddingHorizontal: selectResponsiveValue(16, 20, 'width'),
+      paddingVertical: selectResponsiveValue(16, 20, 'height'),
+    }),
+    [selectResponsiveValue],
+  );
   return (
     <View
       {...restProps}
@@ -66,7 +77,9 @@ const TopSection: React.FC<TopSectionProps> = ({
         styles.topSection,
         roundTop && styles.roundTop,
         roundTop ? { marginTop: top } : { paddingTop: top },
+        spacingStyle,
         { backgroundColor },
+        incomingStyle,
       ]}
     >
       {children}
@@ -108,6 +121,16 @@ const BottomSection: React.FC<BottomSectionProps> = ({
   const minBottom = safeAreaBottom + extraYPadding;
   const totalBottom =
     typeof incomingBottom === 'number' ? minBottom + incomingBottom : minBottom;
+  const { selectResponsiveValue } = useCompactLayout({
+    compactHeight: 760,
+  });
+  const spacingStyle = useMemo(
+    () => ({
+      paddingHorizontal: selectResponsiveValue(16, 20, 'width'),
+      paddingTop: selectResponsiveValue(18, 30, 'height'),
+    }),
+    [selectResponsiveValue],
+  );
 
   let panelHeight: number | 'auto' = 'auto';
   // set bottom section height to 38% of screen height
@@ -129,7 +152,7 @@ const BottomSection: React.FC<BottomSectionProps> = ({
     <View
       {...props}
       height={panelHeight}
-      style={[styles.bottomSection, style]}
+      style={[styles.bottomSection, spacingStyle, style]}
       paddingBottom={totalBottom}
     >
       {children}

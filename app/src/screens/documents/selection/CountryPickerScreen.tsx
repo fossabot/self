@@ -3,12 +3,7 @@
 // NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
 import { memo, useCallback } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, FlatList, TouchableOpacity, View } from 'react-native';
 
 import { commonNames } from '@selfxyz/common/constants/countries';
 import {
@@ -24,6 +19,7 @@ import {
 } from '@selfxyz/mobile-sdk-alpha/components';
 
 import { DocumentFlowNavBar } from '@/components/NavBar/DocumentFlowNavBar';
+import useCompactLayout from '@/hooks/useCompactLayout';
 import { black, slate100, slate500 } from '@/utils/colors';
 import { advercase, dinot } from '@/utils/fonts';
 import { buttonTap } from '@/utils/haptic';
@@ -65,6 +61,16 @@ CountryItem.displayName = 'CountryItem';
 
 const CountryPickerScreen: React.FC = () => {
   const selfClient = useSelfClient();
+  const { selectResponsiveValues, getResponsiveHorizontalPadding } =
+    useCompactLayout();
+  const { headingSize, subheadingSize, verticalSpacing, sectionSpacing } =
+    selectResponsiveValues({
+      headingSize: { compact: 22, regular: 29, dimension: 'width' },
+      subheadingSize: { compact: 15, regular: 16, dimension: 'width' },
+      verticalSpacing: { compact: 16, regular: 24, dimension: 'width' },
+      sectionSpacing: { compact: '$4', regular: '$6', dimension: 'width' },
+    });
+  const paddingHorizontal = getResponsiveHorizontalPadding({ percent: 0.05 });
 
   const { countryData, countryList, loading, userCountryCode, showSuggestion } =
     useCountries();
@@ -132,12 +138,22 @@ const CountryPickerScreen: React.FC = () => {
   return (
     <YStack flex={1} backgroundColor={slate100}>
       <DocumentFlowNavBar title="GETTING STARTED" />
-      <YStack flex={1} paddingTop="$4" paddingHorizontal="$4">
-        <YStack marginTop="$4" marginBottom="$6">
-          <BodyText style={{ fontSize: 29, fontFamily: advercase }}>
+      <YStack
+        flex={1}
+        paddingTop="$4"
+        paddingHorizontal={paddingHorizontal}
+      >
+        <YStack marginTop="$4" marginBottom={sectionSpacing}>
+          <BodyText style={{ fontSize: headingSize, fontFamily: advercase }}>
             Select the country that issued your ID
           </BodyText>
-          <BodyText style={{ fontSize: 16, color: slate500, marginTop: 20 }}>
+          <BodyText
+            style={{
+              fontSize: subheadingSize,
+              color: slate500,
+              marginTop: verticalSpacing,
+            }}
+          >
             Self has support for over 300 ID types. You can select the type of
             ID in the next step
           </BodyText>
@@ -150,7 +166,7 @@ const CountryPickerScreen: React.FC = () => {
               <YStack marginBottom="$2">
                 <BodyText
                   style={{
-                    fontSize: 16,
+                    fontSize: subheadingSize,
                     color: black,
                     fontFamily: dinot,
                     letterSpacing: 0.8,
@@ -167,11 +183,11 @@ const CountryPickerScreen: React.FC = () => {
                 />
                 <BodyText
                   style={{
-                    fontSize: 16,
+                    fontSize: subheadingSize,
                     color: black,
                     fontFamily: dinot,
                     letterSpacing: 0.8,
-                    marginTop: 20,
+                    marginTop: verticalSpacing,
                   }}
                 >
                   SELECT AN ISSUING COUNTRY

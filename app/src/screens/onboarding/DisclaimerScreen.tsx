@@ -18,6 +18,7 @@ import { AppEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
 import warningAnimation from '@/assets/animations/warning.json';
 import { DelayedLottieView } from '@/components/DelayedLottieView';
 import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
+import useCompactLayout from '@/hooks/useCompactLayout';
 import type { RootStackParamList } from '@/navigation';
 import { useSettingStore } from '@/stores/settingStore';
 import { black, white } from '@/utils/colors';
@@ -27,6 +28,12 @@ const DisclaimerScreen: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { dismissPrivacyNote } = useSettingStore();
+  const { selectResponsiveValues } = useCompactLayout({ compactHeight: 760 });
+  const { animationSize, buttonMargin, cautionSpacing } = selectResponsiveValues({
+    animationSize: { compact: '110%', regular: '125%', dimension: 'height' },
+    buttonMargin: { compact: 20, regular: 30, dimension: 'height' },
+    cautionSpacing: { compact: 6, regular: 10, dimension: 'height' },
+  });
 
   useEffect(() => {
     notificationWarning();
@@ -39,7 +46,7 @@ const DisclaimerScreen: React.FC = () => {
           autoPlay
           loop={false}
           source={warningAnimation}
-          style={styles.animation}
+          style={[styles.animation, { width: animationSize, height: animationSize }]}
           cacheComposition={true}
           renderMode="HARDWARE"
         />
@@ -54,12 +61,12 @@ const DisclaimerScreen: React.FC = () => {
             (like passwords, Social Security numbers, or financial details)
             should be trusted only if they're secure and necessary.
           </Caution>
-          <Caution style={{ marginTop: 10 }}>
+          <Caution style={{ marginTop: cautionSpacing }}>
             Always verify an app's legitimacy before sharing your data.
           </Caution>
           <PrimaryButton
             trackEvent={AppEvents.DISMISS_PRIVACY_DISCLAIMER}
-            style={{ marginVertical: 30 }}
+            style={{ marginVertical: buttonMargin }}
             onPress={() => {
               confirmTap();
               dismissPrivacyNote();

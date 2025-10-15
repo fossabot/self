@@ -2,11 +2,12 @@
 // SPDX-License-Identifier: BUSL-1.1
 // NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Button, Text, XStack, YStack } from 'tamagui';
 import Clipboard from '@react-native-clipboard/clipboard';
 
 import { useSettingStore } from '@/stores/settingStore';
+import useCompactLayout from '@/hooks/useCompactLayout';
 import {
   black,
   slate50,
@@ -25,8 +26,9 @@ interface MnemonicProps {
 interface WordPill {
   index: number;
   word: string;
+  compact: boolean;
 }
-const WordPill = ({ index, word }: WordPill) => {
+const WordPill = ({ index, word, compact }: WordPill) => {
   return (
     <XStack
       key={index}
@@ -34,14 +36,14 @@ const WordPill = ({ index, word }: WordPill) => {
       backgroundColor={white}
       borderWidth="$0.5"
       borderRadius="$2"
-      padding={4}
-      minWidth={26}
-      gap={4}
+      padding={compact ? 3 : 4}
+      minWidth={compact ? 22 : 26}
+      gap={compact ? 3 : 4}
     >
-      <Text color={slate300} fontSize={14} fontWeight={500}>
+      <Text color={slate300} fontSize={compact ? 13 : 14} fontWeight={500}>
         {index}
       </Text>
-      <Text color={slate500} fontSize={14} fontWeight={500}>
+      <Text color={slate500} fontSize={compact ? 13 : 14} fontWeight={500}>
         {word}
       </Text>
     </XStack>
@@ -54,6 +56,34 @@ const Mnemonic = ({ words = REDACTED, onRevealWords }: MnemonicProps) => {
   const [revealWords, setRevealWords] = useState(false);
   const [copied, setCopied] = useState(false);
   const { setHasViewedRecoveryPhrase } = useSettingStore();
+  const { isCompactWidth, selectResponsiveValues } = useCompactLayout();
+  const {
+    containerPaddingHorizontal,
+    containerPaddingVertical,
+    containerGap,
+    buttonPadding,
+  } = selectResponsiveValues({
+    containerPaddingHorizontal: {
+      compact: 18,
+      regular: 26,
+      dimension: 'width',
+    },
+    containerPaddingVertical: {
+      compact: 22,
+      regular: 28,
+      dimension: 'width',
+    },
+    containerGap: { compact: 10, regular: 12, dimension: 'width' },
+    buttonPadding: { compact: 12, regular: 16, dimension: 'width' },
+  });
+  const containerSpacing = useMemo(
+    () => ({
+      paddingHorizontal: containerPaddingHorizontal,
+      paddingVertical: containerPaddingVertical,
+      gap: containerGap,
+    }),
+    [containerGap, containerPaddingHorizontal, containerPaddingVertical],
+  );
   const copyToClipboardOrReveal = useCallback(async () => {
     confirmTap();
     if (!revealWords) {
@@ -76,13 +106,18 @@ const Mnemonic = ({ words = REDACTED, onRevealWords }: MnemonicProps) => {
         borderBottomWidth={0}
         borderTopLeftRadius="$5"
         borderTopRightRadius="$5"
-        gap={12}
-        paddingHorizontal={26}
-        paddingVertical={28}
+        gap={containerSpacing.gap}
+        paddingHorizontal={containerSpacing.paddingHorizontal}
+        paddingVertical={containerSpacing.paddingVertical}
         flexWrap="wrap"
       >
         {(revealWords ? words : REDACTED).map((word, i) => (
-          <WordPill key={i} word={word} index={i} />
+          <WordPill
+            key={i}
+            word={word}
+            index={i}
+            compact={isCompactWidth}
+          />
         ))}
       </XStack>
       <XStack
@@ -100,7 +135,7 @@ const Mnemonic = ({ words = REDACTED, onRevealWords }: MnemonicProps) => {
           borderTopWidth={0}
           borderBottomLeftRadius="$5"
           borderBottomRightRadius="$5"
-          paddingVertical={16}
+          paddingVertical={buttonPadding}
           onPress={copyToClipboardOrReveal}
           width="100%"
           textAlign="center"
