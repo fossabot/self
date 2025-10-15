@@ -7,9 +7,12 @@
     "test": "mocha --import=tsx unified-api.test.ts"
   },
   "dependencies": {
+    "@openpassport/zk-kit-lean-imt": "^0.0.6",
+    "@openpassport/zk-kit-smt": "^0.0.1",
     "@selfxyz/circuits": "workspace:^",
     "@selfxyz/common": "workspace:^",
-    "axios": "^1.7.7"
+    "axios": "^1.7.7",
+    "poseidon-lite": "^0.2.0"
   },
   "devDependencies": {
     "@types/chai": "^4.3.16",

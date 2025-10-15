@@ -240,7 +240,7 @@ function encryptAES256GCM(plaintext: string, key: Buffer<ArrayBuffer>) {
 export const handshakeAndGetUuid = async (
   wsUrl: string,
   inputs: any,
-  proofType: "register" | "dsc" | "disclose" | "register_id" | "dsc_id",
+  proofType: "register" | "dsc" | "disclose" | "register_id" | "dsc_id" | "register_aadhaar",
   circuitName: string
 ): Promise<string> => {
   const pubkey = key1.getPublic(true, "hex");

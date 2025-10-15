@@ -2,12 +2,13 @@ import {
   genAndInitMockPassportData,
   generateCircuitInputsDSC,
   generateCircuitInputsRegister,
-  genMockIdDoc,
-  generateMockDSC,
   getCircuitNameFromPassportData,
-  initPassportDataParsing,
   PassportData,
   genMockIdDocAndInitDataParsing,
+  prepareAadhaarDiscloseTestData,
+  prepareAadhaarRegisterTestData,
+  generateTestData,
+  testCustomData,
 } from "@selfxyz/common";
 import {
   getProofGeneratedUpdate,
@@ -18,6 +19,35 @@ import { DSC_URL, REGISTER_URL } from "./ts-api/utils/constant.ts";
 import { hashEndpointWithScope } from "@selfxyz/common/utils/scope";
 import { PublicSignals } from "snarkjs";
 import axios from "axios";
+import fs from "fs";
+import path from "path";
+import { LeanIMT } from '@openpassport/zk-kit-lean-imt';
+import { fileURLToPath } from 'url';
+import { SMT } from '@openpassport/zk-kit-smt';
+import { poseidon2 } from 'poseidon-lite';
+import nameAndDobAadhaarjson from '../../circuits/tests/consts/ofac/nameAndDobAadhaarSMT.json' with { type: 'json' };
+import nameAndYobAadhaarjson from '../../circuits/tests/consts/ofac/nameAndYobAadhaarSMT.json' with { type: 'json' };
+import { prepareAadhaarRegisterData, processQRData } from "../../common/dist/esm/src/utils/aadhaar/mockData";
+
+
+// Create SMTs at module level
+const nameAndDob_smt = new SMT(poseidon2, true);
+nameAndDob_smt.import(nameAndDobAadhaarjson as any);
+
+const nameAndYob_smt = new SMT(poseidon2, true);
+nameAndYob_smt.import(nameAndYobAadhaarjson as any);
+
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const privateKeyPem = fs.readFileSync(
+  path.join(__dirname, '../../circuits/node_modules/anon-aadhaar-circuits/assets/testPrivateKey.pem'),
+  'utf8'
+);
+
+const publicKeyPem = fs.readFileSync(
+  path.join(__dirname, '../../circuits/node_modules/anon-aadhaar-circuits/assets/testCertificate.pem'),
+  'utf8'
+);
 
 // Types for API testing
 export interface ProofData {
@@ -86,7 +116,7 @@ async function registerMockPassportOrEUid(
       );
     } else {
       console.log("Generating DSC ID proof");
-      dscCircuitName = getCircuitNameFromPassportData(passportData, "dsc_id");
+      dscCircuitName = getCircuitNameFromPassportData(passportData, "dsc");
       dscUuid = await handshakeAndGetUuid(
         DSC_URL,
         dscInputs,
@@ -302,6 +332,81 @@ export async function setupTestData(
   };
 }
 
+export async function setupTestDataAadhaar() {
+  const timestamp = new Date(Date.now() - 30 * 60 * 1000 + 19800000).getTime().toString();
+  const qrdata = generateTestData({
+    privKeyPem: privateKeyPem,
+    data: testCustomData,
+    timestamp
+  });
+
+  const inputs = await prepareAadhaarRegisterData(
+    qrdata.testQRData,
+    "1234",
+    [publicKeyPem]
+  );
+  console.log("Inputs for Aadhaar register:", inputs);
+
+
+  const registerUuid = await handshakeAndGetUuid(
+    REGISTER_URL,
+    inputs,
+    "register_aadhaar",
+    "register_aadhaar"
+  );
+
+  const registerData = await getProofGeneratedUpdate(registerUuid);
+  console.log(
+    " Got register proof generated update:",
+    registerData ? "SUCCESS" : "FAILED"
+  );
+  console.log("\x1b[34m%s\x1b[0m", "register uuid:", registerUuid);
+  console.log("\x1b[34m%s\x1b[0m", "circuit:", "register_aadhaar");
+  console.log(
+    "\x1b[34m%s\x1b[0m",
+    "witness generation duration:",
+    (new Date(registerData.witness_generated_at).getTime() -
+      new Date(registerData.created_at).getTime()) /
+      1000,
+    " seconds"
+  );
+  console.log(
+    "\x1b[34m%s\x1b[0m",
+    "proof   generation duration:",
+    (new Date(registerData.proof_generated_at).getTime() -
+      new Date(registerData.witness_generated_at).getTime()) /
+      1000,
+    " seconds"
+  );
+
+
+  // const tree = new LeanIMT<bigint>((a, b) => poseidon2([a, b]));
+  // const scope = hashEndpointWithScope(
+  //   "http://localhost:3000",
+  //   "self-playground"
+  // );
+  // const {inputs: discloseInputs} = prepareAadhaarDiscloseTestData(
+  //   privateKeyPem,
+  //   tree,
+  //   nameAndDob_smt,
+  //   nameAndYob_smt,
+  //   scope,
+  //   '1234',
+  //   '585225',
+  //   '0',
+  //   undefined,
+  //   undefined,
+  //   undefined,
+  //   undefined,
+  //   undefined,
+  //   undefined,
+  //   true
+  // );
+
+
+
+
+}
 export function getTestData() {
   if (!globalProofData) {
     throw new Error("Test data not initialized. Call setupTestData() first.");

@@ -7594,6 +7594,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@selfxyz/tests@workspace:sdk/tests"
   dependencies:
+    "@openpassport/zk-kit-lean-imt": "npm:^0.0.6"
+    "@openpassport/zk-kit-smt": "npm:^0.0.1"
     "@selfxyz/circuits": "workspace:^"
     "@selfxyz/common": "workspace:^"
     "@types/chai": "npm:^4.3.16"
@@ -7601,6 +7603,7 @@ __metadata:
     axios: "npm:^1.7.7"
     chai: "npm:^5.1.1"
     mocha: "npm:^10.4.0"
+    poseidon-lite: "npm:^0.2.0"
     tsx: "npm:^4.7.0"
     typescript: "npm:^5.9.2"
   languageName: unknown

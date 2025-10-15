@@ -1,11 +1,8 @@
 import { expect } from 'chai';
 import { describe } from 'mocha';
-import { callAPI, compareAPIs, setupTestData, getTestData, getGlobalPassportData, getUserContextData, getInvalidUserContextData } from './utils.ts';
+import { callAPI, compareAPIs, setupTestData, getTestData, getGlobalPassportData, getUserContextData, getInvalidUserContextData, setupTestDataAadhaar } from './utils.ts';
 import { getRevealedDataBytes } from '../core/src/utils/proof.js';
 import { packBytes, packBytesArray } from '../../common/src/utils/bytes.js';
-import { runGenerateVcAndDiscloseRawProof } from './ts-api/utils/helper.ts';
-import { hashEndpointWithScope } from '@selfxyz/common';
-
 
 const TS_API_URL = "http://localhost:3000";
 const GO_API_URL = "http://localhost:8080";
@@ -462,6 +459,28 @@ describe('Self SDK EU ID Card API Comparison Tests', function () {
         });
     });
 });
+
+
+
+describe.only('Self SDK Aadhaar API Comparison Tests', function () {
+    this.timeout(0);
+    before(async () => {
+        await setupTestDataAadhaar();
+    });
+    it('should verify valid Aadhaar proof successfully', async function () {
+
+        console.log("Aadhaar test data");
+        // const { proof, publicSignals } = aadhaarTestData;
+        // const body = {
+        //     attestationId: 3,
+        //     proof: proof,
+        //     publicSignals: publicSignals,
+        //     userContextData: validUserContext
+        // };
+        // await runTest(body, 200, []);
+    });
+});
+
 /*
 Public Signals Structure & Indices
 The public signals array has a well-defined structure with specific indices for different data types. There are two main attestation types:
