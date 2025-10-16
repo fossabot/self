@@ -53,6 +53,7 @@ export default defineConfig([
     splitting: true,
     clean: true,
     outDir: 'dist/esm',
+    onSuccess: 'node ./scripts/copy-assets.mjs',
     tsconfig: './tsconfig.json',
     target: 'es2020',
     external: [
@@ -71,6 +72,8 @@ export default defineConfig([
       'react-native-keychain',
       'react-native-sqlite-storage',
       // State management (xstate included in bundle)
+      // SVG files should be handled by React Native's SVG transformer
+      /\.svg$/,
     ],
     esbuildOptions(options) {
       options.supported = {
@@ -116,6 +119,8 @@ export default defineConfig([
       'react-native-keychain',
       'react-native-sqlite-storage',
       // State management (xstate included in bundle)
+      // SVG files should be handled by React Native's SVG transformer
+      /\.svg$/,
     ],
     outExtension: ({ format }) => ({ js: format === 'cjs' ? '.cjs' : '.js' }),
     esbuildOptions(options) {
