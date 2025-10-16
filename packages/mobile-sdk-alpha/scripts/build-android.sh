@@ -24,14 +24,11 @@ echo "🔍 Checking for Android build options..."
 if [ -d "$MOBILE_SDK_NATIVE" ]; then
     echo "✅ Native modules source submodule found, building from source..."
 
-    # Check if we already have a recent AAR file (less than 1 hour old)
+    # Check if we already have an AAR file
     if [ -f "dist/android/mobile-sdk-alpha-release.aar" ]; then
-        AAR_AGE=$(($(date +%s) - $(stat -f %m "dist/android/mobile-sdk-alpha-release.aar" 2>/dev/null || echo 0)))
-        if [ $AAR_AGE -lt 3600 ]; then  # 1 hour = 3600 seconds
-            echo "✅ Recent AAR found (${AAR_AGE}s old), skipping build"
-            echo "📦 Using existing AAR: dist/android/mobile-sdk-alpha-release.aar"
-            exit 0
-        fi
+        echo "✅ AAR file found, skipping build"
+        echo "📦 Using existing AAR: dist/android/mobile-sdk-alpha-release.aar"
+        exit 0
     fi
 
     # Update submodule to latest
