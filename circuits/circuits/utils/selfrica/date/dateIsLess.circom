@@ -26,17 +26,17 @@ template DateIsLessFullYear() {
     signal output out;
 
     // ----
-    component year_less = LessThan(8);
+    component year_less = LessThan(14);
     year_less.in[0] <== year_1;
     year_less.in[1] <== year_2;
     signal is_year_less <== year_less.out;
 
-    component month_less = LessThan(8);
+    component month_less = LessThan(4);
     month_less.in[0] <== month_1;
     month_less.in[1] <== month_2;
     signal is_month_less <== month_less.out;
 
-    component day_less = LessThan(8);
+    component day_less = LessThan(5);
     day_less.in[0] <== day_1;
     day_less.in[1] <== day_2;
     signal is_day_less <== day_less.out;
