@@ -27,68 +27,68 @@ import { SelfricaField } from '../selfrica/constants.js';
 export { generateCircuitInputsRegister } from './generateInputs.js';
 
 
-export function generateTEEInputsSelfricaDisclose(  secret: string,
-  selfricaData: SelfricaData,
-  selfApp: SelfApp,
-  getTree: <T extends 'ofac' | 'commitment'>(
-    doc: DocumentCategory,
-    tree: T
-  ) => T extends 'ofac' ? OfacTree : any
+// export function generateTEEInputsSelfricaDisclose(  secret: string,
+//   selfricaData: SelfricaData,
+//   selfApp: SelfApp,
+//   getTree: <T extends 'ofac' | 'commitment'>(
+//     doc: DocumentCategory,
+//     tree: T
+//   ) => T extends 'ofac' ? OfacTree : any
 
-) {
+// ) {
 
-  const {generateSelfricaInputWithOutSig} = require('../selfrica/generateInputs.js');
+//   const {generateSelfricaInputWithOutSig} = require('../selfrica/generateInputs.js');
 
-  const { scope, disclosures, userId, userDefinedData, chainID } = selfApp;
-  const userIdentifierHash = calculateUserIdentifierHash(chainID, userId, userDefinedData);
+//   const { scope, disclosures, userId, userDefinedData, chainID } = selfApp;
+//   const userIdentifierHash = calculateUserIdentifierHash(chainID, userId, userDefinedData);
 
-  // Map SelfAppDisclosureConfig to SelfricaField array
-  const mapDisclosuresToSelfricaFields = (config: SelfAppDisclosureConfig): SelfricaField[] => {
-    const mapping: [keyof SelfAppDisclosureConfig, SelfricaField][] = [
-      ['issuing_state', 'ADDRESS'],
-      ['nationality', 'COUNTRY'],
-      ['name', 'FULL_NAME'],
-      ['passport_number', 'ID_NUMBER'],
-      ['date_of_birth', 'DOB'],
-      ['gender', 'GENDER'],
-      ['expiry_date', 'EXPIRY_DATE'],
-    ];
-    return mapping.filter(([key]) => config[key]).map(([_, field]) => field);
-  };
+//   // Map SelfAppDisclosureConfig to SelfricaField array
+//   const mapDisclosuresToSelfricaFields = (config: SelfAppDisclosureConfig): SelfricaField[] => {
+//     const mapping: [keyof SelfAppDisclosureConfig, SelfricaField][] = [
+//       ['issuing_state', 'ADDRESS'],
+//       ['nationality', 'COUNTRY'],
+//       ['name', 'FULL_NAME'],
+//       ['passport_number', 'ID_NUMBER'],
+//       ['date_of_birth', 'DOB'],
+//       ['gender', 'GENDER'],
+//       ['expiry_date', 'EXPIRY_DATE'],
+//     ];
+//     return mapping.filter(([key]) => config[key]).map(([_, field]) => field);
+//   };
 
-  const ofac_trees = getTree('selfrica', 'ofac');
-  if (!ofac_trees) {
-    throw new Error('OFAC trees not loaded');
-  }
+//   const ofac_trees = getTree('selfrica', 'ofac');
+//   if (!ofac_trees) {
+//     throw new Error('OFAC trees not loaded');
+//   }
 
-  if (!ofac_trees.nameAndDob || !ofac_trees.nameAndYob) {
-    throw new Error('Invalid OFAC tree structure: missing required fields');
-  }
+//   if (!ofac_trees.nameAndDob || !ofac_trees.nameAndYob) {
+//     throw new Error('Invalid OFAC tree structure: missing required fields');
+//   }
 
-  const nameAndDobSMT = new SMT(poseidon2, true);
-  const nameAndYobSMT = new SMT(poseidon2, true);
-  nameAndDobSMT.import(ofac_trees.nameAndDob);
-  nameAndYobSMT.import(ofac_trees.nameAndYob);
+//   const nameAndDobSMT = new SMT(poseidon2, true);
+//   const nameAndYobSMT = new SMT(poseidon2, true);
+//   nameAndDobSMT.import(ofac_trees.nameAndDob);
+//   nameAndYobSMT.import(ofac_trees.nameAndYob);
 
-  const inputs = generateSelfricaInputWithOutSig(
-    selfricaData.serializedRealData,
-    nameAndDobSMT,
-    nameAndYobSMT,
-    disclosures.ofac,
-    scope,
-    userIdentifierHash.toString(),
-    mapDisclosuresToSelfricaFields(disclosures),
-    disclosures.excludedCountries,
-    disclosures.minimumAge
-  );
+//   const inputs = generateSelfricaInputWithOutSig(
+//     selfricaData.serializedRealData,
+//     nameAndDobSMT,
+//     nameAndYobSMT,
+//     disclosures.ofac,
+//     scope,
+//     userIdentifierHash.toString(),
+//     mapDisclosuresToSelfricaFields(disclosures),
+//     disclosures.excludedCountries,
+//     disclosures.minimumAge
+//   );
 
-  return {
-    inputs,
-    circuitName: 'vc_and_disclose_selfrica',
-    endpointType: selfApp.endpointType,
-    endpoint: selfApp.endpoint,
-  };
-}
+//   return {
+//     inputs,
+//     circuitName: 'vc_and_disclose_selfrica',
+//     endpointType: selfApp.endpointType,
+//     endpoint: selfApp.endpoint,
+//   };
+// }
 
 export function generateTEEInputsAadhaarDisclose(
   secret: string,
@@ -241,13 +241,13 @@ export function generateTEEInputsDiscloseStateless(
     return { inputs, circuitName, endpointType, endpoint };
   }
   if (passportData.documentCategory === 'selfrica') {
-    const { inputs, circuitName, endpointType, endpoint } = generateTEEInputsSelfricaDisclose(
-      secret,
-      passportData,
-      selfApp,
-      getTree
-    );
-    return { inputs, circuitName, endpointType, endpoint };
+    // const { inputs, circuitName, endpointType, endpoint } = generateTEEInputsSelfricaDisclose(
+    //   secret,
+    //   passportData,
+    //   selfApp,
+    //   getTree
+    // );
+    // return { inputs, circuitName, endpointType, endpoint };
   }
   const { scope, disclosures, endpoint, userId, userDefinedData, chainID } = selfApp;
   const userIdentifierHash = calculateUserIdentifierHash(chainID, userId, userDefinedData);

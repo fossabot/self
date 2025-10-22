@@ -8,28 +8,31 @@ include "@openpassport/zk-email-circuits/lib/sha.circom";
 include "@openpassport/zk-email-circuits/lib/bigint.circom";
 include "../utils/selfrica/constants.circom";
 include "../utils/selfrica/disclose/disclose.circom";
+include "@zk-kit/binary-merkle-root.circom/src/binary-merkle-root.circom";
 
 template VC_AND_DISCLOSE(
     MAX_FORBIDDEN_COUNTRIES_LIST_LENGTH,
     namedobTreeLevels,
     nameyobTreeLevels,
     n,
-    k
+    k,
+    nLevels
 ) {
     var selfrica_length = SELFRICA_MAX_LENGTH();
     var country_length = COUNTRY_LENGTH();
     var compressed_bit_len = selfrica_length/2;
 
-    signal input SmileID_data_padded[SMILE_DATA_PADDED()];
+    signal input SmileID_data_padded[selfrica_length];
     signal input compressed_disclose_sel[2];
-
-    signal input pubKey[k];
-    signal input msg_sig[k];
-    signal input id_num_sig[k];
 
     signal input scope;
 
     signal input forbidden_countries_list[MAX_FORBIDDEN_COUNTRIES_LIST_LENGTH * country_length];
+
+    signal input merkle_root;
+    signal input leaf_depth;
+    signal input path[nLevels];
+    signal input siblings[nLevels];
 
     signal input ofac_name_dob_smt_leaf_key;
     signal input ofac_name_dob_smt_root;
@@ -66,64 +69,26 @@ template VC_AND_DISCLOSE(
     }
 
 
-    //skiped  paddedInLength to be within `ceil(log2(8 * maxByteLength))` bits bez we are using hardcoded values
-    component msg_hasher = Sha256Bytes(SMILE_DATA_PADDED());
-    msg_hasher.paddedIn <== SmileID_data_padded;
-    msg_hasher.paddedInLength <== SMILE_DATA_PADDED();
+    component msg_hasher = PackBytesAndPoseidon(selfrica_length);
+    for (var i = 0; i < selfrica_length; i++) {
+        msg_hasher.in[i] <== SmileID_data_padded[i];
+    }
 
-    //verify Hash(smiledata) signatur
-    component msg_sig_verify = SignatureVerifier(1, n, k);
-    msg_sig_verify.hash <== msg_hasher.out;
-    msg_sig_verify.pubKey <== pubKey;
-    msg_sig_verify.signature <== msg_sig;
+    signal computedRoot <== BinaryMerkleRoot(nLevels)(msg_hasher.out, leaf_depth, path, siblings);
+    merkle_root === computedRoot;
 
-
-    //Calculate IDNUMBER hash
-    signal id_num[SMILE_ID_PADDED()];
+    signal id_num[ID_NUMBER_LENGTH()];
     var idNumberIdx = ID_NUMBER_INDEX();
-
-    // Fill the first 20 bytes with actual ID number data
     for (var i = 0; i < ID_NUMBER_LENGTH(); i++) {
         id_num[i] <== SmileID_data_padded[idNumberIdx + i];
     }
 
-    // Add SHA-256 padding for 20-byte message
-    // Add padding bit '1' (0x80)
-    id_num[ID_NUMBER_LENGTH()] <== 128; // 0x80 in decimal
-
-    // Fill with zeros up to position 56 (64 - 8 for length field)
-    for (var i = ID_NUMBER_LENGTH() + 1; i < SMILE_ID_PADDED() - 8; i++) {
-        id_num[i] <== 0;
-    }
-
-    // Add 64-bit length field (20 bytes * 8 = 160 bits)
-    // Length in bits as 64-bit big-endian integer
-    for (var i = SMILE_ID_PADDED() - 8; i < SMILE_ID_PADDED() - 1; i++) {
-        id_num[i] <== 0; // High bytes are 0 for small lengths
-    }
-    id_num[SMILE_ID_PADDED() - 1] <== 160; // 20 * 8 = 160 bits
-
-    component id_num_hasher = Sha256Bytes(SMILE_ID_PADDED());
-    id_num_hasher.paddedIn <== id_num;
-    id_num_hasher.paddedInLength <== SMILE_ID_PADDED();
-
-    //verify Hash(IdNumber) signature
-    component id_num_sig_verify = SignatureVerifier(1, n, k);
-    id_num_sig_verify.hash <== id_num_hasher.out;
-    id_num_sig_verify.pubKey <== pubKey;
-    id_num_sig_verify.signature <== id_num_sig;
-
-
-    // Identity Commitment = Hash( IdNumCommit sig )
-    component idCommCal = CustomHasher(k);
-    idCommCal.in <== msg_sig;
-
     //Nullifier = HASH( nullifier sig , scope )
-    component nullifierCal = CustomHasher(k + 1);
-    for (var i = 0; i < k; i++) {
-        nullifierCal.in[i] <== id_num_sig[i];
+    component nullifierCal = CustomHasher(ID_NUMBER_LENGTH() + 1);
+    for (var i = 0; i < ID_NUMBER_LENGTH(); i++) {
+        nullifierCal.in[i] <== id_num[i];
     }
-    nullifierCal.in[k] <== scope;
+    nullifierCal.in[ID_NUMBER_LENGTH()] <== scope;
 
     component disclose_circuit = DISCLOSE_SELFRICA(MAX_FORBIDDEN_COUNTRIES_LIST_LENGTH, namedobTreeLevels, nameyobTreeLevels);
 
@@ -151,13 +116,8 @@ template VC_AND_DISCLOSE(
     var forbidden_countries_list_packed_chunk_length = computeIntChunkLength(MAX_FORBIDDEN_COUNTRIES_LIST_LENGTH * country_length);
     signal output forbidden_countries_list_packed[forbidden_countries_list_packed_chunk_length] <== disclose_circuit.forbidden_countries_list_packed;
 
-    signal output identity_commitment <== idCommCal.out;
     signal output nullifier <== nullifierCal.out;
-    component firstPubkeyPart = Poseidon(16); //since we're going to use 17 parts for the rsa key
-    for (var i = 0; i < 16; i++) {
-        firstPubkeyPart.inputs[i] <== pubKey[i];
-    }
-    signal output pubkeyCommitment <== Poseidon(2)([firstPubkeyPart.out, pubKey[16]]);
+
 }
 
 component main {
@@ -168,4 +128,4 @@ component main {
         ofac_name_dob_smt_root,
         ofac_name_yob_smt_root
     ]
-} = VC_AND_DISCLOSE(40, 64, 64, 121, 17);
+} = VC_AND_DISCLOSE(40, 64, 64, 121, 17, 33);

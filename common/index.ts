@@ -126,9 +126,8 @@ export {
 } from './src/utils/aadhaar/mockData.js';
 
 export {
-  generateCircuitInput,
+  generateSelfricaDiscloseInput,
   generateCircuitInputWithRealData,
-  generateSelfricaInputWithSig,
   pubkeyCommitment,
   NON_OFAC_DUMMY_INPUT,
   OFAC_DUMMY_INPUT,
