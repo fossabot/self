@@ -26,7 +26,7 @@ target "SelfDemoApp" do
   )
 
   # Use the custom NFCPassportReader fork
-  pod "NFCPassportReader", :git => "git@github.com:selfxyz/NFCPassportReader.git", :commit => "9eff7c4e3a9037fdc1e03301584e0d5dcf14d76b"
+  # pod "NFCPassportReader", :git => "git@github.com:selfxyz/NFCPassportReader.git", :commit => "9eff7c4e3a9037fdc1e03301584e0d5dcf14d76b"
 
   post_install do |installer|
     # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
@@ -36,5 +36,21 @@ target "SelfDemoApp" do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # Add Swift module search paths for NFCPassportReader embedded in SelfSDK
+    installer.pods_project.targets.each do |target|
+      if target.name == 'mobile-sdk-alpha'
+        target.build_configurations.each do |config|
+          xcframework_path = "$(PODS_ROOT)/../../mobile-sdk-alpha/ios/Frameworks/NFCPassportReader.xcframework"
+          modules_path_device = "#{xcframework_path}/ios-arm64/SelfSDK.framework/Modules"
+          modules_path_sim = "#{xcframework_path}/ios-arm64_x86_64-simulator/SelfSDK.framework/Modules"
+
+          # Add module search paths
+          config.build_settings['OTHER_SWIFT_FLAGS'] ||= ['$(inherited)']
+          config.build_settings['OTHER_SWIFT_FLAGS'] << "-I#{modules_path_device}"
+          config.build_settings['OTHER_SWIFT_FLAGS'] << "-I#{modules_path_sim}"
+        end
+      end
+    end
   end
 end
