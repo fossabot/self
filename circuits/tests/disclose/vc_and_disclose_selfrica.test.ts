@@ -1,6 +1,6 @@
 import { wasm as wasmTester } from 'circom_tester';
 import * as path from 'path';
-import { generateCircuitInput, NON_OFAC_DUMMY_INPUT, OFAC_DUMMY_INPUT, generateSelfricaInputWithSig } from '@selfxyz/common';
+import { generateCircuitInput, NON_OFAC_DUMMY_INPUT, OFAC_DUMMY_INPUT,  } from '@selfxyz/common';
 import { SMT } from '@openpassport/zk-kit-smt';
 import { poseidon2 } from 'poseidon-lite';
 import fs from 'fs';
@@ -11,6 +11,9 @@ import { expect } from 'chai';
 import { customHasher } from '@selfxyz/common';
 import { serializeSmileData } from '@selfxyz/common';
 import forge from 'node-forge';
+import { LeanIMT } from '@openpassport/zk-kit-lean-imt';
+import { generateSelfricaDiscloseInput } from '@selfxyz/common/utils/selfrica/generateInputs';
+import { SelfricaField } from '@selfxyz/common/utils/selfrica/constants';
 
 const __dirname = path.dirname(__filename);
 
@@ -21,14 +24,9 @@ const nameAndYobjson = JSON.parse(
   fs.readFileSync(path.join(__dirname, '../consts/ofac/nameAndYobSelfricaSMT.json'), 'utf8')
 );
 
-function extractModulusAsBase64(pemPublicKey: string): string {
-    const publicKeyObject = forge.pki.publicKeyFromPem(pemPublicKey);
-    const modulusHex = publicKeyObject.n.toString(16);
-    // Ensure even length for proper hex to buffer conversion
-    const paddedModulusHex = modulusHex.length % 2 === 0 ? modulusHex : '0' + modulusHex;
-    const modulusBuffer = Buffer.from(paddedModulusHex, 'hex');
-    return modulusBuffer.toString('base64');
-}
+// Create Merkle tree at module level
+const tree: any = new LeanIMT((a, b) => poseidon2([a, b]), []);
+
 
 describe('should verify signature on random inputs', () => {
     let circuit;
@@ -53,24 +51,24 @@ describe('should verify signature on random inputs', () => {
             }
         );
     });
+
+    it('should compile and load the circuit', async function () {
+        this.timeout(0);
+        expect(circuit).to.not.be.undefined;
+      });
+
     it('should verify for correct Circuit Input and output ', async function () {
         this.timeout(0);
-        const input = generateCircuitInput(namedob_smt, nameyob_smt);
-        const expNullifier = customHasher([...input.id_num_sig, "0"]);
-        const expIdCommit = customHasher(input.msg_sig);
-
+        const input = generateSelfricaDiscloseInput(NON_OFAC_DUMMY_INPUT, namedob_smt, nameyob_smt, tree, false, '0', '1234567890', undefined, undefined, undefined, true);
         try {
             const witness = await circuit.calculateWitness(input);
             await circuit.checkConstraints(witness);
-            const output = await circuit.getOutput(witness, ['nullifier', 'identity_commitment']);
-            expect(BigInt(output.nullifier)).equal(BigInt(expNullifier));
-            expect(BigInt(output.identity_commitment)).equal(BigInt(expIdCommit));
-
         } catch (e) { throw e }
     });
+
     it('should fail for invalid msg  ascii ', async function () {
         this.timeout(0);
-        const input = generateCircuitInput(namedob_smt, nameyob_smt);
+        const input = generateSelfricaDiscloseInput(NON_OFAC_DUMMY_INPUT, namedob_smt, nameyob_smt, tree, false, '0', '1234567890', undefined, undefined, undefined, true);
 
 
         input.SmileID_data_padded[4] = "9999999";
@@ -88,45 +86,10 @@ describe('should verify signature on random inputs', () => {
         }
     });
 
-    it('should fail for s > 251 bits', async function () {
-        this.timeout(0);
-        const input = generateCircuitInput(namedob_smt, nameyob_smt);
-
-        input.msg_sig[0] = "273609484473730411";
-        try {
-            const witness = await circuit.calculateWitness(input);
-            await circuit.checkConstraints(witness);
-
-            throw new Error("Circuit verified for invalid s (s > 251 bits)");
-        } catch (e) {
-            if (e.message.includes("Circuit verified for invalid s (s > 251 bits)")) {
-                throw new Error("Circuit verified for invalid s (s > 251 bits) ");
-            }
-        }
-    });
-
-
-    it('should fail for wrong pubKey ', async function () {
-        this.timeout(0);
-        const input = generateCircuitInput(namedob_smt, nameyob_smt);
-
-        input.pubKey[0] = "5456531564654684651"
-        try {
-            const witness = await circuit.calculateWitness(input);
-            await circuit.checkConstraints(witness);
-
-            throw new Error(" Circuit verified for invalid pubKeyX ");
-        } catch (e) {
-            if (e.message.includes("Circuit verified for invalid pubKeyX ")) {
-                throw new Error("Circuit verified for invalid pubKeyX ");
-            }
-        }
-    });
 
     it("should return 0 for an OFAC person", async function () {
         this.timeout(0);
-        const input = generateCircuitInput(namedob_smt, nameyob_smt, true);
-        input.selector_ofac = ["1"];
+        const input = generateSelfricaDiscloseInput(OFAC_DUMMY_INPUT, namedob_smt, nameyob_smt, tree, true, '0', '1234567890', undefined, undefined, undefined, true);
         try {
             const witness = await circuit.calculateWitness(input);
             await circuit.checkConstraints(witness);
@@ -154,8 +117,7 @@ describe('should verify signature on random inputs', () => {
 
     it("should return 1 for a non OFAC person", async function () {
         this.timeout(0);
-        const input = generateCircuitInput(namedob_smt, nameyob_smt, false);
-        input.selector_ofac = ["1"];
+        const input = generateSelfricaDiscloseInput(NON_OFAC_DUMMY_INPUT, namedob_smt, nameyob_smt, tree, true, '0', '1234567890', undefined, undefined, undefined, true);
         try {
             const witness = await circuit.calculateWitness(input);
             await circuit.checkConstraints(witness);
@@ -183,11 +145,11 @@ describe('should verify signature on random inputs', () => {
     it("should return revealed data that matches the actual smile data", async function () {
         this.timeout(0);
 
-        // Test with NON_OFAC_DUMMY_INPUT
-        const input = generateCircuitInput(namedob_smt, nameyob_smt, false);
-        input.selector_ofac = ["1"];
-
-        try {
+        const fieldsToReveal: SelfricaField[] = [
+            'COUNTRY', 'ID_TYPE', 'ID_NUMBER', 'ISSUANCE_DATE', 'EXPIRY_DATE',
+            'FULL_NAME', 'DOB', 'PHOTO_HASH', 'PHONE_NUMBER', 'DOCUMENT', 'GENDER', 'ADDRESS'
+        ];
+        const input = generateSelfricaDiscloseInput(NON_OFAC_DUMMY_INPUT, namedob_smt, nameyob_smt, tree, true, '0', '1234567890', fieldsToReveal, undefined, 18, true);
             const witness = await circuit.calculateWitness(input);
             await circuit.checkConstraints(witness);
 
@@ -227,28 +189,24 @@ describe('should verify signature on random inputs', () => {
             // Check age verification results (should show majority age since selector_older_than is 1)
             const age_results = revealedDataUnpacked.slice(SELFRICA_MAX_LENGTH + 2, SELFRICA_MAX_LENGTH + 5);
             // Age verification should return the majority age characters when person is older than that age
-            expect(age_results[0]).to.equal('0'); // First char of '20'
-            expect(age_results[1]).to.equal('0'); // Second char mapped from '0'
-            expect(age_results[2]).to.equal('1'); // Third char mapped from '1'
-
-        } catch (e) {
-            console.log('Error in test:', e.message);
-            throw e;
-        }
+            // For age 18: '018' → ASCII [48, 49, 56] → characters ['0', '1', '8']
+            expect(age_results[0]).to.equal('0'); // ASCII 48
+            expect(age_results[1]).to.equal('1'); // ASCII 49
+            expect(age_results[2]).to.equal('8'); // ASCII 56
     })
 
 
     it("should return revealed data that matches the actual smile data for OFAC person", async function () {
         this.timeout(0);
 
-        // Test with OFAC_DUMMY_INPUT
-        const input = generateCircuitInput(namedob_smt, nameyob_smt, true);
-        input.selector_ofac = ["1"];
+        const fieldsToReveal: SelfricaField[] = [
+            'COUNTRY', 'ID_TYPE', 'ID_NUMBER', 'ISSUANCE_DATE', 'EXPIRY_DATE',
+            'FULL_NAME', 'DOB', 'PHOTO_HASH', 'PHONE_NUMBER', 'DOCUMENT', 'GENDER', 'ADDRESS'
+        ];
+        const input = generateSelfricaDiscloseInput(OFAC_DUMMY_INPUT, namedob_smt, nameyob_smt, tree, true, '0', '1234567890', fieldsToReveal, undefined, undefined, true);
 
-        // Get the expected smile data from OFAC_DUMMY_INPUT
         const expectedSmileData = OFAC_DUMMY_INPUT;
 
-        try {
             const witness = await circuit.calculateWitness(input);
             await circuit.checkConstraints(witness);
 
@@ -292,10 +250,6 @@ describe('should verify signature on random inputs', () => {
             // expect(age_results[1].charCodeAt(0)).to.equal(50); // ASCII '2' = 50
             // expect(age_results[2].charCodeAt(0)).to.equal(48); // ASCII '0' = 48
 
-        } catch (e) {
-            console.log('Error in test:', e.message);
-            throw e;
-        }
     })
 
     // it.only("should verify signatures generated by TEE", async function () {
@@ -309,7 +263,7 @@ describe('should verify signature on random inputs', () => {
 
     //     const serializedRealDataBase64 = "";
 
-    //     const input = generateSelfricaInputWithSig(
+    //     const input = (
     //         pubkeyBase64,
     //         msgSigBase64,
     //         idNumSigBase64,

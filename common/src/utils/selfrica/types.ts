@@ -52,9 +52,10 @@ export type SelfricaRegisterInput = {
 export type SelfricaCircuitInput = {
     SmileID_data_padded: string[],
     compressed_disclose_sel: string[],
-    pubKey: string[],
-    msg_sig: string[],
-    id_num_sig: string[],
+    merkle_root: string[],
+    leaf_depth: string[],
+    path: string[],
+    siblings: string[],
     scope: string,
     forbidden_countries_list: string[],
     ofac_name_dob_smt_leaf_key: string[],

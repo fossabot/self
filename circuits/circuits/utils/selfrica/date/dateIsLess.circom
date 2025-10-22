@@ -25,7 +25,6 @@ template DateIsLessFullYear() {
 
     signal output out;
 
-    // ----
     component year_less = LessThan(14);
     year_less.in[0] <== year_1;
     year_less.in[1] <== year_2;
