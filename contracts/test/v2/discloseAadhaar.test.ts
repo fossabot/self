@@ -25,7 +25,6 @@ describe("Self Verification Flow V2 - Aadhaar", () => {
   let snapshotId: string;
   let baseVcAndDiscloseProof: any;
   let registerSecret: any;
-  let imt: any;
   let commitment: any;
   let nullifier: any;
 
@@ -50,7 +49,6 @@ describe("Self Verification Flow V2 - Aadhaar", () => {
 
     const hashFunction = (a: bigint, b: bigint) => poseidon2([a, b]);
     const LeanIMT = await import("@openpassport/zk-kit-lean-imt").then((mod) => mod.LeanIMT);
-    imt = new LeanIMT<bigint>(hashFunction);
 
     name = "Sumit Kumar";
     dateOfBirth = "01-01-1984";
@@ -896,7 +894,7 @@ describe("Self Verification Flow V2 - Aadhaar", () => {
 
       const aadhaarInputs = prepareAadhaarDiscloseTestData(
         privateKeyPem,
-        imt,
+        tree,
         nameAndDob_smt,
         nameAndYob_smt,
         scopeAsBigIntString,
