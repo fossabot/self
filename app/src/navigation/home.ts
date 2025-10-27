@@ -5,6 +5,7 @@
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 
 import { HomeNavBar } from '@/components/NavBar';
+import PointsScreen from '@/components/NavBar/Points';
 import HomeScreen from '@/screens/home/HomeScreen';
 import ProofHistoryDetailScreen from '@/screens/home/ProofHistoryDetailScreen';
 import ProofHistoryScreen from '@/screens/home/ProofHistoryScreen';
@@ -12,6 +13,14 @@ import ProofHistoryScreen from '@/screens/home/ProofHistoryScreen';
 const homeScreens = {
   Home: {
     screen: HomeScreen,
+    options: {
+      title: 'Self',
+      header: HomeNavBar,
+      presentation: 'card',
+    } as NativeStackNavigationOptions,
+  },
+  Points: {
+    screen: PointsScreen,
     options: {
       title: 'Self',
       header: HomeNavBar,

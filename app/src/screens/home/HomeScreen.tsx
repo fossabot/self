@@ -5,7 +5,7 @@
 import React, { useCallback, useState } from 'react';
 import { Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ScrollView, Text, YStack } from 'tamagui';
+import { Button, ScrollView, Text, View, XStack, YStack } from 'tamagui';
 import {
   useFocusEffect,
   useNavigation,
@@ -21,10 +21,11 @@ import { DocumentEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
 import IdCardLayout from '@/components/homeScreen/idCard';
 import { useAppUpdates } from '@/hooks/useAppUpdates';
 import useConnectionModal from '@/hooks/useConnectionModal';
+import LogoInversed from '@/images/logo_inversed.svg';
 import type { RootStackParamList } from '@/navigation';
 import { usePassport } from '@/providers/passportDataProvider';
 import useUserStore from '@/stores/userStore';
-import { slate50 } from '@/utils/colors';
+import { black, slate50, slate300, slate500 } from '@/utils/colors';
 import { extraYPadding } from '@/utils/constants';
 
 const HomeScreen: React.FC = () => {
@@ -43,7 +44,7 @@ const HomeScreen: React.FC = () => {
     Record<string, { data: IDDocument; metadata: DocumentMetadata }>
   >({});
   const [loading, setLoading] = useState(true);
-
+  const [selfPoints, setSelfPoints] = useState(312);
   const loadDocuments = useCallback(async () => {
     setLoading(true);
     try {
@@ -95,12 +96,7 @@ const HomeScreen: React.FC = () => {
   }
 
   return (
-    <YStack
-      backgroundColor={'#F8FAFC'}
-      flex={1}
-      alignItems="center"
-      paddingBottom={bottom + extraYPadding}
-    >
+    <YStack backgroundColor={'#F8FAFC'} flex={1} alignItems="center">
       <ScrollView
         showsVerticalScrollIndicator={false}
         flex={1}
@@ -140,6 +136,84 @@ const HomeScreen: React.FC = () => {
           );
         })}
       </ScrollView>
+      <YStack
+        elevation={8}
+        backgroundColor="white"
+        width="100%"
+        height={230}
+        paddingTop={30}
+        paddingHorizontal={20}
+        paddingBottom={bottom + extraYPadding + 40}
+        borderTopLeftRadius={18}
+        borderTopRightRadius={18}
+        style={{
+          // Matches: box-shadow: 0 -6px 14px 0 rgba(0, 0, 0, 0.05);
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.08,
+          shadowRadius: 14,
+          elevation: 8,
+        }}
+      >
+        <XStack marginBottom={32} gap={22}>
+          <View
+            width={68}
+            height={68}
+            borderRadius={12}
+            borderWidth={1}
+            borderColor={slate300}
+            alignItems="center"
+            justifyContent="center"
+          >
+            <LogoInversed width={33} height={33} />
+          </View>
+          <YStack gap={4}>
+            <Text
+              color={black}
+              fontFamily="DIN OT"
+              fontSize={20}
+              fontStyle="normal"
+              fontWeight="500"
+              lineHeight={22}
+              textTransform="uppercase"
+            >
+              {`${selfPoints} SELF POINTS`}
+            </Text>
+            <Text
+              color={black}
+              width="60%"
+              fontFamily="DIN OT"
+              fontSize={16}
+              fontStyle="normal"
+              fontWeight="500"
+              lineHeight="normal"
+            >
+              Earn points by referring friends, disclosing proof requests, and
+              more.
+            </Text>
+          </YStack>
+        </XStack>
+        <Button
+          backgroundColor="white"
+          paddingHorizontal={22}
+          paddingVertical={24}
+          borderRadius={5}
+          borderWidth={1}
+          borderColor={slate300}
+          onPress={() => {
+            navigation.navigate('Points');
+          }}
+        >
+          <Text
+            color="#2563EB"
+            textAlign="center"
+            fontFamily="DIN OT"
+            fontSize={18}
+            height={22}
+          >
+            Earn points
+          </Text>
+        </Button>
+      </YStack>
     </YStack>
   );
 };
