@@ -1074,6 +1074,32 @@ contract IdentityVerificationHubImplV2 is ImplRoot {
         }
     }
 
+    function _performFullYearCurrentDateCheck(
+        GenericProofStruct memory vcAndDiscloseProof,
+        CircuitConstantsV2.DiscloseIndices memory indices
+    ) internal view {
+        uint256[3] memory dateNum;
+        for (uint i = 0; i < 4; i++) {
+            uint256 num = vcAndDiscloseProof.pubSignals[indices.currentDateIndex + i];
+            dateNum[0] = dateNum[0] * 10 + num;
+        }
+        for (uint i = 4; i < 6; i++) {
+            uint256 num = vcAndDiscloseProof.pubSignals[indices.currentDateIndex + i];
+            dateNum[1] = dateNum[1] * 10 + num;
+        }
+        for (uint i = 6; i < 8; i++) {
+            uint256 num = vcAndDiscloseProof.pubSignals[indices.currentDateIndex + i];
+            dateNum[2] = dateNum[2] * 10 + num;
+        }
+
+        uint256 currentTimestamp = Formatter.proofDateToUnixTimestampNumeric(dateNum);
+        uint256 startOfDay = _getStartOfDayTimestamp();
+
+        if (currentTimestamp < startOfDay - 1 days + 1 || currentTimestamp > startOfDay + 1 days - 1) {
+            revert CurrentDateNotInValidRange();
+        }
+    }
+
     function _performNumericCurrentDateCheck(
         GenericProofStruct memory vcAndDiscloseProof,
         CircuitConstantsV2.DiscloseIndices memory indices
