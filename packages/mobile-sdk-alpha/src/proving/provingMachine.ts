@@ -1467,6 +1467,7 @@ export const useProvingStore = create<ProvingState>((set, get) => {
           endpoint as string,
           selfApp?.version,
           userDefinedData,
+          selfApp?.selfDefinedData ?? '',
         );
 
         const payloadSize = JSON.stringify(payload).length;

@@ -6,6 +6,7 @@ import type { NativeStackNavigationOptions } from '@react-navigation/native-stac
 
 import { HomeNavBar } from '@/components/NavBar';
 import PointsScreen from '@/components/NavBar/Points';
+import ReferralScreen from '@/screens/app/ReferralScreen';
 import HomeScreen from '@/screens/home/HomeScreen';
 import ProofHistoryDetailScreen from '@/screens/home/ProofHistoryDetailScreen';
 import ProofHistoryScreen from '@/screens/home/ProofHistoryScreen';
@@ -25,6 +26,12 @@ const homeScreens = {
       title: 'Self',
       header: HomeNavBar,
       presentation: 'card',
+    } as NativeStackNavigationOptions,
+  },
+  Referral: {
+    screen: ReferralScreen,
+    options: {
+      headerShown: false,
     } as NativeStackNavigationOptions,
   },
   ProofHistory: {

@@ -17,6 +17,7 @@ import PlusCircleIcon from '@/images/icons/plus_circle.svg';
 import StarBlackIcon from '@/images/icons/star_black.svg';
 import {
   black,
+  blue600,
   green500,
   slate50,
   slate200,
@@ -24,7 +25,6 @@ import {
   slate400,
   slate500,
   white,
-  blue600,
 } from '@/utils/colors';
 import { dinot, plexMono } from '@/utils/fonts';
 import type { PointEvent } from '@/utils/points';
@@ -210,11 +210,7 @@ export const PointHistoryList: React.FC = () => {
               backgroundColor={white}
             >
               <XStack alignItems="center" gap={12}>
-                <View
-                  height={46}
-                  alignItems="center"
-                  justifyContent="center"
-                >
+                <View height={46} alignItems="center" justifyContent="center">
                   {getIconForEventType(item.type)}
                 </View>
                 <YStack flex={1}>

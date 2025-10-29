@@ -3,7 +3,7 @@
 // NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
 import React, { useCallback, useState } from 'react';
-import { Pressable } from 'react-native';
+import { Dimensions, Image, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, ScrollView, Text, View, XStack, YStack } from 'tamagui';
 import {
@@ -27,6 +27,14 @@ import { usePassport } from '@/providers/passportDataProvider';
 import useUserStore from '@/stores/userStore';
 import { black, slate50, slate300, slate500 } from '@/utils/colors';
 import { extraYPadding } from '@/utils/constants';
+import { registerModalCallbacks } from '@/utils/modalCallbackRegistry';
+import {
+  hasUserAnIdentityDocumentRegistered,
+  hasUserDoneThePointsDisclosure,
+  pointsSelfApp,
+} from '@/utils/points';
+
+const UnverifiedHumanImage = require('@/images/unverified_human.png');
 
 const HomeScreen: React.FC = () => {
   const selfClient = useSelfClient();
@@ -45,6 +53,11 @@ const HomeScreen: React.FC = () => {
   >({});
   const [loading, setLoading] = useState(true);
   const [selfPoints, setSelfPoints] = useState(312);
+
+  // Calculate card dimensions exactly like IdCardLayout does
+  const { width: screenWidth } = Dimensions.get('window');
+  const cardWidth = screenWidth * 0.95 - 16; // 95% of screen width minus horizontal padding
+
   const loadDocuments = useCallback(async () => {
     setLoading(true);
     try {
@@ -53,16 +66,11 @@ const HomeScreen: React.FC = () => {
 
       setDocumentCatalog(catalog);
       setAllDocuments(docs);
-
-      if (catalog.documents.length === 0) {
-        navigation.navigate('Launch' as never);
-      }
     } catch (error) {
       console.warn('Failed to load documents:', error);
-      navigation.navigate('Launch' as never);
     }
     setLoading(false);
-  }, [loadDocumentCatalog, getAllDocuments, navigation]);
+  }, [loadDocumentCatalog, getAllDocuments]);
 
   useFocusEffect(
     useCallback(() => {
@@ -79,6 +87,67 @@ const HomeScreen: React.FC = () => {
   // Prevents back navigation
   usePreventRemove(true, () => {});
   const { bottom } = useSafeAreaInsets();
+
+  const navigateToPointsProof = useCallback(async () => {
+    const selfApp = await pointsSelfApp();
+    selfClient.getSelfAppState().setSelfApp(selfApp);
+
+    // Use setTimeout to ensure modal dismisses before navigating
+    setTimeout(() => {
+      navigation.navigate('Prove');
+    }, 100);
+  }, [selfClient, navigation]);
+
+  const onEarnPointsPress = useCallback(async () => {
+    const hasUserAnIdentityDocumentRegistered_result =
+      await hasUserAnIdentityDocumentRegistered();
+    if (!hasUserAnIdentityDocumentRegistered_result) {
+      // Show modal prompting user to register an identity document first
+      const callbackId = registerModalCallbacks({
+        onButtonPress: () => {
+          // Use setTimeout to ensure modal dismisses before navigating
+          setTimeout(() => {
+            navigation.navigate('DocumentOnboarding');
+          }, 100);
+        },
+        onModalDismiss: () => {
+          // No need to navigate, user is already on Home
+        },
+      });
+
+      navigation.navigate('Modal', {
+        titleText: 'Identity Verification Required',
+        bodyText:
+          'To access Self Points, you need to register an identity document with Self first. This helps us verify your identity and keep your points secure.',
+        buttonText: 'Verify Identity',
+        secondaryButtonText: 'Not Now',
+        callbackId,
+      });
+    } else {
+      const hasUserDoneThePointsDisclosure_result =
+        await hasUserDoneThePointsDisclosure();
+      if (!hasUserDoneThePointsDisclosure_result) {
+        const callbackId = registerModalCallbacks({
+          onButtonPress: () => {
+            navigateToPointsProof();
+          },
+          onModalDismiss: () => {
+            // No need to navigate, user is already on Home
+          },
+        });
+        navigation.navigate('Modal', {
+          titleText: 'Points Disclosure Required',
+          bodyText:
+            'To access Self Points, you need to complete the points disclosure first. This helps us verify your identity and keep your points secure.',
+          buttonText: 'Complete Points Disclosure',
+          secondaryButtonText: 'Not Now',
+          callbackId,
+        });
+      } else {
+        navigation.navigate('Points');
+      }
+    }
+  }, [navigation, navigateToPointsProof, selfClient]);
 
   if (loading) {
     return (
@@ -107,34 +176,63 @@ const HomeScreen: React.FC = () => {
           paddingBottom: 35, // Add extra bottom padding for shadow
         }}
       >
-        {documentCatalog.documents.map((metadata: DocumentMetadata) => {
-          const documentData = allDocuments[metadata.id];
-          const isSelected = documentCatalog.selectedDocumentId === metadata.id;
-
-          if (!documentData) {
-            return null;
-          }
-
-          return (
-            <Pressable
-              key={metadata.id}
-              onPress={() => {
-                selfClient.trackEvent(DocumentEvents.DOCUMENT_SELECTED, {
-                  document_type: documentData.data.documentType,
-                  document_category: documentData.data.documentCategory,
-                });
-                setIdDetailsDocumentId(metadata.id);
-                navigation.navigate('IdDetails');
+        {documentCatalog.documents.length === 0 ? (
+          <Pressable
+            onPress={() => {
+              navigation.navigate('DocumentOnboarding');
+            }}
+          >
+            <View
+              width={cardWidth}
+              borderRadius={16}
+              overflow="hidden"
+              alignSelf="center"
+              style={{
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 8,
+                elevation: 4,
               }}
             >
-              <IdCardLayout
-                idDocument={documentData.data}
-                selected={isSelected}
-                hidden={true}
+              <Image
+                source={UnverifiedHumanImage}
+                style={{ width: cardWidth, height: cardWidth * (418 / 640) }}
+                resizeMode="cover"
               />
-            </Pressable>
-          );
-        })}
+            </View>
+          </Pressable>
+        ) : (
+          documentCatalog.documents.map((metadata: DocumentMetadata) => {
+            const documentData = allDocuments[metadata.id];
+            const isSelected =
+              documentCatalog.selectedDocumentId === metadata.id;
+
+            if (!documentData) {
+              return null;
+            }
+
+            return (
+              <Pressable
+                key={metadata.id}
+                onPress={() => {
+                  selfClient.trackEvent(DocumentEvents.DOCUMENT_SELECTED, {
+                    document_type: documentData.data.documentType,
+                    document_category: documentData.data.documentCategory,
+                  });
+                  setIdDetailsDocumentId(metadata.id);
+                  navigation.navigate('IdDetails');
+                }}
+              >
+                <IdCardLayout
+                  idDocument={documentData.data}
+                  selected={isSelected}
+                  hidden={true}
+                />
+              </Pressable>
+            );
+          })
+        )}
       </ScrollView>
       <YStack
         elevation={8}
@@ -199,9 +297,7 @@ const HomeScreen: React.FC = () => {
           borderRadius={5}
           borderWidth={1}
           borderColor={slate300}
-          onPress={() => {
-            navigation.navigate('Points');
-          }}
+          onPress={onEarnPointsPress}
         >
           <Text
             color="#2563EB"

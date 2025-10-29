@@ -4,7 +4,16 @@
 
 import React, { useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Button, Image, ScrollView, Text, View, XStack, YStack, ZStack } from 'tamagui';
+import {
+  Button,
+  Image,
+  ScrollView,
+  Text,
+  View,
+  XStack,
+  YStack,
+  ZStack,
+} from 'tamagui';
 import { BlurView } from '@react-native-community/blur';
 
 import { PointHistoryList } from '@/components/PointHistoryList';
