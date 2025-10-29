@@ -1,5 +1,14 @@
 # Self App Development Patterns
 
+## Docstring coverage workflow
+
+- Run `yarn docstrings:app` to check the mobile app exports. The script prints an ASCII table and writes `docs/coverage/app.json` so you can diff coverage changes in version control.
+- Run `yarn docstrings:sdk` to focus on `@selfxyz/mobile-sdk-alpha`. It uses the same reporter and stores its snapshot in `docs/coverage/sdk.json`.
+- Run `yarn docstrings:report` when you want an aggregate view that spans the app and SDK. The command keeps the console summary and updates `docs/coverage/report.json`.
+- Add `--details` to any command when you want a full per-file JSON breakdown for ad-hoc analysis—the default snapshots include only top-level totals and a small sample of undocumented exports to keep the tracked files compact.
+
+The `Docstring coverage` GitHub Actions workflow executes all three commands for every PR and push to the shared branches. It uploads the JSON files as build artifacts so reviewers can inspect coverage deltas without checking out the branch. The workflow is advisory—the job always succeeds, even when coverage drops.
+
 ## React Native Architecture
 
 ### Navigation System
