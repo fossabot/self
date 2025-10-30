@@ -34,6 +34,7 @@ import {
   slate800,
   white,
 } from '@/utils/colors';
+import { dinot } from '@/utils/fonts';
 
 const ReferralScreen: React.FC = () => {
   const { top, bottom } = useSafeAreaInsets();
@@ -164,7 +165,7 @@ const ReferralScreen: React.FC = () => {
         {/* Title and description */}
         <YStack gap={12} alignItems="center">
           <Text
-            fontFamily="DIN OT"
+            fontFamily={dinot}
             fontSize={24}
             fontWeight="500"
             color={black}
@@ -174,7 +175,7 @@ const ReferralScreen: React.FC = () => {
           </Text>
           <YStack gap={0}>
             <Text
-              fontFamily="DIN OT"
+              fontFamily={dinot}
               fontSize={16}
               fontWeight="500"
               color={slate500}
@@ -184,7 +185,7 @@ const ReferralScreen: React.FC = () => {
               receive exclusive points.
             </Text>
             <Text
-              fontFamily="DIN OT"
+              fontFamily={dinot}
               fontSize={16}
               fontWeight="500"
               color={blue600}
@@ -211,7 +212,7 @@ const ReferralScreen: React.FC = () => {
                 <Message width={28} height={28} />
               </View>
               <Text
-                fontFamily="DIN OT"
+                fontFamily={dinot}
                 fontSize={14}
                 fontWeight="500"
                 color={slate800}
@@ -235,7 +236,7 @@ const ReferralScreen: React.FC = () => {
                 <ShareBlue width={28} height={28} />
               </View>
               <Text
-                fontFamily="DIN OT"
+                fontFamily={dinot}
                 fontSize={14}
                 fontWeight="500"
                 color={slate800}
@@ -259,7 +260,7 @@ const ReferralScreen: React.FC = () => {
                 <WhatsApp width={28} height={28} />
               </View>
               <Text
-                fontFamily="DIN OT"
+                fontFamily={dinot}
                 fontSize={14}
                 fontWeight="500"
                 color={slate800}
@@ -283,7 +284,7 @@ const ReferralScreen: React.FC = () => {
         >
           <XStack gap={10} alignItems="center" flex={1}>
             <Text
-              fontFamily="DIN OT"
+              fontFamily={dinot}
               fontSize={16}
               fontWeight="500"
               color={white}

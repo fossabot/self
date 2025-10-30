@@ -28,6 +28,7 @@ import { usePassport } from '@/providers/passportDataProvider';
 import useUserStore from '@/stores/userStore';
 import { black, slate50, slate300 } from '@/utils/colors';
 import { extraYPadding } from '@/utils/constants';
+import { dinot } from '@/utils/fonts';
 import { registerModalCallbacks } from '@/utils/modalCallbackRegistry';
 import {
   hasUserAnIdentityDocumentRegistered,
@@ -266,7 +267,7 @@ const HomeScreen: React.FC = () => {
           <YStack gap={4}>
             <Text
               color={black}
-              fontFamily="DIN OT"
+              fontFamily={dinot}
               fontSize={20}
               fontStyle="normal"
               fontWeight="500"
@@ -278,7 +279,7 @@ const HomeScreen: React.FC = () => {
             <Text
               color={black}
               width="60%"
-              fontFamily="DIN OT"
+              fontFamily={dinot}
               fontSize={16}
               fontStyle="normal"
               fontWeight="500"
@@ -301,7 +302,7 @@ const HomeScreen: React.FC = () => {
           <Text
             color="#2563EB"
             textAlign="center"
-            fontFamily="DIN OT"
+            fontFamily={dinot}
             fontSize={18}
             height={22}
           >
