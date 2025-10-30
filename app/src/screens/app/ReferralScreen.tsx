@@ -160,7 +160,7 @@ const ReferralScreen: React.FC = () => {
         paddingTop={32}
         paddingBottom={21 + bottom}
         backgroundColor={slate50}
-        justifyContent="space-between"
+        gap={42}
       >
         {/* Title and description */}
         <YStack gap={12} alignItems="center">
@@ -197,7 +197,7 @@ const ReferralScreen: React.FC = () => {
         </YStack>
 
         {/* Three circular buttons */}
-        <XStack justifyContent="space-evenly" width="100%" marginTop={20}>
+        <XStack justifyContent="space-evenly" width="100%">
           {/* Messages */}
           <Pressable onPress={handleShareMessages}>
             <YStack gap={8} alignItems="center">
