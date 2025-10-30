@@ -40,7 +40,7 @@ const ReferralScreen: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const [referralCode, setReferralCode] = useState('');
+  const [referralCode] = useState('');
   const [isCopied, setIsCopied] = useState(false);
 
   const referralLink = referralCode

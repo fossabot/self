@@ -22,10 +22,11 @@ import IdCardLayout from '@/components/homeScreen/idCard';
 import { useAppUpdates } from '@/hooks/useAppUpdates';
 import useConnectionModal from '@/hooks/useConnectionModal';
 import LogoInversed from '@/images/logo_inversed.svg';
+import UnverifiedHumanImage from '@/images/unverified_human.png';
 import type { RootStackParamList } from '@/navigation';
 import { usePassport } from '@/providers/passportDataProvider';
 import useUserStore from '@/stores/userStore';
-import { black, slate50, slate300, slate500 } from '@/utils/colors';
+import { black, slate50, slate300 } from '@/utils/colors';
 import { extraYPadding } from '@/utils/constants';
 import { registerModalCallbacks } from '@/utils/modalCallbackRegistry';
 import {
@@ -33,8 +34,6 @@ import {
   hasUserDoneThePointsDisclosure,
   pointsSelfApp,
 } from '@/utils/points';
-
-const UnverifiedHumanImage = require('@/images/unverified_human.png');
 
 const HomeScreen: React.FC = () => {
   const selfClient = useSelfClient();
@@ -52,7 +51,7 @@ const HomeScreen: React.FC = () => {
     Record<string, { data: IDDocument; metadata: DocumentMetadata }>
   >({});
   const [loading, setLoading] = useState(true);
-  const [selfPoints, setSelfPoints] = useState(312);
+  const [selfPoints] = useState(312);
 
   // Calculate card dimensions exactly like IdCardLayout does
   const { width: screenWidth } = Dimensions.get('window');
@@ -147,7 +146,7 @@ const HomeScreen: React.FC = () => {
         navigation.navigate('Points');
       }
     }
-  }, [navigation, navigateToPointsProof, selfClient]);
+  }, [navigation, navigateToPointsProof]);
 
   if (loading) {
     return (

@@ -18,7 +18,6 @@ import StarBlackIcon from '@/images/icons/star_black.svg';
 import {
   black,
   blue600,
-  green500,
   slate50,
   slate200,
   slate300,
