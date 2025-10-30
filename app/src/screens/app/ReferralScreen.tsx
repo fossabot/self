@@ -3,6 +3,7 @@
 // NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
 import React, { useState } from 'react';
+import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { XStack, YStack } from 'tamagui';
 import { useNavigation } from '@react-navigation/native';
@@ -17,7 +18,7 @@ import ShareBlue from '@/images/icons/share_blue.svg';
 import WhatsApp from '@/images/icons/whatsapp.svg';
 import Referral from '@/images/referral.png';
 import type { RootStackParamList } from '@/navigation';
-import { green500, slate50, slate200 } from '@/utils/colors';
+import { blue600, green500, slate50, slate200 } from '@/utils/colors';
 import {
   shareViaNative,
   shareViaSMS,
@@ -33,6 +34,9 @@ const ReferralScreen: React.FC = () => {
   const [referralCode] = useState('');
 
   const { message, link: referralLink } = buildReferralMessage(referralCode);
+
+  // Android Messages uses blue, iOS Messages uses green
+  const messagesButtonColor = Platform.OS === 'android' ? blue600 : green500;
 
   const handleShareMessages = async () => {
     await shareViaSMS(message);
@@ -71,7 +75,7 @@ const ReferralScreen: React.FC = () => {
           <ShareButton
             icon={<Message width={28} height={28} />}
             label="Messages"
-            backgroundColor={green500}
+            backgroundColor={messagesButtonColor}
             onPress={handleShareMessages}
           />
           <ShareButton
