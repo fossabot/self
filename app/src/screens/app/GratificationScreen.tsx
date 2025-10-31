@@ -15,7 +15,7 @@ import ArrowLeft from '@/images/icons/arrow_left.svg';
 import LogoWhite from '@/images/icons/logo_white.svg';
 import type { RootStackParamList } from '@/navigation';
 import { black, slate700, white } from '@/utils/colors';
-import { dinot } from '@/utils/fonts';
+import { dinot, dinotBold } from '@/utils/fonts';
 
 const GratificationScreen: React.FC = () => {
   const { top, bottom } = useSafeAreaInsets();
@@ -77,16 +77,15 @@ const GratificationScreen: React.FC = () => {
           justifyContent="center"
         >
           {/* Logo icon */}
-          <View marginBottom={12}>
+          <View marginBottom={12} style={styles.logoContainer}>
             <LogoWhite width={37} height={37} />
           </View>
 
           {/* Points display */}
           <YStack alignItems="center" gap={0} marginBottom={18}>
             <Text
-              fontFamily={dinot}
+              fontFamily={dinotBold}
               fontSize={98}
-              fontWeight="900"
               color={white}
               textAlign="center"
               letterSpacing={-2}
@@ -179,5 +178,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: black,
     textAlign: 'center',
+  },
+  logoContainer: {
+    paddingBottom: 24,
   },
 });

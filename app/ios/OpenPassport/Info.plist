@@ -68,6 +68,7 @@
 	<key>UIAppFonts</key>
 	<array>
 		<string>Advercase-Regular.otf</string>
+		<string>DINOT-Bold.otf</string>
 		<string>DINOT-Medium.otf</string>
 		<string>IBMPlexMono-Regular.otf</string>
 	</array>
