@@ -2,13 +2,15 @@
 // SPDX-License-Identifier: BUSL-1.1
 // NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, Text as RNText } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, View, YStack } from 'tamagui';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
+import { DelayedLottieView } from '@selfxyz/mobile-sdk-alpha';
+import youWinAnimation from '@selfxyz/mobile-sdk-alpha/animations/loading/youWin.json';
 import { PrimaryButton } from '@selfxyz/mobile-sdk-alpha/components';
 
 import ArrowLeft from '@/images/icons/arrow_left.svg';
@@ -24,6 +26,7 @@ const GratificationScreen: React.FC = () => {
   const route = useRoute();
   const params = route.params as { points?: number } | undefined;
   const pointsEarned = params?.points ?? 100;
+  const [isAnimationFinished, setIsAnimationFinished] = useState(false);
 
   const handleExploreRewards = () => {
     // Navigate to Points screen
@@ -37,6 +40,33 @@ const GratificationScreen: React.FC = () => {
   const handleBackPress = () => {
     navigation.goBack();
   };
+
+  const handleAnimationFinish = useCallback(() => {
+    setIsAnimationFinished(true);
+  }, []);
+
+  // Show animation first, then content after it finishes
+  if (!isAnimationFinished) {
+    return (
+      <YStack
+        flex={1}
+        backgroundColor={black}
+        alignItems="center"
+        justifyContent="center"
+      >
+        <DelayedLottieView
+          autoPlay
+          loop={false}
+          source={youWinAnimation}
+          style={styles.animation}
+          onAnimationFinish={handleAnimationFinish}
+          resizeMode="contain"
+          cacheComposition={true}
+          renderMode="HARDWARE"
+        />
+      </YStack>
+    );
+  }
 
   return (
     <YStack flex={1} backgroundColor={black}>
@@ -181,5 +211,9 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     paddingBottom: 24,
+  },
+  animation: {
+    width: '100%',
+    height: '100%',
   },
 });
