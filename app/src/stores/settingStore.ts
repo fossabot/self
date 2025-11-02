@@ -31,6 +31,8 @@ interface PersistedSettingsState {
   hasCompletedBackupForPoints: boolean;
   setBackupForPointsCompleted: () => void;
   resetBackupForPoints: () => void;
+  pointsAddress: string | null;
+  setPointsAddress: (address: string | null) => void;
 }
 
 interface NonPersistedSettingsState {
@@ -103,6 +105,9 @@ export const useSettingStore = create<SettingsState>()(
       setBackupForPointsCompleted: () =>
         set({ hasCompletedBackupForPoints: true }),
       resetBackupForPoints: () => set({ hasCompletedBackupForPoints: false }),
+      pointsAddress: null,
+      setPointsAddress: (address: string | null) =>
+        set({ pointsAddress: address }),
 
       // Non-persisted state (will not be saved to storage)
       hideNetworkModal: false,
