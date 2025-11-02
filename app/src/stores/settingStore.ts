@@ -28,6 +28,9 @@ interface PersistedSettingsState {
   setSubscribedTopics: (topics: string[]) => void;
   addSubscribedTopic: (topic: string) => void;
   removeSubscribedTopic: (topic: string) => void;
+  hasCompletedBackupForPoints: boolean;
+  setBackupForPointsCompleted: () => void;
+  resetBackupForPoints: () => void;
 }
 
 interface NonPersistedSettingsState {
@@ -95,6 +98,11 @@ export const useSettingStore = create<SettingsState>()(
         set(state => ({
           subscribedTopics: state.subscribedTopics.filter(t => t !== topic),
         })),
+
+      hasCompletedBackupForPoints: false,
+      setBackupForPointsCompleted: () =>
+        set({ hasCompletedBackupForPoints: true }),
+      resetBackupForPoints: () => set({ hasCompletedBackupForPoints: false }),
 
       // Non-persisted state (will not be saved to storage)
       hideNetworkModal: false,

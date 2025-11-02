@@ -22,10 +22,11 @@ import IdCardLayout from '@/components/homeScreen/idCard';
 import { useAppUpdates } from '@/hooks/useAppUpdates';
 import useConnectionModal from '@/hooks/useConnectionModal';
 import LogoInversed from '@/images/logo_inversed.svg';
+import UnverifiedHumanImage from '@/images/unverified_human.png';
 import type { RootStackParamList } from '@/navigation';
 import { usePassport } from '@/providers/passportDataProvider';
 import useUserStore from '@/stores/userStore';
-import { black, slate50, slate300, slate500 } from '@/utils/colors';
+import { black, slate50, slate300 } from '@/utils/colors';
 import { extraYPadding } from '@/utils/constants';
 import { registerModalCallbacks } from '@/utils/modalCallbackRegistry';
 import {
@@ -33,8 +34,6 @@ import {
   hasUserDoneThePointsDisclosure,
   pointsSelfApp,
 } from '@/utils/points';
-
-const UnverifiedHumanImage = require('@/images/unverified_human.png');
 
 const HomeScreen: React.FC = () => {
   const selfClient = useSelfClient();
@@ -184,7 +183,7 @@ const HomeScreen: React.FC = () => {
           >
             <View
               width={cardWidth}
-              borderRadius={16}
+              borderRadius={8}
               overflow="hidden"
               alignSelf="center"
               style={{
