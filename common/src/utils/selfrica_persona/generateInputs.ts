@@ -66,6 +66,40 @@ export const NON_OFAC_DUMMY_INPUT: SmileData = {
   selector_older_than: '1',
 };
 
+export const OFAC_PERSONA_DUMMY_INPUT: PersonaData = {
+  country: 'USA',
+  idType: 'tribalid',
+  idNumber: 'Y123ABC',
+  documentNumber: '585225',
+  issuanceDate: '20200728',
+  expiryDate: '20300101',
+  fullName: 'ABBAS ABU',
+  dob: '19481210',
+  addressSubdivision: 'CA',
+  addressPostalCode: '94105',
+  photoHash: '1234567890abcdef123',
+  phoneNumber: '+12345678901',
+  gender: 'M',
+};
+
+
+export const NON_OFAC_PERSONA_DUMMY_INPUT: PersonaData = {
+  country: 'USA',
+  idType: 'tribalid',
+  idNumber: 'Y123ABC',
+  documentNumber: '585225',
+  issuanceDate: '20200728',
+  expiryDate: '20300101',
+  fullName: 'John Doe',
+  dob: '19900101',
+  addressSubdivision: 'CA',
+  addressPostalCode: '94105',
+  photoHash: '1234567890abcdef123',
+  phoneNumber: '+12345678901',
+  gender: 'M',
+};
+
+
 
 
 export const createSelfricaDiscloseSelFromFields = (fieldsToReveal: SelfricaField[]): string[] => {
@@ -81,7 +115,7 @@ export const generateMockSelfricaRegisterInput = (secretKey?: bigint, ofac?: boo
      serializedData = serializeSmileData(smileData).padEnd(SELFRICA_MAX_LENGTH, '\0');
   }
   else {
-    const paddedData = validateAndPadPersonaData(PERSONA_DUMMY_INPUT);
+    const paddedData = validateAndPadPersonaData(ofac ? OFAC_PERSONA_DUMMY_INPUT : NON_OFAC_PERSONA_DUMMY_INPUT);
     serializedData = serializePersonaData(paddedData);
   }
 
@@ -125,10 +159,10 @@ export const generateMockSelfricaRegisterInput = (secretKey?: bigint, ofac?: boo
   return selfricaRegisterInput;
 };
 
-export const generateCircuitInputsOfac = (smileData: SmileData, smt: SMT, proofLevel: number) => {
-  const name = smileData.fullName;
-  const dob = smileData.dob;
-  const yob = smileData.dob.slice(0, 4);
+export const generateCircuitInputsOfac = (data: SmileData | PersonaData, smt: SMT, proofLevel: number) => {
+  const name = data.fullName;
+  const dob = data.dob;
+  const yob = data.dob.slice(0, 4);
 
   const nameDobLeaf = getNameDobLeafSelfrica(name, dob);
   const nameYobLeaf = getNameYobLeafSelfrica(name, yob);
@@ -150,7 +184,7 @@ export const generateCircuitInputsOfac = (smileData: SmileData, smt: SMT, proofL
 };
 
 export const generateSelfricaDiscloseInput = (
-  smileData: SmileData,
+  ofac_input: boolean,
   nameDobSmt: SMT,
   nameYobSmt: SMT,
   identityTree: LeanIMT,
@@ -161,10 +195,21 @@ export const generateSelfricaDiscloseInput = (
   forbiddenCountriesList?: string[],
   minimumAge?: number,
   updateTree?: boolean,
-  secret: string = "1234"
+  secret: string = "1234",
+  isSelfrica: boolean = true
 ) => {
-  const serialized = serializeSmileData(smileData).padEnd(SELFRICA_MAX_LENGTH, '\0');
-  const msgPadded = Array.from(serialized, (x) => x.charCodeAt(0));
+  let serializedData: string;
+  let data: SmileData | PersonaData;
+  if (isSelfrica) {
+    data = ofac_input ? OFAC_DUMMY_INPUT : NON_OFAC_DUMMY_INPUT;
+    serializedData = serializeSmileData(data).padEnd(SELFRICA_MAX_LENGTH, '\0');
+  }
+  else {
+    data = ofac_input ? OFAC_PERSONA_DUMMY_INPUT : NON_OFAC_PERSONA_DUMMY_INPUT;
+    const paddedData = validateAndPadPersonaData(data);
+    serializedData = serializePersonaData(paddedData);
+  }
+  const msgPadded = Array.from(serializedData, (x) => x.charCodeAt(0));
   const commitment = poseidon2([secret, packBytesAndPoseidon(msgPadded)]);
   if (updateTree) {
     identityTree.insert(commitment);
@@ -176,11 +221,45 @@ export const generateSelfricaDiscloseInput = (
     leaf_depth,
   } = generateMerkleProof(identityTree, index, COMMITMENT_TREE_DEPTH);
 
-  const nameDobInputs = generateCircuitInputsOfac(smileData, nameDobSmt, 2);
-  const nameYobInputs = generateCircuitInputsOfac(smileData, nameYobSmt, 1);
+  const nameDobInputs = generateCircuitInputsOfac(data, nameDobSmt, 2);
+  const nameYobInputs = generateCircuitInputsOfac(data, nameYobSmt, 1);
 
   const fieldsToRevealFinal = fieldsToReveal || [];
-  const compressed_disclose_sel = createSelfricaDiscloseSelFromFields(fieldsToRevealFinal);
+  let compressed_disclose_sel: string[];
+
+  if (isSelfrica) {
+    compressed_disclose_sel = createSelfricaDiscloseSelFromFields(fieldsToRevealFinal);
+  } else {
+    // For PERSONA, we need to convert field names and use generatePersonaSelector
+    const personaFields = fieldsToRevealFinal.map(field => {
+      // Map SELFRICA field names to Persona field names
+      const fieldMap: Record<string, string> = {
+        'COUNTRY': 'country',
+        'ID_TYPE': 'idType',
+        'ID_NUMBER': 'idNumber',
+        'DOCUMENT': 'documentNumber',
+        'ISSUANCE_DATE': 'issuanceDate',
+        'EXPIRY_DATE': 'expiryDate',
+        'FULL_NAME': 'fullName',
+        'DOB': 'dob',
+        'ADDRESS': 'addressSubdivision', // Note: Persona uses addressSubdivision and addressPostalCode
+        'PHOTO_HASH': 'photoHash',
+        'PHONE_NUMBER': 'phoneNumber',
+        'GENDER': 'gender',
+      };
+      return fieldMap[field] || field.toLowerCase();
+    });
+
+    const personaSelector = generatePersonaSelector(personaFields);
+    // Compress the selector into 2 bigints (similar to SELFRICA)
+    const compressedBitLen = Math.ceil(personaSelector.length / 2);
+    const lowBits = personaSelector.slice(0, compressedBitLen).join('');
+    const highBits = personaSelector.slice(compressedBitLen).join('');
+    compressed_disclose_sel = [
+      BigInt('0b' + lowBits).toString(),
+      BigInt('0b' + highBits).toString()
+    ];
+  }
 
   const majorityAgeASCII = minimumAge
     ? minimumAge
@@ -220,21 +299,7 @@ export const generateSelfricaDiscloseInput = (
 
 
 //PERSONA
-export const PERSONA_DUMMY_INPUT: PersonaData = {
-  country: 'USA',
-  idType: 'tribalid',
-  idNumber: 'Y123ABC',
-  documentNumber: '585225',
-  issuanceDate: '20200728',
-  expiryDate: '20300101',
-  fullName: 'JANE DOE',
-  dob: '19900101',
-  addressSubdivision: 'CA',
-  addressPostalCode: '94105',
-  photoHash: '1234567890abcdef123',
-  phoneNumber: '+12345678901',
-  gender: 'M',
-};
+
 
 export function validateAndPadPersonaData(data: PersonaData): PersonaData {
   const result: PersonaData = {} as PersonaData;

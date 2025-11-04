@@ -630,6 +630,26 @@
       "types": "./dist/esm/src/utils/ofac.d.ts",
       "import": "./dist/esm/src/utils/ofac.js",
       "require": "./dist/cjs/src/utils/ofac.cjs"
+    },
+    "./utils/selfrica/generateInputs": {
+      "import": {
+        "types": "./dist/esm/src/utils/selfrica_persona/generateInputs.d.ts",
+        "default": "./dist/esm/src/utils/selfrica_persona/generateInputs.js"
+      },
+      "require": {
+        "types": "./dist/cjs/src/utils/selfrica_persona/generateInputs.d.ts",
+        "default": "./dist/cjs/src/utils/selfrica_persona/generateInputs.cjs"
+      }
+    },
+    "./utils/selfrica/constants": {
+      "import": {
+        "types": "./dist/esm/src/utils/selfrica_persona/constants.d.ts",
+        "default": "./dist/esm/src/utils/selfrica_persona/constants.js"
+      },
+      "require": {
+        "types": "./dist/cjs/src/utils/selfrica_persona/constants.d.ts",
+        "default": "./dist/cjs/src/utils/selfrica_persona/constants.cjs"
+      }
     }
   },
   "main": "./dist/cjs/index.cjs",

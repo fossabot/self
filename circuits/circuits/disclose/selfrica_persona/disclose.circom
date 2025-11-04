@@ -2,27 +2,31 @@ pragma circom 2.1.9;
 
 include "circomlib/circuits/poseidon.circom";
 include "circomlib/circuits/bitify.circom";
-include "../utils/passport/signatureVerifier.circom";
-include "../utils/passport/customHashers.circom";
+include "../../utils/passport/signatureVerifier.circom";
+include "../../utils/passport/customHashers.circom";
 include "@openpassport/zk-email-circuits/lib/sha.circom";
 include "@openpassport/zk-email-circuits/lib/bigint.circom";
-include "../utils/selfrica/constants.circom";
-include "../utils/selfrica/disclose/disclose.circom";
+include "../../utils/selfrica_persona/constants.circom";
+include "../../utils/selfrica_persona/persona_constants.circom";
+include "../../utils/selfrica_persona/disclose/disclose.circom";
 include "@zk-kit/binary-merkle-root.circom/src/binary-merkle-root.circom";
 
-template VC_AND_DISCLOSE(
+template VC_AND_DISCLOSE_SELFRICA_PERSONA(
     MAX_FORBIDDEN_COUNTRIES_LIST_LENGTH,
     namedobTreeLevels,
     nameyobTreeLevels,
     n,
     k,
-    nLevels
+    nLevels,
+    isSelfrica
 ) {
-    var selfrica_length = SELFRICA_MAX_LENGTH();
-    var country_length = COUNTRY_LENGTH();
-    var compressed_bit_len = selfrica_length/2;
+    var max_length = isSelfrica ? SELFRICA_MAX_LENGTH() : PERSONA_MAX_LENGTH();
+    var country_length = isSelfrica ? COUNTRY_LENGTH() : PERSONA_COUNTRY_LENGTH();
+    var id_number_length = isSelfrica ? ID_NUMBER_LENGTH() : PERSONA_ID_NUMBER_LENGTH();
+    var idNumberIdx = isSelfrica ? ID_NUMBER_INDEX() : PERSONA_ID_NUMBER_INDEX();
+    var compressed_bit_len = max_length/2;
 
-    signal input SmileID_data_padded[selfrica_length];
+    signal input data_padded[max_length];
     signal input compressed_disclose_sel[2];
 
     signal input scope;
@@ -48,10 +52,10 @@ template VC_AND_DISCLOSE(
     signal input majority_age_ASCII[3];
     signal input secret;
 
-    signal output attestation_id <== 4;
+    signal output attestation_id <== isSelfrica ? 4 : 5;
 
     // Convert the two decimal inputs back to bit array
-    signal disclose_sel[selfrica_length];
+    signal disclose_sel[max_length];
 
     // Convert disclose_sel_low (first 133 bits) to bit array
     component low_bits = Num2Bits(compressed_bit_len);
@@ -69,9 +73,9 @@ template VC_AND_DISCLOSE(
         disclose_sel[compressed_bit_len + i] <== high_bits.out[i];
     }
 
-    component msg_hasher = PackBytesAndPoseidon(selfrica_length);
-    for (var i = 0; i < selfrica_length; i++) {
-        msg_hasher.in[i] <== SmileID_data_padded[i];
+    component msg_hasher = PackBytesAndPoseidon(max_length);
+    for (var i = 0; i < max_length; i++) {
+        msg_hasher.in[i] <== data_padded[i];
     }
 
     signal leaf <== Poseidon(2)([secret, msg_hasher.out]);
@@ -79,18 +83,17 @@ template VC_AND_DISCLOSE(
     signal computedRoot <== BinaryMerkleRoot(nLevels)(leaf, leaf_depth, path, siblings);
     merkle_root === computedRoot;
 
-    signal id_num[ID_NUMBER_LENGTH()];
-    var idNumberIdx = ID_NUMBER_INDEX();
-    for (var i = 0; i < ID_NUMBER_LENGTH(); i++) {
-        id_num[i] <== SmileID_data_padded[idNumberIdx + i];
+    signal id_num[id_number_length];
+    for (var i = 0; i < id_number_length; i++) {
+        id_num[i] <== data_padded[idNumberIdx + i];
     }
 
-    component disclose_circuit = DISCLOSE_SELFRICA(MAX_FORBIDDEN_COUNTRIES_LIST_LENGTH, namedobTreeLevels, nameyobTreeLevels);
+    component disclose_circuit = DISCLOSE_SELFRICA_PERSONA(MAX_FORBIDDEN_COUNTRIES_LIST_LENGTH, namedobTreeLevels, nameyobTreeLevels, isSelfrica);
 
-    for (var i = 0; i < selfrica_length; i++) {
-        disclose_circuit.smile_data[i] <== SmileID_data_padded[i];
+    for (var i = 0; i < max_length; i++) {
+        disclose_circuit.data_padded[i] <== data_padded[i];
     }
-    disclose_circuit.selector_smile_data <== disclose_sel;
+    disclose_circuit.selector_data_padded <== disclose_sel;
     disclose_circuit.forbidden_countries_list <== forbidden_countries_list;
 
     disclose_circuit.ofac_name_dob_smt_leaf_key <== ofac_name_dob_smt_leaf_key;
@@ -105,21 +108,10 @@ template VC_AND_DISCLOSE(
     disclose_circuit.current_date <== current_date;
     disclose_circuit.majority_age_ASCII <== majority_age_ASCII;
 
-    var revealed_data_packed_chunk_length = computeIntChunkLength(selfrica_length + 2 + 3);
+    var revealed_data_packed_chunk_length = computeIntChunkLength(max_length + 2 + 1);
     signal output revealedData_packed[revealed_data_packed_chunk_length] <== disclose_circuit.revealedData_packed;
 
     var forbidden_countries_list_packed_chunk_length = computeIntChunkLength(MAX_FORBIDDEN_COUNTRIES_LIST_LENGTH * country_length);
     signal output forbidden_countries_list_packed[forbidden_countries_list_packed_chunk_length] <== disclose_circuit.forbidden_countries_list_packed;
     signal output nullifier <== Poseidon(2)([secret, scope]);
 }
-
-component main {
-    public [
-        scope,
-        merkle_root,
-        ofac_name_dob_smt_root,
-        ofac_name_yob_smt_root,
-        user_identifier,
-        current_date
-    ]
-} = VC_AND_DISCLOSE(40, 64, 64, 121, 17, 33);

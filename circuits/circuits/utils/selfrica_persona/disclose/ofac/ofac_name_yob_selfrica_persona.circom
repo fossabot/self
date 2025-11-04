@@ -5,31 +5,31 @@ include "../../../crypto/merkle-trees/smt.circom";
 include "../../../passport/customHashers.circom";
 include "../../constants.circom";
 
-template OFAC_NAME_YOB_SELFRICA(n_levels) {
-    var SELFRICA_MAX_LENGTH = SELFRICA_MAX_LENGTH();
-    signal input smile_data[SELFRICA_MAX_LENGTH];
+template OFAC_NAME_YOB_SELFRICA_PERSONA(n_levels, isSelfrica) {
+    var max_length = isSelfrica ? SELFRICA_MAX_LENGTH() : PERSONA_MAX_LENGTH();
+    signal input data_padded[max_length];
 
     signal input smt_leaf_key;
     signal input smt_root;
     signal input smt_siblings[n_levels];
 
-    var name_length = FULL_NAME_LENGTH();
-    var name_index = FULL_NAME_INDEX();
+    var name_length = isSelfrica ? FULL_NAME_LENGTH() : PERSONA_FULL_NAME_LENGTH();
+    var name_index = isSelfrica ? FULL_NAME_INDEX() : PERSONA_FULL_NAME_INDEX();
 
     //name hash
     component name_hash = PackBytesAndPoseidon(name_length);
     for (var i = name_index; i < name_index + name_length; i++) {
-        name_hash.in[i - name_index] <== smile_data[i];
+        name_hash.in[i - name_index] <== data_padded[i];
     }
 
     // YoB hash
     component yob_hash = Poseidon(4);
     //yob is the first 4 bytes of the dob
-    var yob_index = DOB_INDEX();
+    var yob_index = isSelfrica ? DOB_INDEX() : PERSONA_DOB_INDEX();
     for(var i = 0; i < 4; i++) {
-        yob_hash.inputs[i] <== smile_data[yob_index + i];
+        yob_hash.inputs[i] <== data_padded[yob_index + i];
     }
-    
+
     signal name_yob_hash <== Poseidon(2)([yob_hash.out, name_hash.out]);
 
     signal output ofacCheckResult <== SMTVerify(n_levels)(name_yob_hash, smt_leaf_key, smt_root, smt_siblings, 0);

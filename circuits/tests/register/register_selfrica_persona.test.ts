@@ -3,7 +3,7 @@ import { wasm as wasmTester } from 'circom_tester';
 import path from 'path';
 import { packBytesAndPoseidon } from '@selfxyz/common/utils/hash';
 import { poseidon2 } from 'poseidon-lite';
-import { generateMockSelfricaRegisterInput, OFAC_DUMMY_INPUT, PERSONA_DUMMY_INPUT } from '@selfxyz/common/utils/selfrica_persona/generateInputs.js';
+import { generateMockSelfricaRegisterInput, OFAC_DUMMY_INPUT, OFAC_PERSONA_DUMMY_INPUT } from '@selfxyz/common/utils/selfrica_persona/generateInputs.js';
 import { SelfricaRegisterInput } from '@selfxyz/common/utils/selfrica_persona/types';
 import { PERSONA_ID_NUMBER_INDEX, PERSONA_ID_NUMBER_LENGTH } from '@selfxyz/common/utils/selfrica_persona/persona_constants';
 
@@ -18,7 +18,7 @@ const testConfigs = [
     name: 'PERSONA',
     circuitPath: '../../circuits/register/instances/register_persona.circom',
     isSelfrica: false,
-    dummyInput: PERSONA_DUMMY_INPUT,
+    dummyInput: OFAC_PERSONA_DUMMY_INPUT,
   },
 ];
 

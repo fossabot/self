@@ -136,7 +136,8 @@ export {
   generateMockSelfricaRegisterInput,
   NON_OFAC_DUMMY_INPUT,
   OFAC_DUMMY_INPUT,
-  PERSONA_DUMMY_INPUT,
+  NON_OFAC_PERSONA_DUMMY_INPUT,
+  OFAC_PERSONA_DUMMY_INPUT,
 } from './src/utils/selfrica_persona/generateInputs.js';
 
 export {
