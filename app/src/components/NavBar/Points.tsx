@@ -280,7 +280,7 @@ const Points: React.FC = () => {
                 fontFamily="DIN OT"
                 fontWeight="500"
                 fontSize={32}
-                lineHeight="100%"
+                lineHeight={32}
                 letterSpacing={-1}
               >
                 {`${selfPoints} Self `}
@@ -289,7 +289,7 @@ const Points: React.FC = () => {
                 fontFamily="DIN OT"
                 fontWeight="500"
                 fontSize={32}
-                lineHeight="100%"
+                lineHeight={32}
                 letterSpacing={-1}
               >
                 points
