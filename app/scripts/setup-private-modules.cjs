@@ -18,17 +18,12 @@ const PRIVATE_MODULES = [
   {
     repoName: 'android-passport-nfc-reader',
     localPath: path.join(ANDROID_DIR, 'android-passport-nfc-reader'),
-    validationFiles: [
-      'app/build.gradle',
-      'app/src/main/AndroidManifest.xml',
-    ],
+    validationFiles: ['app/build.gradle', 'app/src/main/AndroidManifest.xml'],
   },
   {
     repoName: 'react-native-passport-reader',
     localPath: path.join(ANDROID_DIR, 'react-native-passport-reader'),
-    validationFiles: [
-      'android/build.gradle',
-    ],
+    validationFiles: ['android/build.gradle'],
   },
 ];
 
@@ -254,7 +249,10 @@ function setupAndroidPassportReader() {
     throw new Error(`Android directory not found: ${ANDROID_DIR}`);
   }
 
-  log(`Starting setup of ${PRIVATE_MODULES.length} private module(s)...`, 'info');
+  log(
+    `Starting setup of ${PRIVATE_MODULES.length} private module(s)...`,
+    'info',
+  );
 
   let successCount = 0;
   for (const module of PRIVATE_MODULES) {
@@ -272,7 +270,10 @@ function setupAndroidPassportReader() {
   if (successCount === PRIVATE_MODULES.length) {
     log('All private modules setup complete!', 'success');
   } else if (successCount > 0) {
-    log(`Setup complete: ${successCount}/${PRIVATE_MODULES.length} modules cloned`, 'warning');
+    log(
+      `Setup complete: ${successCount}/${PRIVATE_MODULES.length} modules cloned`,
+      'warning',
+    );
   }
 }
 
@@ -285,7 +286,10 @@ function scrubGitRemoteUrl(modulePath, repoName) {
     runCommand(scrubCommand, { stdio: 'pipe' });
     log(`Git remote URL cleaned for ${repoName}`, 'success');
   } catch (error) {
-    log(`Warning: Failed to scrub git remote URL for ${repoName}: ${error.message}`, 'warning');
+    log(
+      `Warning: Failed to scrub git remote URL for ${repoName}: ${error.message}`,
+      'warning',
+    );
     // Non-fatal error - continue execution
   }
 }
