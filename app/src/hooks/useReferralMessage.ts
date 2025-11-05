@@ -15,7 +15,8 @@ interface ReferralMessageResult {
 const buildReferralMessageFromAddress = (
   userPointsAddress: string,
 ): ReferralMessageResult => {
-  const baseDomain = 'https://referral.self.xyz';
+  // const baseDomain = 'https://referral.self.xyz';
+  const baseDomain = 'https://redirectselfxyzwebpages.vercel.app';
   const referralLink = `${baseDomain}/referral/${userPointsAddress}`;
   return {
     message: `Join Self and use my referral link:\n\n${referralLink}`,
