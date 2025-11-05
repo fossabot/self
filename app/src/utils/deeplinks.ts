@@ -17,12 +17,14 @@ const VALIDATION_PATTERNS = {
   sessionId: /^[a-zA-Z0-9_-]+$/,
   selfApp: /^[\s\S]*$/, // JSON strings can contain any characters, we'll validate JSON parsing separately
   mock_passport: /^[\s\S]*$/, // JSON strings can contain any characters, we'll validate JSON parsing separately
+  referrer: /^0x[a-fA-F0-9]+$/,
 } as const;
 
 type ValidatedParams = {
   sessionId?: string;
   selfApp?: string;
   mock_passport?: string;
+  referrer?: string;
 };
 
 // Define proper types for the mock data structure
@@ -97,7 +99,12 @@ export const getAndClearQueuedUrl = (): string | null => {
 
 export const handleUrl = (selfClient: SelfClient, uri: string) => {
   const validatedParams = parseAndValidateUrlParams(uri);
-  const { sessionId, selfApp: selfAppStr, mock_passport } = validatedParams;
+  const {
+    sessionId,
+    selfApp: selfAppStr,
+    mock_passport,
+    referrer,
+  } = validatedParams;
 
   if (selfAppStr) {
     try {
@@ -159,6 +166,11 @@ export const handleUrl = (selfClient: SelfClient, uri: string) => {
         createDeeplinkNavigationState('QRCodeTrouble', correctParentScreen),
       );
     }
+  } else if (referrer && typeof referrer === 'string') {
+    // Navigate to GratificationScreen for referrer deeplinks
+    navigationRef.reset(
+      createDeeplinkNavigationState('Gratification', correctParentScreen),
+    );
   } else if (Platform.OS === 'web') {
     // TODO: web handle links if we need to idk if we do
     // For web, we can handle the URL some other way if we dont do this loading app in web always navigates to QRCodeTrouble
