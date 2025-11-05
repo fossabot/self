@@ -17,7 +17,7 @@ const buildReferralMessageFromAddress = (
 ): ReferralMessageResult => {
   const baseUrl = `https://referral.self.xyz/referral?referrer=${userPointsAddress}`;
   return {
-    message: `Join Self and use my referral link: ${baseUrl}`,
+    message: `Join Self and use my referral link:\n\n${baseUrl}`,
     referralLink: baseUrl,
   };
 };
