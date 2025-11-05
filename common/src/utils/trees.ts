@@ -707,10 +707,10 @@ export function getPassportNumberAndNationalityLeaf(
   }
 }
 
-export function buildSelfricaSMT(field: any[], treetype: string, isSelfrica: boolean = true): [number, number, SMT] {
+export function buildSelfperSMT(field: any[], treetype: string): [number, number, SMT] {
   let count = 0;
   let startTime = performance.now();
-  const providerName = isSelfrica ? 'SELFRICA' : 'PERSONA';
+  const providerName = 'SELFPER';
 
   const hash2 = (childNodes: ChildNodes) =>
     childNodes.length === 2 ? poseidon2(childNodes) : poseidon3(childNodes);
@@ -725,9 +725,9 @@ export function buildSelfricaSMT(field: any[], treetype: string, isSelfrica: boo
 
     let leaf = BigInt(0);
     if (treetype == 'name_and_dob') {
-      leaf = processNameAndDobSelfricaPersona(entry, i, isSelfrica);
+      leaf = processNameAndDobSelfper(entry, i);
     } else if (treetype == 'name_and_yob') {
-      leaf = processNameAndYobSelfricaPersona(entry, i, isSelfrica);
+      leaf = processNameAndYobSelfper(entry, i);
     }
 
     if (leaf == BigInt(0) || tree.createProof(leaf).membership) {
@@ -744,7 +744,7 @@ export function buildSelfricaSMT(field: any[], treetype: string, isSelfrica: boo
   return [count, performance.now() - startTime, tree];
 }
 
-const processNameAndDobSelfricaPersona = (entry: any, i: number, isSelfrica: boolean = true): bigint => {
+const processNameAndDobSelfper = (entry: any, i: number): bigint => {
   const firstName = entry.First_Name;
   const lastName = entry.Last_Name;
   const day = entry.day;
@@ -756,27 +756,23 @@ const processNameAndDobSelfricaPersona = (entry: any, i: number, isSelfrica: boo
     return BigInt(0);
   }
 
-  const nameHash = processNameSelfricaPersona(firstName, lastName, i, isSelfrica);
-  const dobHash = processDobSelfricaPersona(day, month, year, i);
+  const nameHash = processNameSelfper(firstName, lastName, i);
+  const dobHash = processDobSelfper(day, month, year, i);
 
   return generateSmallKey(poseidon2([dobHash, nameHash]));
 }
 
 
-export const getNameDobLeafSelfrica = (name: string, dob: string) => {
-  return getNameDobLeafSelfricaPersona(name, dob, true);
-}
-
-export const getNameDobLeafSelfricaPersona = (name: string, dob: string, isSelfrica: boolean = true) => {
-  const namePaddingLength = isSelfrica ? 40 : 64; // SELFRICA: 40, PERSONA: 64
+export const getNameDobLeafSelfper = (name: string, dob: string) => {
+  const namePaddingLength = 64;
   const paddedName = name.padEnd(namePaddingLength, '\0').split('').map(char => char.charCodeAt(0));
   const nameHash = BigInt(packBytesAndPoseidon(paddedName));
   const dobHash = BigInt(poseidon8(stringToAsciiBigIntArray(dob)));
   return generateSmallKey(poseidon2([dobHash, nameHash]));
 }
 
-const processNameSelfricaPersona = (firstName: string, lastName: string, i: number, isSelfrica: boolean = true): bigint => {
-  const namePaddingLength = isSelfrica ? 40 : 64; // SELFRICA: 40, PERSONA: 64
+const processNameSelfper = (firstName: string, lastName: string, i: number): bigint => {
+  const namePaddingLength = 64;
 
   firstName = firstName.replace(/'/g, '');
   firstName = firstName.replace(/\./g, '');
@@ -791,7 +787,7 @@ const processNameSelfricaPersona = (firstName: string, lastName: string, i: numb
 }
 
 
-const processDobSelfricaPersona = (day: string, month: string, year: string, i: number): bigint => {
+const processDobSelfper = (day: string, month: string, year: string, i: number): bigint => {
   const monthMap: { [key: string]: string } = {
     jan: '01',
     feb: '02',
@@ -814,16 +810,16 @@ const processDobSelfricaPersona = (day: string, month: string, year: string, i: 
 }
 
 
-export const getNameYobLeafSelfricaPersona = (name: string, yob: string, isSelfrica: boolean = true) => {
-  const namePaddingLength = isSelfrica ? 40 : 64; // SELFRICA: 40, PERSONA: 64
+export const getNameYobLeafSelfper = (name: string, yob: string) => {
+  const namePaddingLength = 64;
   const paddedName = name.padEnd(namePaddingLength, '\0').split('').map(char => char.charCodeAt(0));
   const nameHash = BigInt(packBytesAndPoseidon(paddedName));
 
-  const yearHash = processYearSelfricaPersona(yob, 0);
+  const yearHash = processYearSelfper(yob, 0);
   return generateSmallKey(poseidon2([yearHash, nameHash]));
 }
 
-const processNameAndYobSelfricaPersona = (entry: any, i: number, isSelfrica: boolean = true): bigint => {
+const processNameAndYobSelfper = (entry: any, i: number): bigint => {
   const firstName = entry.First_Name;
   const lastName = entry.Last_Name;
   const year = entry.year;
@@ -832,12 +828,12 @@ const processNameAndYobSelfricaPersona = (entry: any, i: number, isSelfrica: boo
     return BigInt(0);
   }
 
-  const nameHash = processNameSelfricaPersona(firstName, lastName, i, isSelfrica);
-  const yearHash = processYearSelfricaPersona(year, i);
+  const nameHash = processNameSelfper(firstName, lastName, i);
+  const yearHash = processYearSelfper(year, i);
   return generateSmallKey(poseidon2([yearHash, nameHash]));
 }
 
-const processYearSelfricaPersona = (year: string, i: number): bigint => {
+const processYearSelfper = (year: string, i: number): bigint => {
   const yearArr = stringToAsciiBigIntArray(year);
   return BigInt(poseidon4(yearArr));
 }

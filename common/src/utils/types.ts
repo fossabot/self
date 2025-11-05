@@ -1,7 +1,7 @@
 import type { ExtractedQRData } from './aadhaar/utils.js';
 import type { CertificateData } from './certificate_parsing/dataStructure.js';
 import type { PassportMetadata } from './passports/passport_parsing/parsePassportData.js';
-import { SelfricaField } from './selfrica_persona/constants.js';
+import { SelfperField } from './selfper/constants.js';
 
 // Base interface for common fields
 interface BaseIDData {
@@ -25,7 +25,7 @@ export interface AadhaarData extends BaseIDData {
 // export interface SelfricaData extends BaseIDData {
 //   documentCategory: 'selfrica';
 //   serializedRealData: string;
-//   selfricaFields: SelfricaField[];
+//   selfricaFields: SelfperField[];
 // }
 
 export type DeployedCircuits = {

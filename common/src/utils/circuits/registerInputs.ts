@@ -22,7 +22,7 @@ import type { AadhaarData, Environment, IDDocument, OfacTree } from '../../utils
 
 import { LeanIMT } from '@openpassport/zk-kit-lean-imt';
 import { SMT } from '@openpassport/zk-kit-smt';
-import { SelfricaField } from '../selfrica_persona/constants.js';
+import { SelfperField } from '../selfper/constants.js';
 
 export { generateCircuitInputsRegister } from './generateInputs.js';
 
@@ -42,9 +42,9 @@ export { generateCircuitInputsRegister } from './generateInputs.js';
 //   const { scope, disclosures, userId, userDefinedData, chainID } = selfApp;
 //   const userIdentifierHash = calculateUserIdentifierHash(chainID, userId, userDefinedData);
 
-//   // Map SelfAppDisclosureConfig to SelfricaField array
-//   const mapDisclosuresToSelfricaFields = (config: SelfAppDisclosureConfig): SelfricaField[] => {
-//     const mapping: [keyof SelfAppDisclosureConfig, SelfricaField][] = [
+//   // Map SelfAppDisclosureConfig to SelfperField array
+//   const mapDisclosuresToSelfperFields = (config: SelfAppDisclosureConfig): SelfperField[] => {
+//     const mapping: [keyof SelfAppDisclosureConfig, SelfperField][] = [
 //       ['issuing_state', 'ADDRESS'],
 //       ['nationality', 'COUNTRY'],
 //       ['name', 'FULL_NAME'],
@@ -77,7 +77,7 @@ export { generateCircuitInputsRegister } from './generateInputs.js';
 //     disclosures.ofac,
 //     scope,
 //     userIdentifierHash.toString(),
-//     mapDisclosuresToSelfricaFields(disclosures),
+//     mapDisclosuresToSelfperFields(disclosures),
 //     disclosures.excludedCountries,
 //     disclosures.minimumAge
 //   );

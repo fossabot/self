@@ -132,20 +132,20 @@ export {
 } from './src/utils/aadhaar/mockData.js';
 
 export {
-  generateSelfricaDiscloseInput,
-  generateMockSelfricaRegisterInput,
+  generateSelfperDiscloseInput,
+  generateMockSelfperRegisterInput,
   NON_OFAC_DUMMY_INPUT,
   OFAC_DUMMY_INPUT,
   NON_OFAC_PERSONA_DUMMY_INPUT,
   OFAC_PERSONA_DUMMY_INPUT,
-} from './src/utils/selfrica_persona/generateInputs.js';
+} from './src/utils/selfper/generateInputs.js';
 
 export {
-  SELFRICA_MAX_LENGTH,
-  SELFRICA_ID_NUMBER_INDEX,
-  SELFRICA_ID_NUMBER_LENGTH
-} from './src/utils/selfrica_persona/constants.js';
+  SELFPER_MAX_LENGTH,
+  SELFPER_ID_NUMBER_INDEX,
+  SELFPER_ID_NUMBER_LENGTH
+} from './src/utils/selfper/constants.js';
 
 export {
   serializeSmileData,
-} from './src/utils/selfrica_persona/types.js';
+} from './src/utils/selfper/types.js';

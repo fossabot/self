@@ -631,24 +631,24 @@
       "import": "./dist/esm/src/utils/ofac.js",
       "require": "./dist/cjs/src/utils/ofac.cjs"
     },
-    "./utils/selfrica/generateInputs": {
+    "./utils/selfper/generateInputs": {
       "import": {
-        "types": "./dist/esm/src/utils/selfrica_persona/generateInputs.d.ts",
-        "default": "./dist/esm/src/utils/selfrica_persona/generateInputs.js"
+        "types": "./dist/esm/src/utils/selfper/generateInputs.d.ts",
+        "default": "./dist/esm/src/utils/selfper/generateInputs.js"
       },
       "require": {
-        "types": "./dist/cjs/src/utils/selfrica_persona/generateInputs.d.ts",
-        "default": "./dist/cjs/src/utils/selfrica_persona/generateInputs.cjs"
+        "types": "./dist/cjs/src/utils/selfper/generateInputs.d.ts",
+        "default": "./dist/cjs/src/utils/selfper/generateInputs.cjs"
       }
     },
-    "./utils/selfrica/constants": {
+    "./utils/selfper/constants": {
       "import": {
-        "types": "./dist/esm/src/utils/selfrica_persona/constants.d.ts",
-        "default": "./dist/esm/src/utils/selfrica_persona/constants.js"
+        "types": "./dist/esm/src/utils/selfper/constants.d.ts",
+        "default": "./dist/esm/src/utils/selfper/constants.js"
       },
       "require": {
-        "types": "./dist/cjs/src/utils/selfrica_persona/constants.d.ts",
-        "default": "./dist/cjs/src/utils/selfrica_persona/constants.cjs"
+        "types": "./dist/cjs/src/utils/selfper/constants.d.ts",
+        "default": "./dist/cjs/src/utils/selfper/constants.cjs"
       }
     }
   },

@@ -38,23 +38,23 @@ export type SmileData = {
 export const serializeSmileData = (smileData: SmileData) => {
     //ensure max length of each field
     let serializedData = '';
-    serializedData += smileData.country.toUpperCase().padEnd(constants.SELFRICA_COUNTRY_LENGTH, '\0');
-    serializedData += smileData.idType.toUpperCase().padEnd(constants.SELFRICA_ID_TYPE_LENGTH, '\0');
-    serializedData += smileData.idNumber.padEnd(constants.SELFRICA_ID_NUMBER_LENGTH, '\0');
-    serializedData += smileData.issuanceDate.padEnd(constants.SELFRICA_ISSUANCE_DATE_LENGTH, '\0');
-    serializedData += smileData.expiryDate.padEnd(constants.SELFRICA_EXPIRY_DATE_LENGTH, '\0');
-    serializedData += smileData.fullName.padEnd(constants.SELFRICA_FULL_NAME_LENGTH, '\0');
-    serializedData += smileData.dob.padEnd(constants.SELFRICA_DOB_LENGTH, '\0');
-    serializedData += smileData.photoHash.padEnd(constants.SELFRICA_PHOTO_HASH_LENGTH, '\0');
-    serializedData += smileData.phoneNumber.padEnd(constants.SELFRICA_PHONE_NUMBER_LENGTH, '\0');
-    serializedData += smileData.document.padEnd(constants.SELFRICA_DOCUMENT_LENGTH, '\0');
-    serializedData += smileData.gender.padEnd(constants.SELFRICA_GENDER_LENGTH, '\0');
-    serializedData += smileData.address.padEnd(constants.SELFRICA_ADDRESS_LENGTH, '\0');
+    serializedData += smileData.country.toUpperCase().padEnd(constants.SELFPER_COUNTRY_LENGTH, '\0');
+    serializedData += smileData.idType.toUpperCase().padEnd(constants.SELFPER_ID_TYPE_LENGTH, '\0');
+    serializedData += smileData.idNumber.padEnd(constants.SELFPER_ID_NUMBER_LENGTH, '\0');
+    serializedData += smileData.issuanceDate.padEnd(constants.SELFPER_ISSUANCE_DATE_LENGTH, '\0');
+    serializedData += smileData.expiryDate.padEnd(constants.SELFPER_EXPIRY_DATE_LENGTH, '\0');
+    serializedData += smileData.fullName.padEnd(constants.SELFPER_FULL_NAME_LENGTH, '\0');
+    serializedData += smileData.dob.padEnd(constants.SELFPER_DOB_LENGTH, '\0');
+    serializedData += smileData.photoHash.padEnd(constants.SELFPER_PHOTO_HASH_LENGTH, '\0');
+    serializedData += smileData.phoneNumber.padEnd(constants.SELFPER_PHONE_NUMBER_LENGTH, '\0');
+    serializedData += smileData.document.padEnd(constants.SELFPER_DOCUMENT_LENGTH, '\0');
+    serializedData += smileData.gender.padEnd(constants.SELFPER_GENDER_LENGTH, '\0');
+    serializedData += smileData.address.padEnd(constants.SELFPER_ADDRESS_LENGTH, '\0');
 
     return serializedData;
 }
 
-export type SelfricaRegisterInput = {
+export type SelfperRegisterInput = {
     data_padded: string[],
     s: string,
     Tx: string,
@@ -65,7 +65,7 @@ export type SelfricaRegisterInput = {
     secret: string,
 }
 
-export type SelfricaDiscloseInput = {
+export type SelfperDiscloseInput = {
     data_padded: string[],
     compressed_disclose_sel: string[],
     merkle_root: string[],
@@ -87,7 +87,7 @@ export type SelfricaDiscloseInput = {
     secret: string,
 };
 
-export type SelfricaDisclosePublicInput = {
+export type SelfperDisclosePublicInput = {
     attestation_id: string,
     revealedData_packed: string[],
     forbidden_countries_list_packed: string[],

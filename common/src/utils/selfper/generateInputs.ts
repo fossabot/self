@@ -2,22 +2,22 @@ import { SMT } from '@openpassport/zk-kit-smt';
 import {
   generateMerkleProof,
   generateSMTProof,
-  getNameDobLeafSelfricaPersona,
-  getNameYobLeafSelfricaPersona,
+  getNameDobLeafSelfper,
+  getNameYobLeafSelfper,
 } from '../trees.js';
 import {
   PersonaData,
   PersonaDataLimits,
-  SelfricaDiscloseInput,
-  SelfricaRegisterInput,
+  SelfperDiscloseInput,
+  SelfperRegisterInput,
   serializeSmileData,
   SmileData,
 } from './types.js';
 import { findIndexInTree, formatInput } from '../circuits/generateInputs.js';
 import {
-  createSelfricaSelector,
-  SELFRICA_MAX_LENGTH,
-  SelfricaField,
+  createSelfperSelector,
+  SELFPER_MAX_LENGTH,
+  SelfperField,
 } from './constants.js';
 import { poseidon2 } from 'poseidon-lite';
 import { Base8, inCurve, mulPointEscalar, subOrder } from '@zk-kit/baby-jubjub';
@@ -31,7 +31,7 @@ import { PERSONA_MAX_LENGTH } from './persona_constants.js';
 export const OFAC_DUMMY_INPUT: SmileData = {
   country: 'KEN',
   idType: 'NATIONAL ID',
-  idNumber: '12345678901234567890', //20 digits
+  idNumber: '12345678901234567890123456789012', //32 digits
   issuanceDate: '20200101',
   expiryDate: '20290101',
   fullName: 'ABBAS ABU',
@@ -50,7 +50,7 @@ export const OFAC_DUMMY_INPUT: SmileData = {
 export const NON_OFAC_DUMMY_INPUT: SmileData = {
   country: 'KEN',
   idType: 'NATIONAL ID',
-  idNumber: '12345678901234567890', //20 digits
+  idNumber: '12345678901234567890123456789012', //32 digits
   issuanceDate: '20200101',
   expiryDate: '20290101',
   fullName: 'John Doe',
@@ -102,17 +102,17 @@ export const NON_OFAC_PERSONA_DUMMY_INPUT: PersonaData = {
 
 
 
-export const createSelfricaDiscloseSelFromFields = (fieldsToReveal: SelfricaField[]): string[] => {
-  const [highResult, lowResult] = createSelfricaSelector(fieldsToReveal);
+export const createSelfperDiscloseSelFromFields = (fieldsToReveal: SelfperField[]): string[] => {
+  const [highResult, lowResult] = createSelfperSelector(fieldsToReveal);
   return [highResult.toString(), lowResult.toString()];
 };
 
 
-export const generateMockSelfricaRegisterInput = (secretKey?: bigint, ofac?: boolean, secret?: string, isSelfrica: boolean = true) => {
+export const generateMockSelfperRegisterInput = (secretKey?: bigint, ofac?: boolean, secret?: string, isSelfrica: boolean = true) => {
   let serializedData: string;
   if (isSelfrica) {
      let smileData = ofac ? OFAC_DUMMY_INPUT : NON_OFAC_DUMMY_INPUT;
-     serializedData = serializeSmileData(smileData).padEnd(SELFRICA_MAX_LENGTH, '\0');
+     serializedData = serializeSmileData(smileData).padEnd(SELFPER_MAX_LENGTH, '\0');
   }
   else {
     const paddedData = validateAndPadPersonaData(ofac ? OFAC_PERSONA_DUMMY_INPUT : NON_OFAC_PERSONA_DUMMY_INPUT);
@@ -145,7 +145,7 @@ export const generateMockSelfricaRegisterInput = (secretKey?: bigint, ofac?: boo
   const rInv = modInv(sig.R[0], subOrder);
   const rInvLimbs = bigintTo64bitLimbs(modulus(-rInv, subOrder));
 
-  const selfricaRegisterInput: SelfricaRegisterInput = {
+  const selfperRegisterInput: SelfperRegisterInput = {
     data_padded: msgPadded.map((x) => x.toString()),
     s: sig.s.toString(),
     Tx: T[0].toString(),
@@ -156,7 +156,7 @@ export const generateMockSelfricaRegisterInput = (secretKey?: bigint, ofac?: boo
     secret: secret || "1234",
   };
 
-  return selfricaRegisterInput;
+  return selfperRegisterInput;
 };
 
 export const generateCircuitInputsOfac = (data: SmileData | PersonaData, smt: SMT, proofLevel: number, isSelfrica: boolean = true) => {
@@ -164,8 +164,8 @@ export const generateCircuitInputsOfac = (data: SmileData | PersonaData, smt: SM
   const dob = data.dob;
   const yob = data.dob.slice(0, 4);
 
-  const nameDobLeaf = getNameDobLeafSelfricaPersona(name, dob, isSelfrica);
-  const nameYobLeaf = getNameYobLeafSelfricaPersona(name, yob, isSelfrica);
+  const nameDobLeaf = getNameDobLeafSelfper(name, dob);
+  const nameYobLeaf = getNameYobLeafSelfper(name, yob);
 
   let root, closestleaf, siblings;
   if (proofLevel == 2) {
@@ -183,7 +183,7 @@ export const generateCircuitInputsOfac = (data: SmileData | PersonaData, smt: SM
   };
 };
 
-export const generateSelfricaDiscloseInput = (
+export const generateSelfperDiscloseInput = (
   ofac_input: boolean,
   nameDobSmt: SMT,
   nameYobSmt: SMT,
@@ -191,7 +191,7 @@ export const generateSelfricaDiscloseInput = (
   ofac: boolean,
   scope: string,
   userIdentifier: string,
-  fieldsToReveal?: SelfricaField[],
+  fieldsToReveal?: SelfperField[],
   forbiddenCountriesList?: string[],
   minimumAge?: number,
   updateTree?: boolean,
@@ -202,7 +202,7 @@ export const generateSelfricaDiscloseInput = (
   let data: SmileData | PersonaData;
   if (isSelfrica) {
     data = ofac_input ? OFAC_DUMMY_INPUT : NON_OFAC_DUMMY_INPUT;
-    serializedData = serializeSmileData(data).padEnd(SELFRICA_MAX_LENGTH, '\0');
+    serializedData = serializeSmileData(data).padEnd(SELFPER_MAX_LENGTH, '\0');
   }
   else {
     data = ofac_input ? OFAC_PERSONA_DUMMY_INPUT : NON_OFAC_PERSONA_DUMMY_INPUT;
@@ -228,11 +228,11 @@ export const generateSelfricaDiscloseInput = (
   let compressed_disclose_sel: string[];
 
   if (isSelfrica) {
-    compressed_disclose_sel = createSelfricaDiscloseSelFromFields(fieldsToRevealFinal);
+    compressed_disclose_sel = createSelfperDiscloseSelFromFields(fieldsToRevealFinal);
   } else {
     // For PERSONA, we need to convert field names and use generatePersonaSelector
     const personaFields = fieldsToRevealFinal.map(field => {
-      // Map SELFRICA field names to Persona field names
+      // Map SELFPER field names to Persona field names
       const fieldMap: Record<string, string> = {
         'COUNTRY': 'country',
         'ID_TYPE': 'idType',
@@ -251,7 +251,7 @@ export const generateSelfricaDiscloseInput = (
     });
 
     const personaSelector = generatePersonaSelector(personaFields);
-    // Compress the selector into 2 bigints (similar to SELFRICA)
+    // Compress the selector into 2 bigints (similar to SELFPER)
     const compressedBitLen = Math.ceil(personaSelector.length / 2);
     const lowBits = personaSelector.slice(0, compressedBitLen).join('');
     const highBits = personaSelector.slice(compressedBitLen).join('');
@@ -272,7 +272,7 @@ export const generateSelfricaDiscloseInput = (
     const currentDate = new Date().toISOString().split('T')[0].replace(/-/g, '').split('');
 
 
-    const circuitInput: SelfricaDiscloseInput = {
+    const circuitInput: SelfperDiscloseInput = {
     data_padded: formatInput(msgPadded),
     compressed_disclose_sel: compressed_disclose_sel,
     scope: scope,

@@ -9,7 +9,7 @@ include "@openpassport/zk-email-circuits/lib/bigint.circom";
 include "./babyEcdsa.circom";
 include "../crypto/bigInt/bigInt.circom";
 
-template VERIFY_SELFRICA_SIGNATURE(){
+template VERIFY_SELFPER_SIGNATURE(){
 
     signal input s;
     signal input r_inv[4];

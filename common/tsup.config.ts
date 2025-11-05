@@ -56,11 +56,11 @@ const entry = {
   'src/utils/contracts/forbiddenCountries': 'src/utils/contracts/forbiddenCountries.ts',
   'src/utils/csca': 'src/utils/csca.ts',
   'src/utils/ofac': 'src/utils/ofac.ts',
-  // Selfrica persona exports
-  'src/utils/selfrica_persona/generateInputs': 'src/utils/selfrica_persona/generateInputs.ts',
-  'src/utils/selfrica_persona/constants': 'src/utils/selfrica_persona/constants.ts',
-  'src/utils/selfrica_persona/types': 'src/utils/selfrica_persona/types.ts',
-  'src/utils/selfrica_persona/decodePublicSignals': 'src/utils/selfrica_persona/decodePublicSignals.ts',
+  // Selfper exports
+  'src/utils/selfper/generateInputs': 'src/utils/selfper/generateInputs.ts',
+  'src/utils/selfper/constants': 'src/utils/selfper/constants.ts',
+  'src/utils/selfper/types': 'src/utils/selfper/types.ts',
+  'src/utils/selfper/decodePublicSignals': 'src/utils/selfper/decodePublicSignals.ts',
   // Level 3 Hash Function Exports
   'src/utils/hash/poseidon': 'src/utils/hash/poseidon.ts',
   'src/utils/hash/sha': 'src/utils/hash/sha.ts',

@@ -21,7 +21,7 @@ function ID_NUMBER_INDEX() {
 }
 
 function ID_NUMBER_LENGTH() {
-    return 20;
+    return 32;
 }
 
 function ISSUANCE_DATE_INDEX() {
@@ -45,7 +45,7 @@ function FULL_NAME_INDEX() {
 }
 
 function FULL_NAME_LENGTH() {
-    return 40;
+    return 64;
 }
 
 function DOB_INDEX() {
@@ -77,7 +77,7 @@ function DOCUMENT_INDEX() {
 }
 
 function DOCUMENT_LENGTH() {
-    return 2;
+    return 32;
 }
 
 function GENDER_INDEX() {
@@ -96,14 +96,6 @@ function ADDRESS_LENGTH() {
     return 100;
 }
 
-function SELFRICA_MAX_LENGTH() {
+function SELFPER_MAX_LENGTH() {
     return ADDRESS_INDEX() + ADDRESS_LENGTH();
-}
-
-function SMILE_DATA_PADDED() {
-    return 320;
-}
-
-function SMILE_ID_PADDED() {
-    return 64;
 }

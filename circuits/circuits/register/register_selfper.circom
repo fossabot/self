@@ -1,24 +1,23 @@
 pragma circom 2.1.9;
 
 include "circomlib/circuits/bitify.circom";
-include "../utils/selfrica_persona/constants.circom";
-include "../utils/selfrica_persona/persona_constants.circom";
+include "../utils/selfper/constants.circom";
+include "../utils/selfper/persona_constants.circom";
 include "../utils/passport/customHashers.circom";
-include "../utils/selfrica_persona/verifySignature.circom";
+include "../utils/selfper/verifySignature.circom";
 
 
-template REGISTER_SELFRICA_PERSONA(isSelfrica) {
+template REGISTER_SELFPER() {
 
-    var max_length = isSelfrica ? SELFRICA_MAX_LENGTH() : PERSONA_MAX_LENGTH();
-    var country_length = isSelfrica ? COUNTRY_LENGTH() : PERSONA_COUNTRY_LENGTH();
-    var id_number_length = isSelfrica ? ID_NUMBER_LENGTH() : PERSONA_ID_NUMBER_LENGTH();
-    var idNumberIdx = isSelfrica ? ID_NUMBER_INDEX() : PERSONA_ID_NUMBER_INDEX();
+    var max_length = SELFPER_MAX_LENGTH();
+    var country_length = COUNTRY_LENGTH();
+    var id_number_length = ID_NUMBER_LENGTH();
+    var idNumberIdx = ID_NUMBER_INDEX();
 
     var compressed_bit_len = max_length/2;
 
     signal input data_padded[max_length];
 
-    //Args to verify Hash(smiledata) signature
     signal input s;
     signal input Tx;
     signal input Ty;
@@ -28,7 +27,7 @@ template REGISTER_SELFRICA_PERSONA(isSelfrica) {
     signal input secret;
 
 
-    signal output attestation_id <== isSelfrica ? 4 : 5;
+    signal output attestation_id <== 4;
 
     //Calculate msg_hash
     component msg_hasher = PackBytesAndPoseidon(max_length);
@@ -54,8 +53,8 @@ template REGISTER_SELFRICA_PERSONA(isSelfrica) {
         msg_hash_limbs[i] <== bits2Num[i].out;
     }
 
-    //verify Hash(smiledata) signature
-    component verifyIdCommSig = VERIFY_SELFRICA_SIGNATURE();
+
+    component verifyIdCommSig = VERIFY_SELFPER_SIGNATURE();
     verifyIdCommSig.s <== s;
     verifyIdCommSig.r_inv <== r_inv;
     verifyIdCommSig.msg_hash_limbs <== msg_hash_limbs;
@@ -74,3 +73,5 @@ template REGISTER_SELFRICA_PERSONA(isSelfrica) {
     signal output pubkey_hash <== Poseidon(2)([pubKeyX, pubKeyY]);
 
 }
+
+component main = REGISTER_SELFPER();
