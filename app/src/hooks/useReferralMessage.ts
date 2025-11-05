@@ -15,10 +15,11 @@ interface ReferralMessageResult {
 const buildReferralMessageFromAddress = (
   userPointsAddress: string,
 ): ReferralMessageResult => {
-  const baseUrl = `https://referral.self.xyz/referral?referrer=${userPointsAddress}`;
+  const baseDomain = 'https://referral.self.xyz';
+  const referralLink = `${baseDomain}/referral/${userPointsAddress}`;
   return {
-    message: `Join Self and use my referral link:\n\n${baseUrl}`,
-    referralLink: baseUrl,
+    message: `Join Self and use my referral link:\n\n${referralLink}`,
+    referralLink,
   };
 };
 
