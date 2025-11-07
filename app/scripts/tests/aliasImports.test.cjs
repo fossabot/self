@@ -235,9 +235,7 @@ describe('alias-imports transform', () => {
     transformProjectToAliasImports(project, appRoot);
 
     const specFile = project.getSourceFileOrThrow(deepSpecFile);
-    assert.ok(
-      specFile.getText().includes("require('@/integrations/haptics')"),
-    );
+    assert.ok(specFile.getText().includes("require('@/integrations/haptics')"));
   });
 
   it('aliases export star re-exports with ../ from sibling directory', () => {

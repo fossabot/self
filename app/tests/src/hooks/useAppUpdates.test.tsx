@@ -8,8 +8,8 @@ import { useNavigation } from '@react-navigation/native';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 
 import { useAppUpdates } from '@/hooks/useAppUpdates';
-import { SelfClientProvider } from '@/providers/selfClientProvider';
 import { registerModalCallbacks } from '@/lib/ui/modalCallbackRegistry';
+import { SelfClientProvider } from '@/providers/selfClientProvider';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
