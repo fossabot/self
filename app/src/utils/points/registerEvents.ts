@@ -5,15 +5,19 @@
 import { IS_DEV_MODE } from '@/utils/devUtils';
 import { makeApiRequest, POINTS_API_BASE_URL } from '@/utils/points/api';
 
-export async function checkEventProcessingStatus(id: string) {
-  // TODO check actual api api
-  const response = await makeApiRequest('/verify-action', {
-    action: 'secret_backup',
-    id,
+export async function checkEventProcessingStatus(
+  id: string,
+  eventType: string,
+): Promise<boolean> {
+  // TODO: Update endpoint and payload when actual API is ready
+  const response = await makeApiRequest('/event-status', {
+    eventId: id,
+    eventType,
   });
 
-  // TODO we dont know yet if data is the right thing to return here
-  return response.data;
+  // TODO: Adjust based on actual API response structure
+  // Assuming response.data will be { processed: true/false } or similar
+  return response.data?.processed ?? false;
 }
 
 /**

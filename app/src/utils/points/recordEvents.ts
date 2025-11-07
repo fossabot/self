@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 // NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
+import { pollEventProcessingStatus } from '@/utils/points/eventPolling';
 import {
-  checkEventProcessingStatus,
   registerBackupPoints,
   registerNotificationPoints,
   registerReferralPoints,
@@ -13,9 +13,9 @@ import { POINT_VALUES } from '@/utils/points/types';
 import { getPointsAddress } from '@/utils/points/utils';
 
 /**
- * Shared helper to add an event to the store.
+ * Shared helper to add an event to the store and start polling for processing.
  */
-const addEventToStore = async (
+const addEventToStoreAndPoll = async (
   title: string,
   type: PointEventType,
   points: number,
@@ -23,19 +23,14 @@ const addEventToStore = async (
 ): Promise<void> => {
   const { usePointEventStore } = await import('@/stores/pointEventStore');
   await usePointEventStore.getState().addEvent(title, type, points, id);
-  setTimeout(() => {
-    tryToUpdateUnprocessedEvents(id);
-  }, 2000);
-};
 
-async function tryToUpdateUnprocessedEvents(id: string): Promise<boolean> {
-  const isProcessed = await checkEventProcessingStatus(id);
-  if (isProcessed) {
-    const { usePointEventStore } = await import('@/stores/pointEventStore');
-    usePointEventStore.getState().markEventAsProcessed(id);
-  }
-  return isProcessed as boolean;
-}
+  // Start polling in background - don't await
+  pollEventProcessingStatus(id, type).then(processed => {
+    if (processed) {
+      usePointEventStore.getState().markEventAsProcessed(id);
+    }
+  });
+};
 
 /**
  * Records a backup event by registering with API and storing locally.
@@ -49,9 +44,13 @@ export const recordBackupPointEvent = async (): Promise<{
   try {
     const userAddress = await getPointsAddress();
     const response = await registerBackupPoints(userAddress);
-    const id = 'backup-' + Date.now(); // TODO GET ID FROM API RESPONSE
+
     if (response.success && response.status === 200) {
-      await addEventToStore(
+      // TODO: Extract actual event ID from response.data when API is finalized
+      // Expected: response.data.eventId or similar
+      const id = response.data?.eventId ?? 'backup-' + Date.now();
+
+      await addEventToStoreAndPoll(
         'Secret backed up',
         'backup',
         POINT_VALUES.backup,
@@ -83,9 +82,10 @@ export const recordNotificationPointEvent = async (): Promise<{
     const response = await registerNotificationPoints(userAddress);
 
     if (response.success && response.status === 200) {
-      const id = 'notification-' + Date.now(); // TODO GET ID FROM API RESPONSE
+      // TODO: Extract actual event ID from response.data when API is finalized
+      const id = response.data?.eventId ?? 'notification-' + Date.now();
 
-      await addEventToStore(
+      await addEventToStoreAndPoll(
         'Push notifications enabled',
         'notification',
         POINT_VALUES.notification,
@@ -120,8 +120,10 @@ export const recordReferralPointEvent = async (
     const response = await registerReferralPoints({ referee, referrer });
 
     if (response.success && response.status === 200) {
-      const id = 'refer-' + Date.now(); // TODO GET ID FROM API RESPONSE
-      await addEventToStore(
+      // TODO: Extract actual event ID from response.data when API is finalized
+      const id = response.data?.eventId ?? 'refer-' + Date.now();
+
+      await addEventToStoreAndPoll(
         'Friend referred',
         'refer',
         POINT_VALUES.referee,

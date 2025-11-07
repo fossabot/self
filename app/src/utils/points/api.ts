@@ -30,9 +30,9 @@ export const makeApiRequest = async (
     });
 
     if (response.status === 200) {
-      return { success: true, status: 200 };
+      const data = await response.json();
+      return { success: true, status: 200, data };
     }
-
     let errorMessage = 'An unexpected error occurred. Please try again.';
     try {
       const data = await response.json();

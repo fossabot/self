@@ -11,6 +11,7 @@ import type {
   PointEventType,
 } from '@/utils/points';
 import { getIncomingPoints, getNextSundayNoonUTC } from '@/utils/points';
+import { pollEventProcessingStatus } from '@/utils/points/eventPolling';
 
 interface PointEventState {
   events: PointEvent[];
@@ -25,6 +26,7 @@ interface PointEventState {
   markEventAsProcessed: (id: string) => Promise<void>;
   removeEvent: (id: string) => Promise<void>;
   clearEvents: () => Promise<void>;
+  getUnprocessedEvents: () => PointEvent[];
   totalOptimisticIncomingPoints: () => number;
   incomingPoints: IncomingPoints & {
     lastUpdated: number | null;
@@ -52,6 +54,15 @@ export const usePointEventStore = create<PointEventState>()((set, get) => ({
       if (stored) {
         const events = JSON.parse(stored);
         set({ events, isLoading: false });
+        get()
+          .getUnprocessedEvents()
+          .forEach(event => {
+            pollEventProcessingStatus(event.id, event.type).then(processed => {
+              if (processed) {
+                get().markEventAsProcessed(event.id);
+              }
+            });
+          });
       } else {
         set({ isLoading: false });
       }
@@ -62,6 +73,7 @@ export const usePointEventStore = create<PointEventState>()((set, get) => ({
   },
   /*
    * Fetches incoming points from the backend and updates the store.
+   * @param otherState Optional additional state to merge into incomingPoints. so they can be updated atomically.
    */
   refreshIncomingPoints: async () => {
     // Avoid concurrent updates
@@ -86,6 +98,7 @@ export const usePointEventStore = create<PointEventState>()((set, get) => ({
         });
         return;
       }
+
       set({
         incomingPoints: {
           lastUpdated: Date.now(),
@@ -104,12 +117,22 @@ export const usePointEventStore = create<PointEventState>()((set, get) => ({
       });
     }
   },
+  getUnprocessedEvents: () => {
+    return get().events.filter(event => event.processedAt === null);
+  },
   /*
    * Calculates the total optimistic incoming points based on the current events.
    */
   totalOptimisticIncomingPoints: () => {
+    const pointsLastUpdated = get().incomingPoints.lastUpdated;
     const optimisticIncomingPoints = get()
-      .events.filter(event => event.processedAt === null)
+      .getUnprocessedEvents()
+      .filter(
+        event =>
+          // by checking the processedAt and timestamp  is > than last point update time we can be sure
+          // that we are only counting points that have not yet been counted in the last update
+          event.timestamp > (pointsLastUpdated ?? 0),
+      )
       .reduce((sum, event) => sum + event.points, 0);
     return optimisticIncomingPoints + get().incomingPoints.amount;
   },
@@ -134,6 +157,7 @@ export const usePointEventStore = create<PointEventState>()((set, get) => ({
       console.error('Error adding point event:', error);
     }
   },
+
   markEventAsProcessed: async (id: string) => {
     try {
       const currentEvents = get().events;
@@ -142,8 +166,24 @@ export const usePointEventStore = create<PointEventState>()((set, get) => ({
       );
 
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedEvents));
-      set({ events: updatedEvents });
-      get().refreshIncomingPoints();
+      // Fetch fresh incoming points from server
+      const points = await getIncomingPoints();
+
+      // Atomically update both events and incoming points in single state update
+      if (points !== null) {
+        set({
+          events: updatedEvents,
+          incomingPoints: {
+            lastUpdated: Date.now(),
+            amount: points.amount,
+            expectedDate: points.expectedDate,
+            isUpdating: false,
+          },
+        });
+      } else {
+        // If fetch failed, just update events
+        set({ events: updatedEvents });
+      }
     } catch (error) {
       console.error('Error marking point event as processed:', error);
     }

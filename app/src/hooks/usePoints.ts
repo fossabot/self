@@ -9,10 +9,14 @@ import {
 } from '@/utils/points';
 
 /*
- * Hook to fetch incoming points for the user. It refetches the incoming points when there is a new event in the point events store.
+ * Hook to get incoming points for the user. It shows the optimistic incoming points.
+ *
  */
-export const useIncomingPoints = (): IncomingPoints | null => {
+export const useIncomingPoints = (): IncomingPoints => {
   const incomingPoints = usePointEventStore(state => state.incomingPoints);
+  const totalOptimisticIncomingPoints = usePointEventStore(state =>
+    state.totalOptimisticIncomingPoints(),
+  );
   const refreshIncomingPoints = usePointEventStore(
     state => state.refreshIncomingPoints,
   );
@@ -21,7 +25,10 @@ export const useIncomingPoints = (): IncomingPoints | null => {
     refreshIncomingPoints();
   }, [refreshIncomingPoints]);
 
-  return incomingPoints;
+  return {
+    amount: totalOptimisticIncomingPoints,
+    expectedDate: incomingPoints.expectedDate,
+  };
 };
 
 /*
