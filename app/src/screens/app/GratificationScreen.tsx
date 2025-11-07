@@ -25,16 +25,16 @@ const GratificationScreen: React.FC = () => {
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute();
   const params = route.params as { points?: number } | undefined;
-  const pointsEarned = params?.points ?? 100;
+  const pointsEarned = params?.points ?? 0;
   const [isAnimationFinished, setIsAnimationFinished] = useState(false);
 
   const handleExploreRewards = () => {
     // Navigate to Points screen
-    navigation.navigate('Points');
+    navigation.navigate('Points' as never);
   };
 
   const handleInviteFriend = () => {
-    navigation.navigate('Referral');
+    navigation.navigate('Referral' as never);
   };
 
   const handleBackPress = () => {
