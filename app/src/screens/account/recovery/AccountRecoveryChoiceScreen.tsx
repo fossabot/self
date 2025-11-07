@@ -25,15 +25,15 @@ import useHapticNavigation from '@/hooks/useHapticNavigation';
 import Keyboard from '@/images/icons/keyboard.svg';
 import RestoreAccountSvg from '@/images/icons/restore_account.svg';
 import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
+import { black, slate500, slate600, white } from '@/lib/colors';
 import type { RootStackParamList } from '@/navigation';
 import { useAuth } from '@/providers/authProvider';
 import {
   loadPassportDataAndSecret,
   reStorePassportDataWithRightCSCA,
 } from '@/providers/passportDataProvider';
+import { STORAGE_NAME, useBackupMnemonic } from '@/services/cloud-backup';
 import { useSettingStore } from '@/stores/settingStore';
-import { STORAGE_NAME, useBackupMnemonic } from '@/utils/cloudBackup';
-import { black, slate500, slate600, white } from '@/utils/colors';
 
 const AccountRecoveryChoiceScreen: React.FC = () => {
   const selfClient = useSelfClient();

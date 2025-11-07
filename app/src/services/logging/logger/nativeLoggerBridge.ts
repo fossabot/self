@@ -4,7 +4,7 @@
 
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 
-import type { LoggerExtension, RootLogger } from '@/utils/logger';
+import type { LoggerExtension, RootLogger } from '@/services/logging';
 
 // Remove direct imports to avoid module cycle
 // Dependencies will be injected via setupNativeLoggerBridge

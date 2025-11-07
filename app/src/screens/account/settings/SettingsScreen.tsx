@@ -33,11 +33,11 @@ import Star from '@/images/icons/star.svg';
 import Telegram from '@/images/icons/telegram.svg';
 import Web from '@/images/icons/webpage.svg';
 import X from '@/images/icons/x.svg';
+import { impactLight } from '@/integrations/haptics';
+import { amber500, black, neutral700, slate800, white } from '@/lib/colors';
+import { extraYPadding } from '@/lib/constants';
+import { getCountry, getLocales, getTimeZone } from '@/lib/locale';
 import { useSettingStore } from '@/stores/settingStore';
-import { amber500, black, neutral700, slate800, white } from '@/utils/colors';
-import { extraYPadding } from '@/utils/constants';
-import { impactLight } from '@/utils/haptic';
-import { getCountry, getLocales, getTimeZone } from '@/utils/locale';
 
 import { version } from '../../../../package.json';
 // Avoid importing RootStackParamList to prevent type cycles; use minimal typing

@@ -14,4 +14,4 @@ export {
 } from '@selfxyz/common/utils/proving';
 
 // From loadingScreenStateText - used in loading screen
-export { getLoadingScreenText } from '@/utils/proving/loadingScreenStateText';
+export { getLoadingScreenText } from '@/features/proving/loadingScreenStateText';

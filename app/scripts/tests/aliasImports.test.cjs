@@ -179,14 +179,14 @@ describe('alias-imports transform', () => {
     const appRoot = tempRoot;
     const srcDir = join(appRoot, 'src');
     const testsSrcDir = join(appRoot, 'tests', 'src');
-    const fileHaptic = join(srcDir, 'utils', 'haptic.ts');
+    const fileHaptic = join(srcDir, 'integrations', 'haptics.ts');
     const deepSpecDir = join(testsSrcDir, 'deep');
     const deepSpecFile = join(deepSpecDir, 'spec.ts');
 
     writeFileEnsured(fileHaptic, 'export const h = 1;\n');
     writeFileEnsured(
       deepSpecFile,
-      "import { h } from '../../../src/utils/haptic';\nexport const v = h;\n",
+      "import { h } from '../../../src/integrations/haptics';\nexport const v = h;\n",
     );
 
     const project = new Project({
@@ -203,21 +203,24 @@ describe('alias-imports transform', () => {
     const specFile = project.getSourceFileOrThrow(deepSpecFile);
     const imports = specFile.getImportDeclarations();
     assert.strictEqual(imports.length, 1);
-    assert.strictEqual(imports[0].getModuleSpecifierValue(), '@/utils/haptic');
+    assert.strictEqual(
+      imports[0].getModuleSpecifierValue(),
+      '@/integrations/haptics',
+    );
   });
 
   it("transforms deep relative require '../../../src/...' to @src alias from tests", () => {
     const appRoot = tempRoot;
     const srcDir = join(appRoot, 'src');
     const testsSrcDir = join(appRoot, 'tests', 'src');
-    const fileHaptic = join(srcDir, 'utils', 'haptic.ts');
+    const fileHaptic = join(srcDir, 'integrations', 'haptics.ts');
     const deepSpecDir = join(testsSrcDir, 'deep');
     const deepSpecFile = join(deepSpecDir, 'req.ts');
 
     writeFileEnsured(fileHaptic, 'module.exports = { h: 1 };\n');
     writeFileEnsured(
       deepSpecFile,
-      "const h = require('../../../src/utils/haptic');\nexport const v = h;\n",
+      "const h = require('../../../src/integrations/haptics');\nexport const v = h;\n",
     );
 
     const project = new Project({
@@ -232,7 +235,9 @@ describe('alias-imports transform', () => {
     transformProjectToAliasImports(project, appRoot);
 
     const specFile = project.getSourceFileOrThrow(deepSpecFile);
-    assert.ok(specFile.getText().includes("require('@/utils/haptic')"));
+    assert.ok(
+      specFile.getText().includes("require('@/integrations/haptics')"),
+    );
   });
 
   it('aliases export star re-exports with ../ from sibling directory', () => {
@@ -467,7 +472,7 @@ describe('alias-imports transform', () => {
       );
       writeFileEnsured(
         fileB,
-        "const colors = require('@src/utils/colors');\nexport const Theme = () => <div>Theme</div>;\n",
+        "const colors = require('@src/lib/colors');\nexport const Theme = () => <div>Theme</div>;\n",
       );
 
       // Simulate the migration: replace @src/ with @/
@@ -525,7 +530,7 @@ describe('alias-imports transform', () => {
       );
       writeFileEnsured(
         fileC,
-        "import { Button } from '@src/components/buttons/Button';\nimport { colors } from '@src/utils/colors';\nimport { formatDate } from '@src/utils/dateFormatter';\nexport const Home = () => <Button />;\n",
+        "import { Button } from '@src/components/buttons/Button';\nimport { colors } from '@src/lib/colors';\nimport { formatDate } from '@src/utils/dateFormatter';\nexport const Home = () => <Button />;\n",
       );
 
       // Simulate the migration: replace @src/ with @/

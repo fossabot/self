@@ -11,7 +11,7 @@ import type { SelfAppDisclosureConfig } from '@selfxyz/common/utils';
 import { BodyText } from '@selfxyz/mobile-sdk-alpha/components';
 
 import CheckMark from '@/images/icons/checkmark.svg';
-import { slate200, slate500 } from '@/utils/colors';
+import { slate200, slate500 } from '@/lib/colors';
 
 interface DisclosureProps {
   disclosures: SelfAppDisclosureConfig;

@@ -3,6 +3,7 @@
 // NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
 // Re-export all haptic functionality from the mobile SDK
+export type { HapticOptions, HapticType } from '@selfxyz/mobile-sdk-alpha';
 export {
   buttonTap,
   cancelTap,
@@ -19,4 +20,3 @@ export {
   selectionChange,
   triggerFeedback,
 } from '@selfxyz/mobile-sdk-alpha';
-export type { HapticOptions, HapticType } from '@selfxyz/mobile-sdk-alpha';

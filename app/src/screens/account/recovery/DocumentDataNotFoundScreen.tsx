@@ -16,8 +16,8 @@ import {
 
 import useHapticNavigation from '@/hooks/useHapticNavigation';
 import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
-import analytics from '@/utils/analytics';
-import { black, slate200, white } from '@/utils/colors';
+import { black, slate200, white } from '@/lib/colors';
+import analytics from '@/services/analytics';
 
 const { flush: flushAnalytics } = analytics();
 

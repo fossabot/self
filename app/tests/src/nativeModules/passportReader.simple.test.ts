@@ -7,7 +7,7 @@
  * These tests verify critical interface requirements without conditional expects
  */
 
-import { PassportReader } from '@/utils/passportReader';
+import { PassportReader } from '@/integrations/nfc/passportReader';
 
 describe('PassportReader Simple Contract Tests', () => {
   describe('Critical Interface Requirements', () => {

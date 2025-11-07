@@ -28,9 +28,9 @@ import useConnectionModal from '@/hooks/useConnectionModal';
 import useHapticNavigation from '@/hooks/useHapticNavigation';
 import QRScan from '@/images/icons/qr_code.svg';
 import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
+import { black, slate800, white } from '@/lib/colors';
 import type { RootStackParamList } from '@/navigation';
-import { black, slate800, white } from '@/utils/colors';
-import { parseAndValidateUrlParams } from '@/utils/deeplinks';
+import { parseAndValidateUrlParams } from '@/navigation/deeplinks';
 
 const QRCodeViewFinderScreen: React.FC = () => {
   const selfClient = useSelfClient();

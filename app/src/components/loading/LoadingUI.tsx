@@ -19,9 +19,9 @@ import {
   white,
   zinc500,
   zinc900,
-} from '@/utils/colors';
-import { extraYPadding } from '@/utils/constants';
-import { advercase, dinot } from '@/utils/fonts';
+} from '@/lib/colors';
+import { extraYPadding } from '@/lib/constants';
+import { advercase, dinot } from '@/lib/fonts';
 
 interface LoadingUIProps {
   animationSource: LottieView['props']['source'];

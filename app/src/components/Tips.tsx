@@ -7,7 +7,7 @@ import { Text, View } from 'tamagui';
 
 import { Caption } from '@selfxyz/mobile-sdk-alpha/components';
 
-import { slate500 } from '@/utils/colors';
+import { slate500 } from '@/lib/colors';
 
 export interface TipProps {
   title: string;

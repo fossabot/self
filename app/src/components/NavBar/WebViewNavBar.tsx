@@ -9,9 +9,9 @@ import { ExternalLink, X } from '@tamagui/lucide-icons';
 
 import { Button, XStack } from '@selfxyz/mobile-sdk-alpha/components';
 
-import { black } from '@/utils/colors';
-import { dinot } from '@/utils/fonts';
-import { buttonTap } from '@/utils/haptic';
+import { buttonTap } from '@/integrations/haptics';
+import { black } from '@/lib/colors';
+import { dinot } from '@/lib/fonts';
 
 export interface WebViewNavBarProps {
   title?: string;

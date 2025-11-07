@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: BUSL-1.1
 // NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
-import type { DeviceTokenRegistration } from '@/utils/notifications/notificationService.shared';
+import type { DeviceTokenRegistration } from '@/services/notifications/notificationService.shared';
 import {
   API_URL,
   API_URL_STAGING,
   getStateMessage,
-} from '@/utils/notifications/notificationService.shared';
+} from '@/services/notifications/notificationService.shared';
 
 export async function getFCMToken(): Promise<string | null> {
   try {

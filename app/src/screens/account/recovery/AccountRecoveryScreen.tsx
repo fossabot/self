@@ -16,7 +16,7 @@ import { BackupEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
 import useHapticNavigation from '@/hooks/useHapticNavigation';
 import RestoreAccountSvg from '@/images/icons/restore_account.svg';
 import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
-import { black, slate600, white } from '@/utils/colors';
+import { black, slate600, white } from '@/lib/colors';
 
 const AccountRecoveryScreen: React.FC = () => {
   const onRestoreAccountPress = useHapticNavigation('AccountRecoveryChoice');

@@ -51,7 +51,16 @@ import passportVerifyAnimation from '@/assets/animations/passport_verify.json';
 import { useFeedbackAutoHide } from '@/hooks/useFeedbackAutoHide';
 import useHapticNavigation from '@/hooks/useHapticNavigation';
 import NFC_IMAGE from '@/images/nfc.png';
+import {
+  buttonTap,
+  feedbackSuccess,
+  feedbackUnsuccessful,
+  impactLight,
+} from '@/integrations/haptics';
+import { parseScanResponse, scan } from '@/integrations/nfc/nfcScanner';
 import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
+import { black, slate100, slate400, slate500, white } from '@/lib/colors';
+import { dinot } from '@/lib/fonts';
 import type { RootStackParamList } from '@/navigation';
 import { useFeedback } from '@/providers/feedbackProvider';
 import { storePassportData } from '@/providers/passportDataProvider';
@@ -61,17 +70,8 @@ import {
   flushAllAnalytics,
   setNfcScanningActive,
   trackNfcEvent,
-} from '@/utils/analytics';
-import { black, slate100, slate400, slate500, white } from '@/utils/colors';
-import { sendFeedbackEmail } from '@/utils/email';
-import { dinot } from '@/utils/fonts';
-import {
-  buttonTap,
-  feedbackSuccess,
-  feedbackUnsuccessful,
-  impactLight,
-} from '@/utils/haptic';
-import { parseScanResponse, scan } from '@/utils/nfcScanner';
+} from '@/services/analytics';
+import { sendFeedbackEmail } from '@/services/support/email';
 
 const emitter =
   Platform.OS === 'android'

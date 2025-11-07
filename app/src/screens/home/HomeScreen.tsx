@@ -21,11 +21,11 @@ import { DocumentEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
 import IdCardLayout from '@/components/homeScreen/idCard';
 import { useAppUpdates } from '@/hooks/useAppUpdates';
 import useConnectionModal from '@/hooks/useConnectionModal';
+import { slate50 } from '@/lib/colors';
+import { extraYPadding } from '@/lib/constants';
 import type { RootStackParamList } from '@/navigation';
 import { usePassport } from '@/providers/passportDataProvider';
 import useUserStore from '@/stores/userStore';
-import { slate50 } from '@/utils/colors';
-import { extraYPadding } from '@/utils/constants';
 
 const HomeScreen: React.FC = () => {
   const selfClient = useSelfClient();

@@ -10,8 +10,8 @@ import type { TipProps } from '@/components/Tips';
 import Tips from '@/components/Tips';
 import useHapticNavigation from '@/hooks/useHapticNavigation';
 import SimpleScrolledTitleLayout from '@/layouts/SimpleScrolledTitleLayout';
-import { flushAllAnalytics } from '@/utils/analytics';
-import { slate500 } from '@/utils/colors';
+import { slate500 } from '@/lib/colors';
+import { flushAllAnalytics } from '@/services/analytics';
 
 const tips: TipProps[] = [
   {

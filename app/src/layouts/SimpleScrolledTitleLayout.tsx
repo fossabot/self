@@ -14,7 +14,7 @@ import {
 } from '@selfxyz/mobile-sdk-alpha/components';
 
 import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
-import { white } from '@/utils/colors';
+import { white } from '@/lib/colors';
 
 type DetailListProps = PropsWithChildren<{
   title: string;

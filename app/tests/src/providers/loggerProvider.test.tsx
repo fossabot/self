@@ -9,12 +9,12 @@ import { render, screen } from '@testing-library/react-native';
 import { LoggerProvider, useLogger } from '@/providers/loggerProvider';
 
 // Mock the native logger bridge
-jest.mock('@/utils/logger/nativeLoggerBridge', () => ({
+jest.mock('@/services/logging/logger/nativeLoggerBridge', () => ({
   cleanup: jest.fn(),
 }));
 
 // Mock the logger utilities
-jest.mock('@/utils/logger', () => ({
+jest.mock('@/services/logging', () => ({
   AppLogger: {
     debug: jest.fn(),
     info: jest.fn(),
@@ -129,7 +129,7 @@ describe('LoggerProvider', () => {
     ).toBeTruthy();
 
     // Verify that logger methods were called with expected arguments
-    const { AppLogger, NfcLogger } = require('@/utils/logger');
+    const { AppLogger, NfcLogger } = require('@/services/logging');
     expect(AppLogger.info).toHaveBeenCalledWith('Test message');
     expect(NfcLogger.debug).toHaveBeenCalledWith('NFC test');
   });

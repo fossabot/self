@@ -9,9 +9,9 @@ import {
   type transportFunctionType,
 } from 'react-native-logs';
 
-import { interceptConsole } from '@/utils/logger/consoleInterceptor';
-import { lokiTransport } from '@/utils/logger/lokiTransport';
-import { setupNativeLoggerBridge } from '@/utils/logger/nativeLoggerBridge';
+import { interceptConsole } from '@/services/logging/logger/consoleInterceptor';
+import { lokiTransport } from '@/services/logging/logger/lokiTransport';
+import { setupNativeLoggerBridge } from '@/services/logging/logger/nativeLoggerBridge';
 
 const defaultConfig: configLoggerType<
   transportFunctionType<object> | transportFunctionType<object>[],

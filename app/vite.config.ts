@@ -175,16 +175,16 @@ export default defineConfig({
 
           // Screen-specific chunks - more granular
           'screens-document-core': ['./src/navigation/documents.ts'],
-          'screens-passport-nfc': ['./src/utils/nfcScanner.ts'],
+          'screens-passport-nfc': ['./src/integrations/nfc/nfcScanner.ts'],
 
           // Proving - split into even smaller chunks
           'screens-prove-core': ['./src/navigation/verification.ts'],
           'screens-prove-validation-core': [
-            './src/utils/proving/validateDocument.ts',
+            './src/features/proving/validateDocument.ts',
           ],
           'screens-prove-utils': [
-            './src/utils/proving/index.ts',
-            './src/utils/proving/loadingScreenStateText.ts',
+            './src/features/proving/index.ts',
+            './src/features/proving/loadingScreenStateText.ts',
           ],
 
           // Large animations - split out heavy Lottie files

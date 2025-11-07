@@ -14,7 +14,7 @@ import type {
 } from '@selfxyz/mobile-sdk-alpha';
 import { ExpandableBottomLayout as BaseExpandableBottomLayout } from '@selfxyz/mobile-sdk-alpha';
 
-import { black } from '@/utils/colors';
+import { black } from '@/lib/colors';
 
 const Layout: React.FC<LayoutProps> = ({
   children,

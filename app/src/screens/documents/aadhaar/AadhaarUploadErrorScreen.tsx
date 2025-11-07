@@ -17,9 +17,9 @@ import { AadhaarEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
 import { getErrorMessages } from '@selfxyz/mobile-sdk-alpha/onboarding/import-aadhaar';
 
 import WarningIcon from '@/images/warning.svg';
+import { black, slate100, slate200, slate500, white } from '@/lib/colors';
+import { extraYPadding } from '@/lib/constants';
 import { useSafeAreaInsets } from '@/mocks/react-native-safe-area-context';
-import { black, slate100, slate200, slate500, white } from '@/utils/colors';
-import { extraYPadding } from '@/utils/constants';
 
 type AadhaarUploadErrorRouteParams = {
   errorType?: 'general' | 'expired';

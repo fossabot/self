@@ -15,8 +15,8 @@ import {
 
 import ModalClose from '@/images/icons/modal_close.svg';
 import LogoInversed from '@/images/logo_inversed.svg';
-import { white } from '@/utils/colors';
-import { confirmTap, impactLight } from '@/utils/haptic';
+import { confirmTap, impactLight } from '@/integrations/haptics';
+import { white } from '@/lib/colors';
 
 const ModalBackDrop = styled(View, {
   display: 'flex',

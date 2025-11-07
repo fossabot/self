@@ -21,7 +21,7 @@ import { PassportEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
 import useHapticNavigation from '@/hooks/useHapticNavigation';
 import NFC_IMAGE from '@/images/nfc.png';
 import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
-import { black, slate100, white } from '@/utils/colors';
+import { black, slate100, white } from '@/lib/colors';
 
 const DocumentNFCScanScreen: React.FC = () => {
   const selfClient = useSelfClient();

@@ -13,9 +13,9 @@ import { useSelfClient } from '@selfxyz/mobile-sdk-alpha';
 import { Caption } from '@selfxyz/mobile-sdk-alpha/components';
 import { DocumentEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
 
+import { black, slate200, white } from '@/lib/colors';
+import { extraYPadding } from '@/lib/constants';
 import { usePassport } from '@/providers/passportDataProvider';
-import { black, slate200, white } from '@/utils/colors';
-import { extraYPadding } from '@/utils/constants';
 
 type DocumentMetadata =
   | (PassportMetadata & { documentCategory: 'passport' | 'id_card' })

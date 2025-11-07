@@ -17,11 +17,11 @@ import {
 import { AppEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
 
 import warningAnimation from '@/assets/animations/warning.json';
+import { confirmTap, notificationWarning } from '@/integrations/haptics';
 import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
+import { black, white } from '@/lib/colors';
 import type { RootStackParamList } from '@/navigation';
 import { useSettingStore } from '@/stores/settingStore';
-import { black, white } from '@/utils/colors';
-import { confirmTap, notificationWarning } from '@/utils/haptic';
 
 const DisclaimerScreen: React.FC = () => {
   const navigation =

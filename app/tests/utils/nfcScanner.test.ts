@@ -4,8 +4,8 @@
 
 import { Platform } from 'react-native';
 
-import { parseScanResponse, scan } from '@/utils/nfcScanner';
-import { PassportReader } from '@/utils/passportReader';
+import { parseScanResponse, scan } from '@/integrations/nfc/nfcScanner';
+import { PassportReader } from '@/integrations/nfc/passportReader';
 
 describe('parseScanResponse', () => {
   beforeEach(() => {

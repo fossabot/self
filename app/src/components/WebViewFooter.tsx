@@ -7,8 +7,8 @@ import { ArrowLeft, ArrowRight, RotateCcw } from '@tamagui/lucide-icons';
 
 import { Button, XStack, YStack } from '@selfxyz/mobile-sdk-alpha/components';
 
-import { black, slate50, slate400 } from '@/utils/colors';
-import { buttonTap } from '@/utils/haptic';
+import { buttonTap } from '@/integrations/haptics';
+import { black, slate50, slate400 } from '@/lib/colors';
 
 export interface WebViewFooterProps {
   canGoBack: boolean;

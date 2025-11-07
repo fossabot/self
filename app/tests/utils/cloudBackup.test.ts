@@ -9,8 +9,8 @@ import { CloudStorage } from 'react-native-cloud-storage';
 import { GDrive } from '@robinbobin/react-native-google-drive-api-wrapper';
 import { renderHook } from '@testing-library/react-native';
 
-import { useBackupMnemonic } from '@/utils/cloudBackup';
-import { createGDrive } from '@/utils/cloudBackup/google';
+import { useBackupMnemonic } from '@/services/cloud-backup';
+import { createGDrive } from '@/services/cloud-backup/google';
 
 // Mock dependencies
 jest.mock('react-native-cloud-storage', () => ({
@@ -37,8 +37,8 @@ jest.mock('@robinbobin/react-native-google-drive-api-wrapper', () => ({
   },
 }));
 
-jest.mock('@/utils/cloudBackup/google', () => {
-  const originalModule = jest.requireActual('@/utils/cloudBackup/google');
+jest.mock('@/services/cloud-backup/google', () => {
+  const originalModule = jest.requireActual('@/services/cloud-backup/google');
   return {
     ...originalModule,
     createGDrive: jest.fn(),

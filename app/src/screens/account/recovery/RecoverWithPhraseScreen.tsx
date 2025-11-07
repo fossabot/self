@@ -22,12 +22,6 @@ import {
 import { BackupEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
 
 import Paste from '@/images/icons/paste.svg';
-import type { RootStackParamList } from '@/navigation';
-import { useAuth } from '@/providers/authProvider';
-import {
-  loadPassportDataAndSecret,
-  reStorePassportDataWithRightCSCA,
-} from '@/providers/passportDataProvider';
 import {
   black,
   slate300,
@@ -35,7 +29,13 @@ import {
   slate600,
   slate700,
   white,
-} from '@/utils/colors';
+} from '@/lib/colors';
+import type { RootStackParamList } from '@/navigation';
+import { useAuth } from '@/providers/authProvider';
+import {
+  loadPassportDataAndSecret,
+  reStorePassportDataWithRightCSCA,
+} from '@/providers/passportDataProvider';
 
 const RecoverWithPhraseScreen: React.FC = () => {
   const navigation =

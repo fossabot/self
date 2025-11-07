@@ -6,13 +6,13 @@ import { PermissionsAndroid, Platform } from 'react-native';
 import type { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import messaging from '@react-native-firebase/messaging';
 
-import { useSettingStore } from '@/stores/settingStore';
-import type { DeviceTokenRegistration } from '@/utils/notifications/notificationService.shared';
+import type { DeviceTokenRegistration } from '@/services/notifications/notificationService.shared';
 import {
   API_URL,
   API_URL_STAGING,
   getStateMessage,
-} from '@/utils/notifications/notificationService.shared';
+} from '@/services/notifications/notificationService.shared';
+import { useSettingStore } from '@/stores/settingStore';
 
 export async function getFCMToken(): Promise<string | null> {
   try {

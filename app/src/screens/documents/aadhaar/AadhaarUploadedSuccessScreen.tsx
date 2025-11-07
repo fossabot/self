@@ -12,10 +12,10 @@ import { BodyText, PrimaryButton } from '@selfxyz/mobile-sdk-alpha/components';
 import { AadhaarEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
 
 import BlueCheckIcon from '@/images/blue_check.svg';
+import { black, slate100, slate200, slate500, white } from '@/lib/colors';
+import { extraYPadding } from '@/lib/constants';
 import { useSafeAreaInsets } from '@/mocks/react-native-safe-area-context';
 import type { RootStackParamList } from '@/navigation';
-import { black, slate100, slate200, slate500, white } from '@/utils/colors';
-import { extraYPadding } from '@/utils/constants';
 
 const AadhaarUploadedSuccessScreen: React.FC = () => {
   const { bottom } = useSafeAreaInsets();

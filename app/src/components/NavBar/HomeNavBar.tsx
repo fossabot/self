@@ -16,9 +16,9 @@ import { NavBar } from '@/components/NavBar/BaseNavBar';
 import ActivityIcon from '@/images/icons/activity.svg';
 import ScanIcon from '@/images/icons/qr_scan.svg';
 import SettingsIcon from '@/images/icons/settings.svg';
-import { black, charcoal, slate50 } from '@/utils/colors';
-import { extraYPadding } from '@/utils/constants';
-import { buttonTap } from '@/utils/haptic';
+import { buttonTap } from '@/integrations/haptics';
+import { black, charcoal, slate50 } from '@/lib/colors';
+import { extraYPadding } from '@/lib/constants';
 
 export const HomeNavBar = (props: NativeStackHeaderProps) => {
   const selfClient = useSelfClient();

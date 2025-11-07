@@ -15,12 +15,12 @@ import proveLoadingAnimation from '@selfxyz/mobile-sdk-alpha/animations/loading/
 import type { ProvingStateType } from '@selfxyz/mobile-sdk-alpha/browser';
 
 import LoadingUI from '@/components/loading/LoadingUI';
+import { getLoadingScreenText } from '@/features/proving/loadingScreenStateText';
+import { loadingScreenProgress } from '@/integrations/haptics';
+import { black, slate400, white, zinc900 } from '@/lib/colors';
+import { advercase, dinot } from '@/lib/fonts';
+import { setupNotifications } from '@/services/notifications/notificationService';
 import { useSettingStore } from '@/stores/settingStore';
-import { black, slate400, white, zinc900 } from '@/utils/colors';
-import { advercase, dinot } from '@/utils/fonts';
-import { loadingScreenProgress } from '@/utils/haptic';
-import { setupNotifications } from '@/utils/notifications/notificationService';
-import { getLoadingScreenText } from '@/utils/proving/loadingScreenStateText';
 
 type LoadingScreenParams = {
   documentCategory?: DocumentCategory;

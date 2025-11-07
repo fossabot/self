@@ -29,8 +29,8 @@ import { PassportCamera } from '@/components/native/PassportCamera';
 import useHapticNavigation from '@/hooks/useHapticNavigation';
 import Scan from '@/images/icons/passport_camera_scan.svg';
 import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
-import { black, slate400, slate800, white } from '@/utils/colors';
-import { dinot } from '@/utils/fonts';
+import { black, slate400, slate800, white } from '@/lib/colors';
+import { dinot } from '@/lib/fonts';
 
 const DocumentCameraScreen: React.FC = () => {
   const client = useSelfClient();

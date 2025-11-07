@@ -9,9 +9,9 @@ import type { NativeStackHeaderProps } from '@react-navigation/native-stack';
 import { Button, Text, View } from '@selfxyz/mobile-sdk-alpha/components';
 
 import { NavBar } from '@/components/NavBar/BaseNavBar';
-import { black, charcoal, slate50 } from '@/utils/colors';
-import { extraYPadding } from '@/utils/constants';
-import { buttonTap } from '@/utils/haptic';
+import { buttonTap } from '@/integrations/haptics';
+import { black, charcoal, slate50 } from '@/lib/colors';
+import { extraYPadding } from '@/lib/constants';
 
 export const IdDetailsNavBar = (props: NativeStackHeaderProps) => {
   const insets = useSafeAreaInsets();

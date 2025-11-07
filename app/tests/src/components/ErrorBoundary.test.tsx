@@ -9,7 +9,7 @@ import { render } from '@testing-library/react-native';
 const mockTrackNfcEvent = jest.fn();
 const mockFlushAllAnalytics = jest.fn();
 
-jest.doMock('@/utils/analytics', () => ({
+jest.doMock('@/services/analytics', () => ({
   trackNfcEvent: mockTrackNfcEvent,
   flushAllAnalytics: mockFlushAllAnalytics,
 }));

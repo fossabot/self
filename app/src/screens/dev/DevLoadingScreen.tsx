@@ -15,9 +15,9 @@ import failAnimation from '@selfxyz/mobile-sdk-alpha/animations/loading/fail.jso
 import proveLoadingAnimation from '@selfxyz/mobile-sdk-alpha/animations/loading/prove.json';
 
 import LoadingUI from '@/components/loading/LoadingUI';
-import { slate200, slate500 } from '@/utils/colors';
-import { dinot } from '@/utils/fonts';
-import { getLoadingScreenText } from '@/utils/proving/loadingScreenStateText';
+import { getLoadingScreenText } from '@/features/proving/loadingScreenStateText';
+import { slate200, slate500 } from '@/lib/colors';
+import { dinot } from '@/lib/fonts';
 
 const allProvingStates = [
   'idle',

@@ -12,7 +12,7 @@ import {
   GRAFANA_LOKI_PASSWORD,
   GRAFANA_LOKI_URL,
   GRAFANA_LOKI_USERNAME,
-} from '../../../env';
+} from '../../../../env';
 
 interface LokiLogEntry {
   timestamp: string;

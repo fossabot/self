@@ -12,9 +12,9 @@ import {
   Title,
 } from '@selfxyz/mobile-sdk-alpha/components';
 
+import { confirmTap } from '@/integrations/haptics';
 import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
-import { black, white } from '@/utils/colors';
-import { confirmTap } from '@/utils/haptic';
+import { black, white } from '@/lib/colors';
 
 const DeferredLinkingInfoScreen: React.FC = () => {
   const navigation = useNavigation();

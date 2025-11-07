@@ -194,8 +194,8 @@ module.exports = {
         'src/components/NavBar/BaseNavBar.tsx',
         'src/navigation/index.tsx',
         'src/providers/passportDataProvider.tsx',
-        'src/utils/cloudBackup/helpers.ts',
-        'src/utils/haptic/index.ts',
+        'src/services/cloud-backup/helpers.ts',
+        'src/integrations/haptics/index.ts',
       ],
       rules: {
         'sort-exports/sort-exports': 'off',
@@ -228,7 +228,7 @@ module.exports = {
     },
     {
       // Allow require imports for dynamic imports in proving machine
-      files: ['src/utils/proving/provingMachine.ts'],
+      files: ['src/features/proving/provingMachine.ts'],
       rules: {
         '@typescript-eslint/no-require-imports': 'off',
       },

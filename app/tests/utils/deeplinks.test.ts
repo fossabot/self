@@ -34,7 +34,7 @@ describe('deeplinks', () => {
       handleUrl,
       parseAndValidateUrlParams,
       setupUniversalLinkListenerInNavigation,
-    } = require('@/utils/deeplinks'));
+    } = require('@/navigation/deeplinks'));
     setDeepLinkUserDetails = jest.fn();
     jest.spyOn(Linking, 'getInitialURL').mockResolvedValue(null as any);
     jest
@@ -364,7 +364,7 @@ describe('deeplinks', () => {
       jest.resetModules();
       const {
         parseAndValidateUrlParams: mockedParser,
-      } = require('@/utils/deeplinks');
+      } = require('@/navigation/deeplinks');
 
       const url = 'scheme://open?sessionId=duplicate&sessionId=values';
       const result = mockedParser(url);

@@ -20,10 +20,6 @@ import { Check, ChevronDown, ChevronRight } from '@tamagui/lucide-icons';
 import BugIcon from '@/images/icons/bug_icon.svg';
 import IdIcon from '@/images/icons/id_icon.svg';
 import WarningIcon from '@/images/icons/warning.svg';
-import type { RootStackParamList } from '@/navigation';
-import { unsafe_clearSecrets } from '@/providers/authProvider';
-import { usePassport } from '@/providers/passportDataProvider';
-import { useSettingStore } from '@/stores/settingStore';
 import {
   red500,
   slate100,
@@ -35,14 +31,18 @@ import {
   slate900,
   white,
   yellow500,
-} from '@/utils/colors';
-import { dinot } from '@/utils/fonts';
+} from '@/lib/colors';
+import { dinot } from '@/lib/fonts';
+import type { RootStackParamList } from '@/navigation';
+import { unsafe_clearSecrets } from '@/providers/authProvider';
+import { usePassport } from '@/providers/passportDataProvider';
 import {
   isNotificationSystemReady,
   requestNotificationPermission,
   subscribeToTopics,
   unsubscribeFromTopics,
-} from '@/utils/notifications/notificationService';
+} from '@/services/notifications/notificationService';
+import { useSettingStore } from '@/stores/settingStore';
 
 interface TopicToggleButtonProps {
   label: string;

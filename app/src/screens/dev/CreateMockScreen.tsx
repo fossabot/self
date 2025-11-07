@@ -40,8 +40,7 @@ import { useMockDataForm } from '@/hooks/useMockDataForm';
 import SelfDevCard from '@/images/card-dev.svg';
 import IdIcon from '@/images/icons/id_icon.svg';
 import NoteIcon from '@/images/icons/note.svg';
-import type { RootStackParamList } from '@/navigation';
-import { storePassportData } from '@/providers/passportDataProvider';
+import { buttonTap, selectionChange } from '@/integrations/haptics';
 import {
   black,
   borderColor,
@@ -53,10 +52,11 @@ import {
   textBlack,
   white,
   zinc400,
-} from '@/utils/colors';
-import { extraYPadding } from '@/utils/constants';
-import { dinot, plexMono } from '@/utils/fonts';
-import { buttonTap, selectionChange } from '@/utils/haptic';
+} from '@/lib/colors';
+import { extraYPadding } from '@/lib/constants';
+import { dinot, plexMono } from '@/lib/fonts';
+import type { RootStackParamList } from '@/navigation';
+import { storePassportData } from '@/providers/passportDataProvider';
 
 const documentTypes = {
   mock_passport: 'Passport',

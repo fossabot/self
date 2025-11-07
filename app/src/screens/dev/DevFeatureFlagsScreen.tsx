@@ -13,6 +13,7 @@ import {
   YStack,
 } from 'tamagui';
 
+import { textBlack } from '@/lib/colors';
 import type { FeatureFlagValue } from '@/RemoteConfig';
 import {
   clearAllLocalOverrides,
@@ -20,7 +21,6 @@ import {
   refreshRemoteConfig,
   setLocalOverride,
 } from '@/RemoteConfig';
-import { textBlack } from '@/utils/colors';
 
 interface FeatureFlag {
   key: string;

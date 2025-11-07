@@ -16,14 +16,14 @@ import { useAadhaar } from '@selfxyz/mobile-sdk-alpha/onboarding/import-aadhaar'
 
 import { useModal } from '@/hooks/useModal';
 import AadhaarImage from '@/images/512w.png';
-import { useSafeAreaInsets } from '@/mocks/react-native-safe-area-context';
-import type { RootStackParamList } from '@/navigation';
-import { slate100, slate200, slate400, slate500, white } from '@/utils/colors';
-import { extraYPadding } from '@/utils/constants';
 import {
   isQRScannerPhotoLibraryAvailable,
   scanQRCodeFromPhotoLibrary,
-} from '@/utils/qrScanner';
+} from '@/integrations/qr/qrScanner';
+import { slate100, slate200, slate400, slate500, white } from '@/lib/colors';
+import { extraYPadding } from '@/lib/constants';
+import { useSafeAreaInsets } from '@/mocks/react-native-safe-area-context';
+import type { RootStackParamList } from '@/navigation';
 
 const AadhaarUploadScreen: React.FC = () => {
   const { bottom } = useSafeAreaInsets();

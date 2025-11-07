@@ -4,11 +4,11 @@
 
 import type { ProvingStateType } from '@selfxyz/mobile-sdk-alpha';
 
-import type { PassportMetadata } from '@/utils/proving/loadingScreenStateText';
+import type { PassportMetadata } from '@/features/proving/loadingScreenStateText';
 import {
   getLoadingScreenText,
   getProvingTimeEstimate,
-} from '@/utils/proving/loadingScreenStateText';
+} from '@/features/proving/loadingScreenStateText';
 
 describe('stateLoadingScreenText', () => {
   // Default metadata for basic tests

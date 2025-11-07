@@ -19,8 +19,8 @@ import {
 } from '@selfxyz/mobile-sdk-alpha/components';
 
 import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
+import { white } from '@/lib/colors';
 import type { RootStackParamList } from '@/navigation';
-import { white } from '@/utils/colors';
 
 type NFCParams = {
   skipPACE?: boolean;

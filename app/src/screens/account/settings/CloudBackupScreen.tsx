@@ -21,13 +21,13 @@ import { BackupEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
 import BackupDocumentationLink from '@/components/BackupDocumentationLink';
 import { useModal } from '@/hooks/useModal';
 import Cloud from '@/images/icons/logo_cloud_backup.svg';
+import { buttonTap, confirmTap } from '@/integrations/haptics';
 import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
+import { black, white } from '@/lib/colors';
 import type { RootStackParamList } from '@/navigation';
 import { useAuth } from '@/providers/authProvider';
+import { STORAGE_NAME, useBackupMnemonic } from '@/services/cloud-backup';
 import { useSettingStore } from '@/stores/settingStore';
-import { STORAGE_NAME, useBackupMnemonic } from '@/utils/cloudBackup';
-import { black, white } from '@/utils/colors';
-import { buttonTap, confirmTap } from '@/utils/haptic';
 
 type NextScreen = keyof Pick<RootStackParamList, 'SaveRecoveryPhrase'>;
 

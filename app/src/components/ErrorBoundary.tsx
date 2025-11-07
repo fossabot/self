@@ -7,7 +7,7 @@ import React, { Component } from 'react';
 import { Text, View } from 'react-native';
 
 import { captureException } from '@/Sentry';
-import { flushAllAnalytics, trackNfcEvent } from '@/utils/analytics';
+import { flushAllAnalytics, trackNfcEvent } from '@/services/analytics';
 
 interface Props {
   children: React.ReactNode;

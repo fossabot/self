@@ -27,7 +27,7 @@ import {
   storePassportData,
   updateDocumentRegistrationState,
 } from '@/providers/passportDataProvider';
-import analytics from '@/utils/analytics';
+import analytics from '@/services/analytics';
 
 const { trackEvent } = analytics();
 

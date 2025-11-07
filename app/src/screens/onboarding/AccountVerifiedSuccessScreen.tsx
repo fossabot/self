@@ -16,11 +16,11 @@ import {
 import { BackupEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
 
 import proofSuccessAnimation from '@/assets/animations/proof_success.json';
+import { buttonTap } from '@/integrations/haptics';
 import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
+import { black, white } from '@/lib/colors';
 import type { RootStackParamList } from '@/navigation';
 import { styles } from '@/screens/verification/ProofRequestStatusScreen';
-import { black, white } from '@/utils/colors';
-import { buttonTap } from '@/utils/haptic';
 
 const AccountVerifiedSuccessScreen: React.FC = ({}) => {
   const navigation =

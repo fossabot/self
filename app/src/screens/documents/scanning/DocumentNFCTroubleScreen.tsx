@@ -14,9 +14,9 @@ import Tips from '@/components/Tips';
 import { useFeedbackAutoHide } from '@/hooks/useFeedbackAutoHide';
 import useHapticNavigation from '@/hooks/useHapticNavigation';
 import SimpleScrolledTitleLayout from '@/layouts/SimpleScrolledTitleLayout';
-import { flushAllAnalytics } from '@/utils/analytics';
-import { slate500 } from '@/utils/colors';
-import { sendFeedbackEmail } from '@/utils/email';
+import { slate500 } from '@/lib/colors';
+import { flushAllAnalytics } from '@/services/analytics';
+import { sendFeedbackEmail } from '@/services/support/email';
 
 const tips: TipProps[] = [
   {

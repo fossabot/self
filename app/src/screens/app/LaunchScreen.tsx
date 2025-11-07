@@ -26,8 +26,8 @@ import {
   slate400,
   white,
   zinc800,
-} from '@/utils/colors';
-import { advercase, dinot } from '@/utils/fonts';
+} from '@/lib/colors';
+import { advercase, dinot } from '@/lib/fonts';
 
 const LaunchScreen: React.FC = () => {
   useConnectionModal();

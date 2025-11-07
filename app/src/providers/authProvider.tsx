@@ -17,14 +17,14 @@ import Keychain from 'react-native-keychain';
 
 import { AuthEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
 
-import { useSettingStore } from '@/stores/settingStore';
-import type { Mnemonic } from '@/types/mnemonic';
-import analytics from '@/utils/analytics';
-import type { GetSecureOptions } from '@/utils/keychainSecurity';
+import type { GetSecureOptions } from '@/lib/security/keychainSecurity';
 import {
   createKeychainOptions,
   detectSecurityCapabilities,
-} from '@/utils/keychainSecurity';
+} from '@/lib/security/keychainSecurity';
+import analytics from '@/services/analytics';
+import { useSettingStore } from '@/stores/settingStore';
+import type { Mnemonic } from '@/types/mnemonic';
 
 const { trackEvent } = analytics();
 

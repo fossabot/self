@@ -24,15 +24,15 @@ import { ProofEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
 import failAnimation from '@/assets/animations/proof_failed.json';
 import succesAnimation from '@/assets/animations/proof_success.json';
 import useHapticNavigation from '@/hooks/useHapticNavigation';
-import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
-import { useProofHistoryStore } from '@/stores/proofHistoryStore';
-import { ProofStatus } from '@/stores/proofTypes';
-import { black, white } from '@/utils/colors';
 import {
   buttonTap,
   notificationError,
   notificationSuccess,
-} from '@/utils/haptic';
+} from '@/integrations/haptics';
+import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
+import { black, white } from '@/lib/colors';
+import { useProofHistoryStore } from '@/stores/proofHistoryStore';
+import { ProofStatus } from '@/stores/proofTypes';
 
 const SuccessScreen: React.FC = () => {
   const selfClient = useSelfClient();

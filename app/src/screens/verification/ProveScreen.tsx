@@ -33,7 +33,10 @@ import {
 import { ProofEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
 
 import Disclosures from '@/components/Disclosures';
+import { buttonTap } from '@/integrations/haptics';
 import { ExpandableBottomLayout } from '@/layouts/ExpandableBottomLayout';
+import { black, slate300, white } from '@/lib/colors';
+import { formatUserId } from '@/lib/formatUserId';
 import type { RootStackParamList } from '@/navigation';
 import {
   setDefaultDocumentTypeIfNeeded,
@@ -41,9 +44,6 @@ import {
 } from '@/providers/passportDataProvider';
 import { useProofHistoryStore } from '@/stores/proofHistoryStore';
 import { ProofStatus } from '@/stores/proofTypes';
-import { black, slate300, white } from '@/utils/colors';
-import { formatUserId } from '@/utils/formatUserId';
-import { buttonTap } from '@/utils/haptic';
 
 const ProveScreen: React.FC = () => {
   const selfClient = useSelfClient();

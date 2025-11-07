@@ -8,9 +8,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackHeaderProps } from '@react-navigation/native-stack';
 
 import { NavBar } from '@/components/NavBar/BaseNavBar';
-import { white } from '@/utils/colors';
-import { extraYPadding } from '@/utils/constants';
-import { buttonTap } from '@/utils/haptic';
+import { buttonTap } from '@/integrations/haptics';
+import { white } from '@/lib/colors';
+import { extraYPadding } from '@/lib/constants';
 
 export const DefaultNavBar = (props: NativeStackHeaderProps) => {
   const { goBack, canGoBack } = props.navigation;

@@ -22,11 +22,11 @@ import {
 } from '@selfxyz/mobile-sdk-alpha/components';
 import { DocumentEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
 
+import { impactLight } from '@/integrations/haptics';
+import { borderColor, textBlack, white } from '@/lib/colors';
+import { extraYPadding } from '@/lib/constants';
 import type { RootStackParamList } from '@/navigation';
 import { usePassport } from '@/providers/passportDataProvider';
-import { borderColor, textBlack, white } from '@/utils/colors';
-import { extraYPadding } from '@/utils/constants';
-import { impactLight } from '@/utils/haptic';
 
 const PassportDataSelector = () => {
   const selfClient = useSelfClient();

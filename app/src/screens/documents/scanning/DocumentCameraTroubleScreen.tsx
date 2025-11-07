@@ -15,8 +15,8 @@ import PassportCameraScan from '@/images/icons/passport_camera_scan.svg';
 import QrScan from '@/images/icons/qr_scan.svg';
 import Star from '@/images/icons/star.svg';
 import SimpleScrolledTitleLayout from '@/layouts/SimpleScrolledTitleLayout';
-import analytics from '@/utils/analytics';
-import { slate500 } from '@/utils/colors';
+import { slate500 } from '@/lib/colors';
+import analytics from '@/services/analytics';
 
 const { flush: flushAnalytics } = analytics();
 

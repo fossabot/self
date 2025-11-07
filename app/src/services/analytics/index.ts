@@ -10,8 +10,8 @@ import type { JsonMap, JsonValue } from '@segment/analytics-react-native';
 
 import type { TrackEventParams } from '@selfxyz/mobile-sdk-alpha';
 
+import { PassportReader } from '@/integrations/nfc/passportReader';
 import { createSegmentClient } from '@/Segment';
-import { PassportReader } from '@/utils/passportReader';
 
 const segmentClient = createSegmentClient();
 

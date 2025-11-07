@@ -11,9 +11,9 @@ import { YStack } from '@selfxyz/mobile-sdk-alpha/components';
 import IDSelection from '@selfxyz/mobile-sdk-alpha/onboarding/id-selection-screen';
 
 import { DocumentFlowNavBar } from '@/components/NavBar/DocumentFlowNavBar';
+import { slate100 } from '@/lib/colors';
+import { extraYPadding } from '@/lib/constants';
 import type { RootStackParamList } from '@/navigation';
-import { slate100 } from '@/utils/colors';
-import { extraYPadding } from '@/utils/constants';
 
 type IDPickerScreenRouteProp = RouteProp<RootStackParamList, 'IDPicker'>;
 
