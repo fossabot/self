@@ -5,6 +5,17 @@
 import { IS_DEV_MODE } from '@/utils/devUtils';
 import { makeApiRequest, POINTS_API_BASE_URL } from '@/utils/points/api';
 
+export async function checkEventProcessingStatus(id: string) {
+  // TODO check actual api api
+  const response = await makeApiRequest('/verify-action', {
+    action: 'secret_backup',
+    id,
+  });
+
+  // TODO we dont know yet if data is the right thing to return here
+  return response.data;
+}
+
 /**
  * Registers backup action with the points API.
  *

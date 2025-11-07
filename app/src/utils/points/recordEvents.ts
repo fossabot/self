@@ -3,6 +3,7 @@
 // NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
 import {
+  checkEventProcessingStatus,
   registerBackupPoints,
   registerNotificationPoints,
   registerReferralPoints,
@@ -18,10 +19,23 @@ const addEventToStore = async (
   title: string,
   type: PointEventType,
   points: number,
+  id: string,
 ): Promise<void> => {
   const { usePointEventStore } = await import('@/stores/pointEventStore');
-  await usePointEventStore.getState().addEvent(title, type, points);
+  await usePointEventStore.getState().addEvent(title, type, points, id);
+  setTimeout(() => {
+    tryToUpdateUnprocessedEvents(id);
+  }, 2000);
 };
+
+async function tryToUpdateUnprocessedEvents(id: string): Promise<boolean> {
+  const isProcessed = await checkEventProcessingStatus(id);
+  if (isProcessed) {
+    const { usePointEventStore } = await import('@/stores/pointEventStore');
+    usePointEventStore.getState().markEventAsProcessed(id);
+  }
+  return isProcessed as boolean;
+}
 
 /**
  * Records a backup event by registering with API and storing locally.
@@ -35,9 +49,14 @@ export const recordBackupPointEvent = async (): Promise<{
   try {
     const userAddress = await getPointsAddress();
     const response = await registerBackupPoints(userAddress);
-
+    const id = 'backup-' + Date.now(); // TODO GET ID FROM API RESPONSE
     if (response.success && response.status === 200) {
-      await addEventToStore('Secret backed up', 'backup', POINT_VALUES.backup);
+      await addEventToStore(
+        'Secret backed up',
+        'backup',
+        POINT_VALUES.backup,
+        id,
+      );
       return { success: true };
     }
     return { success: false, error: response.error };
@@ -64,10 +83,13 @@ export const recordNotificationPointEvent = async (): Promise<{
     const response = await registerNotificationPoints(userAddress);
 
     if (response.success && response.status === 200) {
+      const id = 'notification-' + Date.now(); // TODO GET ID FROM API RESPONSE
+
       await addEventToStore(
         'Push notifications enabled',
         'notification',
         POINT_VALUES.notification,
+        id,
       );
       return { success: true };
     }
@@ -98,7 +120,13 @@ export const recordReferralPointEvent = async (
     const response = await registerReferralPoints({ referee, referrer });
 
     if (response.success && response.status === 200) {
-      await addEventToStore('Friend referred', 'refer', POINT_VALUES.referee);
+      const id = 'refer-' + Date.now(); // TODO GET ID FROM API RESPONSE
+      await addEventToStore(
+        'Friend referred',
+        'refer',
+        POINT_VALUES.referee,
+        id,
+      );
       return { success: true };
     }
     return { success: false, error: response.error };

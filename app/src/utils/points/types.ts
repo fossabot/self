@@ -12,6 +12,7 @@ export type PointEvent = {
   title: string;
   type: PointEventType;
   timestamp: number;
+  processedAt: number | null;
   points: number;
 };
 

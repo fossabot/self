@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 
 import { usePointEventStore } from '@/stores/pointEventStore';
 import {
-  getIncomingPoints,
   getNextSundayNoonUTC,
   getPointsAddress,
   getTotalPoints,
@@ -13,24 +12,14 @@ import {
  * Hook to fetch incoming points for the user. It refetches the incoming points when there is a new event in the point events store.
  */
 export const useIncomingPoints = (): IncomingPoints | null => {
-  const [incomingPoints, setIncomingPoints] = useState<null | IncomingPoints>(
-    null,
+  const incomingPoints = usePointEventStore(state => state.incomingPoints);
+  const refreshIncomingPoints = usePointEventStore(
+    state => state.refreshIncomingPoints,
   );
-  const pointEvents = usePointEventStore(state => state.events);
-  const pointEventsCount = pointEvents.length;
 
   useEffect(() => {
-    const fetchIncomingPoints = async () => {
-      try {
-        const points = await getIncomingPoints();
-        setIncomingPoints(points);
-      } catch (error) {
-        console.error('Error fetching incoming points:', error);
-      }
-    };
-    fetchIncomingPoints();
-    // when we record a new point event, we want to refetch incoming points
-  }, [pointEventsCount]);
+    refreshIncomingPoints();
+  }, [refreshIncomingPoints]);
 
   return incomingPoints;
 };
