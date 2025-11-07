@@ -4,7 +4,6 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Dimensions, Image, Pressable } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, ScrollView, Text, View, XStack, YStack } from 'tamagui';
 import {
   useFocusEffect,
@@ -19,6 +18,7 @@ import type { DocumentCatalog, IDDocument } from '@selfxyz/common/utils/types';
 import type { DocumentMetadata } from '@selfxyz/mobile-sdk-alpha';
 import { useSelfClient } from '@selfxyz/mobile-sdk-alpha';
 import { DocumentEvents } from '@selfxyz/mobile-sdk-alpha/constants/analytics';
+import { useSafeBottomPadding } from '@selfxyz/mobile-sdk-alpha/hooks/useSafeBottomPadding';
 
 import IdCardLayout from '@/components/homeScreen/idCard';
 import { useAppUpdates } from '@/hooks/useAppUpdates';
@@ -32,7 +32,6 @@ import type { RootStackParamList } from '@/navigation';
 import { usePassport } from '@/providers/passportDataProvider';
 import useUserStore from '@/stores/userStore';
 import { black, slate50, slate300 } from '@/utils/colors';
-import { extraYPadding } from '@/utils/constants';
 import { dinot } from '@/utils/fonts';
 
 const HomeScreen: React.FC = () => {
@@ -117,7 +116,9 @@ const HomeScreen: React.FC = () => {
 
   // Prevents back navigation
   usePreventRemove(true, () => {});
-  const { bottom } = useSafeAreaInsets();
+
+  // Calculate bottom padding to prevent button bleeding into system navigation
+  const bottomPadding = useSafeBottomPadding(20);
 
   // Create a stable reference to avoid hook dependency issues
   const onEarnPointsPressRef = useRef<
@@ -159,7 +160,7 @@ const HomeScreen: React.FC = () => {
         backgroundColor={slate50}
         flex={1}
         paddingHorizontal={20}
-        paddingBottom={bottom + extraYPadding}
+        paddingBottom={bottomPadding}
         justifyContent="center"
         alignItems="center"
       >
@@ -235,10 +236,9 @@ const HomeScreen: React.FC = () => {
         elevation={8}
         backgroundColor="white"
         width="100%"
-        height={230}
-        paddingTop={30}
+        paddingTop={20}
         paddingHorizontal={20}
-        paddingBottom={bottom + extraYPadding + 40}
+        paddingBottom={bottomPadding}
         borderTopLeftRadius={18}
         borderTopRightRadius={18}
         style={{
