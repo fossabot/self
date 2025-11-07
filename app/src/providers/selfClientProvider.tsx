@@ -146,7 +146,10 @@ export const SelfClientProvider = ({ children }: PropsWithChildren) => {
     addListener(SdkEvents.PROVING_ACCOUNT_VERIFIED_SUCCESS, () => {
       setTimeout(() => {
         if (navigationRef.isReady()) {
-          navigationRef.navigate({ name: 'AccountVerifiedSuccess', params: undefined });
+          navigationRef.navigate({
+            name: 'AccountVerifiedSuccess',
+            params: undefined,
+          });
         }
       }, 1000);
     });
