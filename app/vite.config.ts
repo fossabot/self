@@ -178,7 +178,7 @@ export default defineConfig({
 
           // Screen-specific chunks - more granular
           'screens-document-core': ['./src/navigation/documents.ts'],
-          'screens-passport-nfc': ['./src/integrations/nfc/nfcScanner.ts'],
+          'screens-passport-nfc': ['./src/mocks/nfcScanner.ts'],
 
           // Proving - split into even smaller chunks
           'screens-prove-core': ['./src/navigation/verification.ts'],
