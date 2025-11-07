@@ -470,7 +470,7 @@ describe('alias-imports transform', () => {
       );
       writeFileEnsured(
         fileB,
-        "const colors = require('@src/lib/colors');\nexport const Theme = () => <div>Theme</div>;\n",
+        "const colors = require('@src/utils/colors');\nexport const Theme = () => <div>Theme</div>;\n",
       );
 
       // Simulate the migration: replace @src/ with @/
@@ -528,7 +528,7 @@ describe('alias-imports transform', () => {
       );
       writeFileEnsured(
         fileC,
-        "import { Button } from '@src/components/buttons/Button';\nimport { colors } from '@src/lib/colors';\nimport { formatDate } from '@src/utils/dateFormatter';\nexport const Home = () => <Button />;\n",
+        "import { Button } from '@src/components/buttons/Button';\nimport { colors } from '@src/utils/colors';\nimport { formatDate } from '@src/utils/dateFormatter';\nexport const Home = () => <Button />;\n",
       );
 
       // Simulate the migration: replace @src/ with @/
