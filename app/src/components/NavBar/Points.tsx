@@ -75,6 +75,54 @@ const Points: React.FC = () => {
     }, []),
   );
 
+  // Detect when returning from backup screen and record points if backup was completed
+  useFocusEffect(
+    React.useCallback(() => {
+      const currentBackupEnabled =
+        useSettingStore.getState().cloudBackupEnabled;
+      const currentHasCompletedBackup =
+        useSettingStore.getState().hasCompletedBackupForPoints;
+
+      // If backup is enabled but points haven't been recorded yet, record them now
+      // This happens when user just completed backup and returned to this screen
+      if (currentBackupEnabled && !currentHasCompletedBackup) {
+        const recordPoints = async () => {
+          try {
+            const response = await recordBackupPointEvent();
+
+            if (response.success) {
+              useSettingStore.getState().setBackupForPointsCompleted();
+              selfClient.trackEvent(PointEvents.EARN_BACKUP_SUCCESS);
+
+              if (listRefreshRef.current) {
+                await listRefreshRef.current();
+              }
+
+              const callbackId = registerModalCallbacks({
+                onButtonPress: () => {},
+                onModalDismiss: () => {},
+              });
+              navigation.navigate('Modal', {
+                titleText: 'Success!',
+                bodyText:
+                  'Account backed up successfully! You earned 100 points.\n\nPoints will be distributed to your wallet on the next Sunday at noon UTC.',
+                buttonText: 'OK',
+                callbackId,
+              });
+            } else {
+              selfClient.trackEvent(PointEvents.EARN_BACKUP_FAILED);
+            }
+          } catch (error) {
+            selfClient.trackEvent(PointEvents.EARN_BACKUP_FAILED);
+            console.error('Error recording backup points after return:', error);
+          }
+        };
+
+        recordPoints();
+      }
+    }, [navigation]),
+  );
+
   // Mock function to check if user has backed up their account
   const hasUserBackedUpAccount = (): boolean => {
     return hasCompletedBackupForPoints;
@@ -208,58 +256,67 @@ const Points: React.FC = () => {
     }
     selfClient.trackEvent(PointEvents.EARN_BACKUP);
 
-    setIsBackingUp(true);
-    try {
-      // this will add event to store and the new event will then trigger useIncomingPoints hook to refetch incoming points
-      const response = await recordBackupPointEvent();
+    const cloudBackupEnabled = useSettingStore.getState().cloudBackupEnabled;
 
-      if (response.success) {
-        setBackupForPointsCompleted();
-        selfClient.trackEvent(PointEvents.EARN_BACKUP_SUCCESS);
-        if (listRefreshRef.current) {
-          await listRefreshRef.current();
+    // If backup is already enabled, just record points
+    if (cloudBackupEnabled) {
+      setIsBackingUp(true);
+      try {
+        // this will add event to store and the new event will then trigger useIncomingPoints hook to refetch incoming points
+        const response = await recordBackupPointEvent();
+
+        if (response.success) {
+          setBackupForPointsCompleted();
+          selfClient.trackEvent(PointEvents.EARN_BACKUP_SUCCESS);
+
+          if (listRefreshRef.current) {
+            await listRefreshRef.current();
+          }
+
+          const callbackId = registerModalCallbacks({
+            onButtonPress: () => {},
+            onModalDismiss: () => {},
+          });
+          navigation.navigate('Modal', {
+            titleText: 'Success!',
+            bodyText:
+              'Account backed up successfully! You earned 100 points.\n\nPoints will be distributed to your wallet on the next Sunday at noon UTC.',
+            buttonText: 'OK',
+            callbackId,
+          });
+        } else {
+          selfClient.trackEvent(PointEvents.EARN_BACKUP_FAILED);
+          const callbackId = registerModalCallbacks({
+            onButtonPress: () => {},
+            onModalDismiss: () => {},
+          });
+          navigation.navigate('Modal', {
+            titleText: 'Verification Failed',
+            bodyText:
+              response.error || 'Failed to register points. Please try again.',
+            buttonText: 'OK',
+            callbackId,
+          });
         }
-
-        const callbackId = registerModalCallbacks({
-          onButtonPress: () => {},
-          onModalDismiss: () => {},
-        });
-        navigation.navigate('Modal', {
-          titleText: 'Success!',
-          bodyText:
-            'Account backed up successfully! You earned 100 points.\n\nPoints will be distributed to your wallet on the next Sunday at noon UTC.',
-          buttonText: 'OK',
-          callbackId,
-        });
-      } else {
+      } catch (error) {
         selfClient.trackEvent(PointEvents.EARN_BACKUP_FAILED);
         const callbackId = registerModalCallbacks({
           onButtonPress: () => {},
           onModalDismiss: () => {},
         });
         navigation.navigate('Modal', {
-          titleText: 'Verification Failed',
+          titleText: 'Error',
           bodyText:
-            response.error || 'Failed to register points. Please try again.',
+            error instanceof Error ? error.message : 'Failed to backup account',
           buttonText: 'OK',
           callbackId,
         });
+      } finally {
+        setIsBackingUp(false);
       }
-    } catch (error) {
-      selfClient.trackEvent(PointEvents.EARN_BACKUP_FAILED);
-      const callbackId = registerModalCallbacks({
-        onButtonPress: () => {},
-        onModalDismiss: () => {},
-      });
-      navigation.navigate('Modal', {
-        titleText: 'Error',
-        bodyText:
-          error instanceof Error ? error.message : 'Failed to backup account',
-        buttonText: 'OK',
-        callbackId,
-      });
-    } finally {
-      setIsBackingUp(false);
+    } else {
+      // Navigate to backup screen and return to Points after backup completes
+      navigation.navigate('CloudBackupSettings', { returnToScreen: 'Points' });
     }
   };
 
