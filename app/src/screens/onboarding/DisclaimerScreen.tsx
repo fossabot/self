@@ -63,7 +63,7 @@ const DisclaimerScreen: React.FC = () => {
             onPress={() => {
               confirmTap();
               dismissPrivacyNote();
-              navigation.navigate({ name: 'Home' });
+              navigation.navigate({ name: 'Home', params: {} });
             }}
           >
             Dismiss
