@@ -1,14 +1,14 @@
 pragma circom 2.1.9;
 
 include "circomlib/circuits/bitify.circom";
-include "../utils/selfper/constants.circom";
+include "../utils/kyc/constants.circom";
 include "../utils/passport/customHashers.circom";
-include "../utils/selfper/verifySignature.circom";
+include "../utils/kyc/verifySignature.circom";
 
 
-template REGISTER_SELFPER() {
+template REGISTER_KYC() {
 
-    var max_length = SELFPER_MAX_LENGTH();
+    var max_length = KYC_MAX_LENGTH();
     var country_length = COUNTRY_LENGTH();
     var id_number_length = ID_NUMBER_LENGTH();
     var idNumberIdx = ID_NUMBER_INDEX();
@@ -52,7 +52,7 @@ template REGISTER_SELFPER() {
     }
 
 
-    component verifyIdCommSig = VERIFY_SELFPER_SIGNATURE();
+    component verifyIdCommSig = VERIFY_KYC_SIGNATURE();
     verifyIdCommSig.s <== s;
     verifyIdCommSig.r_inv <== r_inv;
     verifyIdCommSig.msg_hash_limbs <== msg_hash_limbs;
@@ -72,4 +72,4 @@ template REGISTER_SELFPER() {
 
 }
 
-component main {public [attestation_id]} = REGISTER_SELFPER();
+component main {public [attestation_id]} = REGISTER_KYC();

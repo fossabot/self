@@ -631,24 +631,24 @@
       "import": "./dist/esm/src/utils/ofac.js",
       "require": "./dist/cjs/src/utils/ofac.cjs"
     },
-    "./utils/selfper/generateInputs": {
+    "./utils/kyc/generateInputs": {
       "import": {
-        "types": "./dist/esm/src/utils/selfper/generateInputs.d.ts",
-        "default": "./dist/esm/src/utils/selfper/generateInputs.js"
+        "types": "./dist/esm/src/utils/kyc/generateInputs.d.ts",
+        "default": "./dist/esm/src/utils/kyc/generateInputs.js"
       },
       "require": {
-        "types": "./dist/cjs/src/utils/selfper/generateInputs.d.ts",
-        "default": "./dist/cjs/src/utils/selfper/generateInputs.cjs"
+        "types": "./dist/cjs/src/utils/kyc/generateInputs.d.ts",
+        "default": "./dist/cjs/src/utils/kyc/generateInputs.cjs"
       }
     },
-    "./utils/selfper/constants": {
+    "./utils/kyc/constants": {
       "import": {
-        "types": "./dist/esm/src/utils/selfper/constants.d.ts",
-        "default": "./dist/esm/src/utils/selfper/constants.js"
+        "types": "./dist/esm/src/utils/kyc/constants.d.ts",
+        "default": "./dist/esm/src/utils/kyc/constants.js"
       },
       "require": {
-        "types": "./dist/cjs/src/utils/selfper/constants.d.ts",
-        "default": "./dist/cjs/src/utils/selfper/constants.cjs"
+        "types": "./dist/cjs/src/utils/kyc/constants.d.ts",
+        "default": "./dist/cjs/src/utils/kyc/constants.cjs"
       }
     }
   },

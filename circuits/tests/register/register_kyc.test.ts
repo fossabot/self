@@ -3,19 +3,19 @@ import { wasm as wasmTester } from 'circom_tester';
 import path from 'path';
 import { packBytesAndPoseidon } from '@selfxyz/common/utils/hash';
 import { poseidon2 } from 'poseidon-lite';
-import { generateMockSelfperRegisterInput } from '@selfxyz/common/utils/selfper/generateInputs.js';
-import { SelfperRegisterInput } from '@selfxyz/common/utils/selfper/types';
-import { SELFPER_ID_NUMBER_INDEX, SELFPER_ID_NUMBER_LENGTH } from '@selfxyz/common/utils/selfper/constants';
+import { generateMockKycRegisterInput } from '@selfxyz/common/utils/kyc/generateInputs.js';
+import { KycRegisterInput } from '@selfxyz/common/utils/kyc/types';
+import { KYC_ID_NUMBER_INDEX, KYC_ID_NUMBER_LENGTH } from '@selfxyz/common/utils/kyc/constants';
 
-describe('REGISTER SELFPER Circuit Tests', () => {
+describe('REGISTER KYC Circuit Tests', () => {
   let circuit: any;
-  let input: SelfperRegisterInput;
+  let input: KycRegisterInput;
 
   before(async function () {
     this.timeout(0);
-    input = generateMockSelfperRegisterInput(null, true, undefined);
+    input = generateMockKycRegisterInput(null, true, undefined);
     circuit = await wasmTester(
-      path.join(__dirname, '../../circuits/register/register_selfper.circom'),
+      path.join(__dirname, '../../circuits/register/register_kyc.circom'),
       {
         verbose: true,
         logOutput: true,
@@ -38,7 +38,7 @@ describe('REGISTER SELFPER Circuit Tests', () => {
   it('should generate the correct nullifier and commitment', async function () {
     this.timeout(0);
 
-    let idnumber = input.data_padded.slice(SELFPER_ID_NUMBER_INDEX, SELFPER_ID_NUMBER_INDEX + SELFPER_ID_NUMBER_LENGTH);
+    let idnumber = input.data_padded.slice(KYC_ID_NUMBER_INDEX, KYC_ID_NUMBER_INDEX + KYC_ID_NUMBER_LENGTH);
     const nullifier = packBytesAndPoseidon(idnumber.map((x) => Number(x)));
     const commitment = poseidon2([input.secret, packBytesAndPoseidon(input.data_padded.map((x) => Number(x)))]);
 
@@ -64,7 +64,7 @@ describe('REGISTER SELFPER Circuit Tests', () => {
 
   it('should fail if data is tampered', async function () {
     this.timeout(0);
-    input = generateMockSelfperRegisterInput(null, true, undefined);
+    input = generateMockKycRegisterInput(null, true, undefined);
     input.data_padded[5] = (Number(input.data_padded[5]) + 1).toString();
     try {
       const w = await circuit.calculateWitness(input);
@@ -77,7 +77,7 @@ describe('REGISTER SELFPER Circuit Tests', () => {
 
   it('should fail if data is not bytes', async function () {
     this.timeout(0);
-    input = generateMockSelfperRegisterInput(null, true, undefined);
+    input = generateMockKycRegisterInput(null, true, undefined);
     input.data_padded[5] = '8000';
     try {
       const w = await circuit.calculateWitness(input);
@@ -102,7 +102,7 @@ describe('REGISTER SELFPER Circuit Tests', () => {
 
   it('should fail if s is 0', async function () {
     this.timeout(0);
-    input = generateMockSelfperRegisterInput(null, true, undefined);
+    input = generateMockKycRegisterInput(null, true, undefined);
     input.s = '0';
     try {
       const w = await circuit.calculateWitness(input);
@@ -115,7 +115,7 @@ describe('REGISTER SELFPER Circuit Tests', () => {
 
   it('should fail if r_inv is greater than scalar field', async function () {
     this.timeout(0);
-    input = generateMockSelfperRegisterInput(null, true, undefined);
+    input = generateMockKycRegisterInput(null, true, undefined);
     input.r_inv = ["7454187305358665460", "12339561404529962506", "3965992003123030795", "435874783350371333"];
 
     try {

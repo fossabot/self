@@ -22,13 +22,13 @@ import type { AadhaarData, Environment, IDDocument, OfacTree } from '../../utils
 
 import { LeanIMT } from '@openpassport/zk-kit-lean-imt';
 import { SMT } from '@openpassport/zk-kit-smt';
-import { SelfperField } from '../selfper/constants.js';
+import { KycField } from '../kyc/constants.js';
 
 export { generateCircuitInputsRegister } from './generateInputs.js';
 
 
-// export function generateTEEInputsSelfricaDisclose(  secret: string,
-//   selfricaData: SelfricaData,
+// export function generateTEEInputsKycDisclose(  secret: string,
+//   kycData: KycData,
 //   selfApp: SelfApp,
 //   getTree: <T extends 'ofac' | 'commitment'>(
 //     doc: DocumentCategory,
@@ -37,14 +37,14 @@ export { generateCircuitInputsRegister } from './generateInputs.js';
 
 // ) {
 
-//   const {generateSelfricaInputWithOutSig} = require('../selfrica/generateInputs.js');
+//   const {generateKycInputWithOutSig} = require('../kyc/generateInputs.js');
 
 //   const { scope, disclosures, userId, userDefinedData, chainID } = selfApp;
 //   const userIdentifierHash = calculateUserIdentifierHash(chainID, userId, userDefinedData);
 
-//   // Map SelfAppDisclosureConfig to SelfperField array
-//   const mapDisclosuresToSelfperFields = (config: SelfAppDisclosureConfig): SelfperField[] => {
-//     const mapping: [keyof SelfAppDisclosureConfig, SelfperField][] = [
+//   // Map SelfAppDisclosureConfig to KycField array
+//   const mapDisclosuresToKycFields = (config: SelfAppDisclosureConfig): KycField[] => {
+//     const mapping: [keyof SelfAppDisclosureConfig, KycField][] = [
 //       ['issuing_state', 'ADDRESS'],
 //       ['nationality', 'COUNTRY'],
 //       ['name', 'FULL_NAME'],
@@ -56,7 +56,7 @@ export { generateCircuitInputsRegister } from './generateInputs.js';
 //     return mapping.filter(([key]) => config[key]).map(([_, field]) => field);
 //   };
 
-//   const ofac_trees = getTree('selfrica', 'ofac');
+//   const ofac_trees = getTree('kyc', 'ofac');
 //   if (!ofac_trees) {
 //     throw new Error('OFAC trees not loaded');
 //   }
@@ -70,21 +70,21 @@ export { generateCircuitInputsRegister } from './generateInputs.js';
 //   nameAndDobSMT.import(ofac_trees.nameAndDob);
 //   nameAndYobSMT.import(ofac_trees.nameAndYob);
 
-//   const inputs = generateSelfricaInputWithOutSig(
-//     selfricaData.serializedRealData,
+//   const inputs = generateKycInputWithOutSig(
+//     kycData.serializedRealData,
 //     nameAndDobSMT,
 //     nameAndYobSMT,
 //     disclosures.ofac,
 //     scope,
 //     userIdentifierHash.toString(),
-//     mapDisclosuresToSelfperFields(disclosures),
+//     mapDisclosuresToKycFields(disclosures),
 //     disclosures.excludedCountries,
 //     disclosures.minimumAge
 //   );
 
 //   return {
 //     inputs,
-//     circuitName: 'vc_and_disclose_selfrica',
+//     circuitName: 'vc_and_disclose_kyc',
 //     endpointType: selfApp.endpointType,
 //     endpoint: selfApp.endpoint,
 //   };
@@ -240,8 +240,8 @@ export function generateTEEInputsDiscloseStateless(
     );
     return { inputs, circuitName, endpointType, endpoint };
   }
-  // if (passportData.documentCategory === 'selfrica') {
-    // const { inputs, circuitName, endpointType, endpoint } = generateTEEInputsSelfricaDisclose(
+  // if (passportData.documentCategory === 'kyc') {
+    // const { inputs, circuitName, endpointType, endpoint } = generateTEEInputsKycDisclose(
     //   secret,
     //   passportData,
     //   selfApp,
@@ -331,8 +331,8 @@ export async function generateTEEInputsRegister(
     return { inputs, circuitName, endpointType, endpoint };
   }
 
-  // if (passportData.documentCategory === 'selfrica') {
-  //   throw new Error('Selfrica does not support registration');
+  // if (passportData.documentCategory === 'kyc') {
+  //   throw new Error('Kyc does not support registration');
   // }
 
   const inputs = generateCircuitInputsRegister(secret, passportData, dscTree as string);

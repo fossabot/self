@@ -1,12 +1,12 @@
 import { expect } from 'chai';
 import { wasm as wasmTester } from 'circom_tester';
 import * as path from 'path';
-import { generateCircuitInputsOfac, NON_OFAC_DUMMY_INPUT, OFAC_DUMMY_INPUT} from "../../../../../common/src/utils/selfrica/generateInputs";
-import { serializeSmileData } from "../../../../../common/src/utils/selfrica/types";
+import { generateCircuitInputsOfac, NON_OFAC_DUMMY_INPUT, OFAC_DUMMY_INPUT} from "../../../../../common/src/utils/kyc/generateInputs";
+import { serializeKycData } from "../../../../../common/src/utils/kyc/types";
 import { SMT } from '@openpassport/zk-kit-smt';
 import { poseidon2 } from 'poseidon-lite';
-import nameAndDobjson from '../../../consts/ofac/nameAndDobSelfricaSMT.json';
-import nameAndYobjson from '../../../consts/ofac/nameAndYobSelfricaSMT.json';
+import nameAndDobjson from '../../../consts/ofac/nameAndDobKycSMT.json';
+import nameAndYobjson from '../../../consts/ofac/nameAndYobKycSMT.json';
 
 describe('OFAC - Name and DOB match', async function() {
     this.timeout(10000);
@@ -16,7 +16,7 @@ describe('OFAC - Name and DOB match', async function() {
 
     before(async () => {
         circuit = await wasmTester(
-            path.join(__dirname, "ofac_name_dob_selfrica.test.circom"),
+            path.join(__dirname, "ofac_name_dob_kyc.test.circom"),
             {
                 include: [
                     'node_modules',
@@ -34,10 +34,10 @@ describe('OFAC - Name and DOB match', async function() {
     });
 
     it('should return 0 if the person is in the ofac list', async () => {
-        const dummy_smile_input = serializeSmileData(OFAC_DUMMY_INPUT);
+        const dummy_kyc_input = serializeKycData(OFAC_DUMMY_INPUT);
         const ofacInputs = generateCircuitInputsOfac(OFAC_DUMMY_INPUT, namedob_smt, proofLevel);
         const inputs = {
-            smile_data: dummy_smile_input.split('').map((x) => x.charCodeAt(0)),
+            kyc_data: dummy_kyc_input.split('').map((x) => x.charCodeAt(0)),
             ...ofacInputs,
         };
 
@@ -47,10 +47,10 @@ describe('OFAC - Name and DOB match', async function() {
     });
 
     it('should return 1 if the person is not in the ofac list', async () => {
-        const dummy_smile_input = serializeSmileData(NON_OFAC_DUMMY_INPUT);
+        const dummy_kyc_input = serializeKycData(NON_OFAC_DUMMY_INPUT);
         const ofacInputs = generateCircuitInputsOfac(NON_OFAC_DUMMY_INPUT, namedob_smt, proofLevel);
         const inputs = {
-            smile_data: dummy_smile_input.split('').map((x) => x.charCodeAt(0)),
+            kyc_data: dummy_kyc_input.split('').map((x) => x.charCodeAt(0)),
             ...ofacInputs,
         };
 
@@ -60,12 +60,12 @@ describe('OFAC - Name and DOB match', async function() {
     });
 
     it("should return 0 if the internal computed merkle root is wrong (wrong leaf key)", async () => {
-        const dummy_smile_input = serializeSmileData(OFAC_DUMMY_INPUT);
+        const dummy_kyc_input = serializeKycData(OFAC_DUMMY_INPUT);
         const ofacInputs = generateCircuitInputsOfac(OFAC_DUMMY_INPUT, namedob_smt, proofLevel);
         const inputs = {
-            smile_data: dummy_smile_input.split('').map((x) => x.charCodeAt(0)),
-            smt_leaf_key: BigInt(Math.floor(Math.random() * Math.pow(2, 254))).toString(),
+            kyc_data: dummy_kyc_input.split('').map((x) => x.charCodeAt(0)),
             ...ofacInputs,
+            smt_leaf_key: BigInt(Math.floor(Math.random() * Math.pow(2, 254))).toString(),
         };
 
         const witness = await circuit.calculateWitness(inputs);
@@ -74,11 +74,11 @@ describe('OFAC - Name and DOB match', async function() {
     });
 
     it("should return 0 if the internal computed merkle root is wrong (wrong siblings)", async () => {
-        const dummy_smile_input = serializeSmileData(OFAC_DUMMY_INPUT);
+        const dummy_kyc_input = serializeKycData(OFAC_DUMMY_INPUT);
         const ofacInputs = generateCircuitInputsOfac(OFAC_DUMMY_INPUT, namedob_smt, proofLevel);
         ofacInputs.smt_siblings[0] = BigInt(Math.floor(Math.random() * Math.pow(2, 254))).toString();
         const inputs = {
-            smile_data: dummy_smile_input.split('').map((x) => x.charCodeAt(0)),
+            kyc_data: dummy_kyc_input.split('').map((x) => x.charCodeAt(0)),
             ...ofacInputs,
         };
 
@@ -88,12 +88,12 @@ describe('OFAC - Name and DOB match', async function() {
     });
 
     it("should return 0 if the merkle root is wrong", async () => {
-        const dummy_smile_input = serializeSmileData(OFAC_DUMMY_INPUT);
+        const dummy_kyc_input = serializeKycData(OFAC_DUMMY_INPUT);
         const ofacInputs = generateCircuitInputsOfac(OFAC_DUMMY_INPUT, namedob_smt, proofLevel);
         const inputs = {
-            smile_data: dummy_smile_input.split('').map((x) => x.charCodeAt(0)),
-            smt_root: BigInt(Math.floor(Math.random() * Math.pow(2, 254))).toString(),
+            kyc_data: dummy_kyc_input.split('').map((x) => x.charCodeAt(0)),
             ...ofacInputs,
+            smt_root: BigInt(Math.floor(Math.random() * Math.pow(2, 254))).toString(),
         };
 
         const witness = await circuit.calculateWitness(inputs);
@@ -110,7 +110,7 @@ describe("OFAC - Name and YOB match", async function() {
 
     before(async () => {
         circuit = await wasmTester(
-            path.join(__dirname, "ofac_name_yob_selfrica.test.circom"),
+            path.join(__dirname, "ofac_name_yob_kyc.test.circom"),
             {
                 include: [
                     'node_modules',
@@ -128,10 +128,10 @@ describe("OFAC - Name and YOB match", async function() {
     });
 
     it('should return 0 if the person is in the ofac list', async () => {
-        const dummy_smile_input = serializeSmileData(OFAC_DUMMY_INPUT);
+        const dummy_kyc_input = serializeKycData(OFAC_DUMMY_INPUT);
         const ofacInputs = generateCircuitInputsOfac(OFAC_DUMMY_INPUT, nameyob_smt, proofLevel);
         const inputs = {
-            smile_data: dummy_smile_input.split('').map((x) => x.charCodeAt(0)),
+            kyc_data: dummy_kyc_input.split('').map((x) => x.charCodeAt(0)),
             ...ofacInputs,
         };
 
@@ -141,10 +141,10 @@ describe("OFAC - Name and YOB match", async function() {
     });
 
     it('should return 1 if the person is not in the ofac list', async () => {
-        const dummy_smile_input = serializeSmileData(NON_OFAC_DUMMY_INPUT);
+        const dummy_kyc_input = serializeKycData(NON_OFAC_DUMMY_INPUT);
         const ofacInputs = generateCircuitInputsOfac(NON_OFAC_DUMMY_INPUT, nameyob_smt, proofLevel);
         const inputs = {
-            smile_data: dummy_smile_input.split('').map((x) => x.charCodeAt(0)),
+            kyc_data: dummy_kyc_input.split('').map((x) => x.charCodeAt(0)),
             ...ofacInputs,
         };
 
@@ -154,12 +154,12 @@ describe("OFAC - Name and YOB match", async function() {
     });
 
     it("should return 0 if the internal computed merkle root is wrong (wrong leaf key)", async () => {
-        const dummy_smile_input = serializeSmileData(OFAC_DUMMY_INPUT);
+        const dummy_kyc_input = serializeKycData(OFAC_DUMMY_INPUT);
         const ofacInputs = generateCircuitInputsOfac(OFAC_DUMMY_INPUT, nameyob_smt, proofLevel);
         const inputs = {
-            smile_data: dummy_smile_input.split('').map((x) => x.charCodeAt(0)),
-            smt_leaf_key: BigInt(Math.floor(Math.random() * Math.pow(2, 254))).toString(),
+            kyc_data: dummy_kyc_input.split('').map((x) => x.charCodeAt(0)),
             ...ofacInputs,
+            smt_leaf_key: BigInt(Math.floor(Math.random() * Math.pow(2, 254))).toString(),
         };
 
         const witness = await circuit.calculateWitness(inputs);
@@ -168,11 +168,11 @@ describe("OFAC - Name and YOB match", async function() {
     });
 
     it("should return 0 if the internal computed merkle root is wrong (wrong siblings)", async () => {
-        const dummy_smile_input = serializeSmileData(OFAC_DUMMY_INPUT);
+        const dummy_kyc_input = serializeKycData(OFAC_DUMMY_INPUT);
         const ofacInputs = generateCircuitInputsOfac(OFAC_DUMMY_INPUT, nameyob_smt, proofLevel);
         ofacInputs.smt_siblings[0] = BigInt(Math.floor(Math.random() * Math.pow(2, 254))).toString();
         const inputs = {
-            smile_data: dummy_smile_input.split('').map((x) => x.charCodeAt(0)),
+            kyc_data: dummy_kyc_input.split('').map((x) => x.charCodeAt(0)),
             ...ofacInputs,
         };
 
@@ -182,12 +182,12 @@ describe("OFAC - Name and YOB match", async function() {
     });
 
     it("should return 0 if the merkle root is wrong", async () => {
-        const dummy_smile_input = serializeSmileData(OFAC_DUMMY_INPUT);
+        const dummy_kyc_input = serializeKycData(OFAC_DUMMY_INPUT);
         const ofacInputs = generateCircuitInputsOfac(OFAC_DUMMY_INPUT, nameyob_smt, proofLevel);
         const inputs = {
-            smile_data: dummy_smile_input.split('').map((x) => x.charCodeAt(0)),
-            smt_root: BigInt(Math.floor(Math.random() * Math.pow(2, 254))).toString(),
+            kyc_data: dummy_kyc_input.split('').map((x) => x.charCodeAt(0)),
             ...ofacInputs,
+            smt_root: BigInt(Math.floor(Math.random() * Math.pow(2, 254))).toString(),
         };
 
         const witness = await circuit.calculateWitness(inputs);

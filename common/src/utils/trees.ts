@@ -707,10 +707,10 @@ export function getPassportNumberAndNationalityLeaf(
   }
 }
 
-export function buildSelfperSMT(field: any[], treetype: string): [number, number, SMT] {
+export function buildKycSMT(field: any[], treetype: string): [number, number, SMT] {
   let count = 0;
   let startTime = performance.now();
-  const providerName = 'SELFPER';
+  const providerName = 'KYC';
 
   const hash2 = (childNodes: ChildNodes) =>
     childNodes.length === 2 ? poseidon2(childNodes) : poseidon3(childNodes);
@@ -725,9 +725,9 @@ export function buildSelfperSMT(field: any[], treetype: string): [number, number
 
     let leaf = BigInt(0);
     if (treetype == 'name_and_dob') {
-      leaf = processNameAndDobSelfper(entry, i);
+      leaf = processNameAndDobKyc(entry, i);
     } else if (treetype == 'name_and_yob') {
-      leaf = processNameAndYobSelfper(entry, i);
+      leaf = processNameAndYobKyc(entry, i);
     }
 
     if (leaf == BigInt(0) || tree.createProof(leaf).membership) {
@@ -744,7 +744,7 @@ export function buildSelfperSMT(field: any[], treetype: string): [number, number
   return [count, performance.now() - startTime, tree];
 }
 
-const processNameAndDobSelfper = (entry: any, i: number): bigint => {
+const processNameAndDobKyc = (entry: any, i: number): bigint => {
   const firstName = entry.First_Name;
   const lastName = entry.Last_Name;
   const day = entry.day;
@@ -756,14 +756,14 @@ const processNameAndDobSelfper = (entry: any, i: number): bigint => {
     return BigInt(0);
   }
 
-  const nameHash = processNameSelfper(firstName, lastName, i);
-  const dobHash = processDobSelfper(day, month, year, i);
+  const nameHash = processNameKyc(firstName, lastName, i);
+  const dobHash = processDobKyc(day, month, year, i);
 
   return generateSmallKey(poseidon2([dobHash, nameHash]));
 }
 
 
-export const getNameDobLeafSelfper = (name: string, dob: string) => {
+export const getNameDobLeafKyc = (name: string, dob: string) => {
   const namePaddingLength = 64;
   const paddedName = name.padEnd(namePaddingLength, '\0').split('').map(char => char.charCodeAt(0));
   const nameHash = BigInt(packBytesAndPoseidon(paddedName));
@@ -771,7 +771,7 @@ export const getNameDobLeafSelfper = (name: string, dob: string) => {
   return generateSmallKey(poseidon2([dobHash, nameHash]));
 }
 
-const processNameSelfper = (firstName: string, lastName: string, i: number): bigint => {
+const processNameKyc = (firstName: string, lastName: string, i: number): bigint => {
   const namePaddingLength = 64;
 
   firstName = firstName.replace(/'/g, '');
@@ -787,7 +787,7 @@ const processNameSelfper = (firstName: string, lastName: string, i: number): big
 }
 
 
-const processDobSelfper = (day: string, month: string, year: string, i: number): bigint => {
+const processDobKyc = (day: string, month: string, year: string, i: number): bigint => {
   const monthMap: { [key: string]: string } = {
     jan: '01',
     feb: '02',
@@ -810,16 +810,16 @@ const processDobSelfper = (day: string, month: string, year: string, i: number):
 }
 
 
-export const getNameYobLeafSelfper = (name: string, yob: string) => {
+export const getNameYobLeafKyc = (name: string, yob: string) => {
   const namePaddingLength = 64;
   const paddedName = name.padEnd(namePaddingLength, '\0').split('').map(char => char.charCodeAt(0));
   const nameHash = BigInt(packBytesAndPoseidon(paddedName));
 
-  const yearHash = processYearSelfper(yob, 0);
+  const yearHash = processYearKyc(yob, 0);
   return generateSmallKey(poseidon2([yearHash, nameHash]));
 }
 
-const processNameAndYobSelfper = (entry: any, i: number): bigint => {
+const processNameAndYobKyc = (entry: any, i: number): bigint => {
   const firstName = entry.First_Name;
   const lastName = entry.Last_Name;
   const year = entry.year;
@@ -828,12 +828,12 @@ const processNameAndYobSelfper = (entry: any, i: number): bigint => {
     return BigInt(0);
   }
 
-  const nameHash = processNameSelfper(firstName, lastName, i);
-  const yearHash = processYearSelfper(year, i);
+  const nameHash = processNameKyc(firstName, lastName, i);
+  const yearHash = processYearKyc(year, i);
   return generateSmallKey(poseidon2([yearHash, nameHash]));
 }
 
-const processYearSelfper = (year: string, i: number): bigint => {
+const processYearKyc = (year: string, i: number): bigint => {
   const yearArr = stringToAsciiBigIntArray(year);
   return BigInt(poseidon4(yearArr));
 }

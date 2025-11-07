@@ -1,7 +1,7 @@
 import { Point } from '@zk-kit/baby-jubjub';
 import * as constants from './constants.js';
 
-export type SelfperData = {
+export type KycData = {
     country: string;
     idType: string;
     idNumber: string;
@@ -20,26 +20,26 @@ export type SelfperData = {
     selector_older_than: string;
 };
 
-export const serializeSelfperData = (selfperData: SelfperData) => {
+export const serializeKycData = (kycData: KycData) => {
     //ensure max length of each field
     let serializedData = '';
-    serializedData += selfperData.country.toUpperCase().padEnd(constants.SELFPER_COUNTRY_LENGTH, '\0');
-    serializedData += selfperData.idType.toUpperCase().padEnd(constants.SELFPER_ID_TYPE_LENGTH, '\0');
-    serializedData += selfperData.idNumber.padEnd(constants.SELFPER_ID_NUMBER_LENGTH, '\0');
-    serializedData += selfperData.issuanceDate.padEnd(constants.SELFPER_ISSUANCE_DATE_LENGTH, '\0');
-    serializedData += selfperData.expiryDate.padEnd(constants.SELFPER_EXPIRY_DATE_LENGTH, '\0');
-    serializedData += selfperData.fullName.padEnd(constants.SELFPER_FULL_NAME_LENGTH, '\0');
-    serializedData += selfperData.dob.padEnd(constants.SELFPER_DOB_LENGTH, '\0');
-    serializedData += selfperData.photoHash.padEnd(constants.SELFPER_PHOTO_HASH_LENGTH, '\0');
-    serializedData += selfperData.phoneNumber.padEnd(constants.SELFPER_PHONE_NUMBER_LENGTH, '\0');
-    serializedData += selfperData.document.padEnd(constants.SELFPER_DOCUMENT_LENGTH, '\0');
-    serializedData += selfperData.gender.padEnd(constants.SELFPER_GENDER_LENGTH, '\0');
-    serializedData += selfperData.address.padEnd(constants.SELFPER_ADDRESS_LENGTH, '\0');
+    serializedData += kycData.country.toUpperCase().padEnd(constants.KYC_COUNTRY_LENGTH, '\0');
+    serializedData += kycData.idType.toUpperCase().padEnd(constants.KYC_ID_TYPE_LENGTH, '\0');
+    serializedData += kycData.idNumber.padEnd(constants.KYC_ID_NUMBER_LENGTH, '\0');
+    serializedData += kycData.issuanceDate.padEnd(constants.KYC_ISSUANCE_DATE_LENGTH, '\0');
+    serializedData += kycData.expiryDate.padEnd(constants.KYC_EXPIRY_DATE_LENGTH, '\0');
+    serializedData += kycData.fullName.padEnd(constants.KYC_FULL_NAME_LENGTH, '\0');
+    serializedData += kycData.dob.padEnd(constants.KYC_DOB_LENGTH, '\0');
+    serializedData += kycData.photoHash.padEnd(constants.KYC_PHOTO_HASH_LENGTH, '\0');
+    serializedData += kycData.phoneNumber.padEnd(constants.KYC_PHONE_NUMBER_LENGTH, '\0');
+    serializedData += kycData.document.padEnd(constants.KYC_DOCUMENT_LENGTH, '\0');
+    serializedData += kycData.gender.padEnd(constants.KYC_GENDER_LENGTH, '\0');
+    serializedData += kycData.address.padEnd(constants.KYC_ADDRESS_LENGTH, '\0');
 
     return serializedData;
 }
 
-export type SelfperRegisterInput = {
+export type KycRegisterInput = {
     data_padded: string[],
     s: string,
     Tx: string,
@@ -51,7 +51,7 @@ export type SelfperRegisterInput = {
     attestation_id: string,
 }
 
-export type SelfperDiscloseInput = {
+export type KycDiscloseInput = {
     data_padded: string[],
     compressed_disclose_sel: string[],
     merkle_root: string[],
@@ -74,7 +74,7 @@ export type SelfperDiscloseInput = {
     attestation_id: string,
 };
 
-export type SelfperDisclosePublicInput = {
+export type KycDisclosePublicInput = {
     attestation_id: string,
     revealedData_packed: string[],
     forbidden_countries_list_packed: string[],

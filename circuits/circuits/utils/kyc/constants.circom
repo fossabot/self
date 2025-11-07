@@ -96,6 +96,6 @@ function ADDRESS_LENGTH() {
     return 100;
 }
 
-function SELFPER_MAX_LENGTH() {
+function KYC_MAX_LENGTH() {
     return ADDRESS_INDEX() + ADDRESS_LENGTH();
 }

@@ -5,8 +5,8 @@ include "../../../crypto/merkle-trees/smt.circom";
 include "../../../passport/customHashers.circom";
 include "../../constants.circom";
 
-template OFAC_NAME_YOB_SELFPER(n_levels) {
-    var max_length = SELFPER_MAX_LENGTH();
+template OFAC_NAME_DOB_KYC(n_levels) {
+    var max_length = KYC_MAX_LENGTH();
     signal input data_padded[max_length];
 
     signal input smt_leaf_key;
@@ -15,22 +15,23 @@ template OFAC_NAME_YOB_SELFPER(n_levels) {
 
     var name_length = FULL_NAME_LENGTH();
     var name_index = FULL_NAME_INDEX();
-
     //name hash
     component name_hash = PackBytesAndPoseidon(name_length);
     for (var i = name_index; i < name_index + name_length; i++) {
         name_hash.in[i - name_index] <== data_padded[i];
     }
 
-    // YoB hash
-    component yob_hash = Poseidon(4);
-    //yob is the first 4 bytes of the dob
-    var yob_index = DOB_INDEX();
-    for(var i = 0; i < 4; i++) {
-        yob_hash.inputs[i] <== data_padded[yob_index + i];
+    var dob_length = DOB_LENGTH();
+    var dob_index = DOB_INDEX();
+    // Dob hash
+    component dob_hash = Poseidon(dob_length);
+
+    for(var i = 0; i < dob_length; i++) {
+        dob_hash.inputs[i] <== data_padded[dob_index + i];
     }
 
-    signal name_yob_hash <== Poseidon(2)([yob_hash.out, name_hash.out]);
+    // NameDob hash
+    signal name_dob_hash <== Poseidon(2)([dob_hash.out, name_hash.out]);
 
-    signal output ofacCheckResult <== SMTVerify(n_levels)(name_yob_hash, smt_leaf_key, smt_root, smt_siblings, 0);
+    signal output ofacCheckResult <== SMTVerify(n_levels)(name_dob_hash, smt_leaf_key, smt_root, smt_siblings, 0);
 }

@@ -5,9 +5,9 @@ include "circomlib/circuits/poseidon.circom";
 include "@zk-kit/binary-merkle-root.circom/src/binary-merkle-root.circom";
 include "@openpassport/zk-email-circuits/utils/bytes.circom";
 include "../utils/passport/customHashers.circom";
-include "../utils/selfper/disclose/disclose.circom";
+include "../utils/kyc/disclose/disclose.circom";
 
-template VC_AND_DISCLOSE_SELFPER(
+template VC_AND_DISCLOSE_KYC(
     MAX_FORBIDDEN_COUNTRIES_LIST_LENGTH,
     namedobTreeLevels,
     nameyobTreeLevels,
@@ -15,7 +15,7 @@ template VC_AND_DISCLOSE_SELFPER(
     k,
     nLevels
 ) {
-    var max_length = SELFPER_MAX_LENGTH();
+    var max_length = KYC_MAX_LENGTH();
     var country_length = COUNTRY_LENGTH();
     var id_number_length = ID_NUMBER_LENGTH();
     var idNumberIdx = ID_NUMBER_INDEX();
@@ -83,7 +83,7 @@ template VC_AND_DISCLOSE_SELFPER(
         id_num[i] <== data_padded[idNumberIdx + i];
     }
 
-    component disclose_circuit = DISCLOSE_SELFPER(MAX_FORBIDDEN_COUNTRIES_LIST_LENGTH, namedobTreeLevels, nameyobTreeLevels);
+    component disclose_circuit = DISCLOSE_KYC(MAX_FORBIDDEN_COUNTRIES_LIST_LENGTH, namedobTreeLevels, nameyobTreeLevels);
 
     for (var i = 0; i < max_length; i++) {
         disclose_circuit.data_padded[i] <== data_padded[i];
@@ -121,4 +121,4 @@ component main {
         current_date,
         attestation_id
     ]
-} = VC_AND_DISCLOSE_SELFPER(40, 64, 64, 121, 17, 33);
+} = VC_AND_DISCLOSE_KYC(40, 64, 64, 121, 17, 33);

@@ -132,19 +132,19 @@ export {
 } from './src/utils/aadhaar/mockData.js';
 
 export {
-  generateSelfperDiscloseInput,
-  generateMockSelfperRegisterInput,
+  generateKycDiscloseInput,
+  generateMockKycRegisterInput,
   NON_OFAC_DUMMY_INPUT,
   OFAC_DUMMY_INPUT,
-} from './src/utils/selfper/generateInputs.js';
+} from './src/utils/kyc/generateInputs.js';
 
 export {
-  SELFPER_MAX_LENGTH,
-  SELFPER_ID_NUMBER_INDEX,
-  SELFPER_ID_NUMBER_LENGTH
-} from './src/utils/selfper/constants.js';
+  KYC_MAX_LENGTH,
+  KYC_ID_NUMBER_INDEX,
+  KYC_ID_NUMBER_LENGTH
+} from './src/utils/kyc/constants.js';
 
 export {
-  serializeSelfperData,
-  SelfperData,
-} from './src/utils/selfper/types.js';
+  serializeKycData,
+  KycData,
+} from './src/utils/kyc/types.js';

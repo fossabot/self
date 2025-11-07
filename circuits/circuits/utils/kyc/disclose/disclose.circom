@@ -1,18 +1,18 @@
 pragma circom 2.1.9;
 
-include "./ofac/ofac_name_dob_selfper.circom";
-include "./ofac/ofac_name_yob_selfper.circom";
+include "./ofac/ofac_name_dob_kyc.circom";
+include "./ofac/ofac_name_yob_kyc.circom";
 include "../../aadhaar/disclose/country_not_in_list.circom";
 include "../date/isValid.circom";
 include "../date/isOlderThan.circom";
 include "../constants.circom";
 
-template DISCLOSE_SELFPER(
+template DISCLOSE_KYC(
     MAX_FORBIDDEN_COUNTRIES_LIST_LENGTH,
     name_dob_tree_levels,
     name_yob_tree_levels
 ) {
-    var max_length = SELFPER_MAX_LENGTH();
+    var max_length = KYC_MAX_LENGTH();
     var country_length = COUNTRY_LENGTH();
     var country_index = COUNTRY_INDEX();
     var expiration_date_length = EXPIRATION_DATE_LENGTH();
@@ -57,13 +57,13 @@ template DISCLOSE_SELFPER(
     is_older_than.currDate <== current_date;
     is_older_than.birthDateASCII <== birth_date_ASCII;
 
-    component ofac_name_dob_circuit = OFAC_NAME_DOB_SELFPER(name_dob_tree_levels);
+    component ofac_name_dob_circuit = OFAC_NAME_DOB_KYC(name_dob_tree_levels);
     ofac_name_dob_circuit.data_padded <== data_padded;
     ofac_name_dob_circuit.smt_leaf_key <== ofac_name_dob_smt_leaf_key;
     ofac_name_dob_circuit.smt_root <== ofac_name_dob_smt_root;
     ofac_name_dob_circuit.smt_siblings <== ofac_name_dob_smt_siblings;
 
-    component ofac_name_yob_circuit = OFAC_NAME_YOB_SELFPER(name_yob_tree_levels);
+    component ofac_name_yob_circuit = OFAC_NAME_YOB_KYC(name_yob_tree_levels);
     ofac_name_yob_circuit.data_padded <== data_padded;
     ofac_name_yob_circuit.smt_leaf_key <== ofac_name_yob_smt_leaf_key;
     ofac_name_yob_circuit.smt_root <== ofac_name_yob_smt_root;

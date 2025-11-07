@@ -1,7 +1,7 @@
 import type { ExtractedQRData } from './aadhaar/utils.js';
 import type { CertificateData } from './certificate_parsing/dataStructure.js';
 import type { PassportMetadata } from './passports/passport_parsing/parsePassportData.js';
-import { SelfperField } from './selfper/constants.js';
+import { KycField } from './kyc/constants.js';
 
 // Base interface for common fields
 interface BaseIDData {
@@ -22,10 +22,10 @@ export interface AadhaarData extends BaseIDData {
   photoHash?: string;
 }
 
-// export interface SelfricaData extends BaseIDData {
-//   documentCategory: 'selfrica';
+// export interface KycData extends BaseIDData {
+//   documentCategory: 'kyc';
 //   serializedRealData: string;
-//   selfricaFields: SelfperField[];
+//   kycFields: KycField[];
 // }
 
 export type DeployedCircuits = {
@@ -41,7 +41,7 @@ export interface DocumentCatalog {
   selectedDocumentId?: string; // This is now a contentHash
 }
 
-export type DocumentCategory = 'passport' | 'id_card' | 'aadhaar' | 'selfrica';
+export type DocumentCategory = 'passport' | 'id_card' | 'aadhaar' | 'kyc';
 
 export interface DocumentMetadata {
   id: string; // contentHash as ID for deduplication

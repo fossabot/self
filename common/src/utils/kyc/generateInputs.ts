@@ -2,20 +2,20 @@ import { SMT } from '@openpassport/zk-kit-smt';
 import {
   generateMerkleProof,
   generateSMTProof,
-  getNameDobLeafSelfper,
-  getNameYobLeafSelfper,
+  getNameDobLeafKyc,
+  getNameYobLeafKyc,
 } from '../trees.js';
 import {
-  SelfperDiscloseInput,
-  SelfperRegisterInput,
-  serializeSelfperData,
-  SelfperData,
+  KycDiscloseInput,
+  KycRegisterInput,
+  serializeKycData,
+  KycData,
 } from './types.js';
 import { findIndexInTree, formatInput } from '../circuits/generateInputs.js';
 import {
-  createSelfperSelector,
-  SELFPER_MAX_LENGTH,
-  SelfperField,
+  createKycSelector,
+  KYC_MAX_LENGTH,
+  KycField,
 } from './constants.js';
 import { poseidon2 } from 'poseidon-lite';
 import { Base8, inCurve, mulPointEscalar, subOrder } from '@zk-kit/baby-jubjub';
@@ -25,7 +25,7 @@ import { LeanIMT } from '@openpassport/zk-kit-lean-imt';
 import { packBytesAndPoseidon } from '../hash.js';
 import { COMMITMENT_TREE_DEPTH } from '../../constants/constants.js';
 
-export const OFAC_DUMMY_INPUT: SelfperData = {
+export const OFAC_DUMMY_INPUT: KycData = {
   country: 'KEN',
   idType: 'NATIONAL ID',
   idNumber: '12345678901234567890123456789012', //32 digits
@@ -44,7 +44,7 @@ export const OFAC_DUMMY_INPUT: SelfperData = {
   selector_older_than: '1',
 };
 
-export const NON_OFAC_DUMMY_INPUT: SelfperData = {
+export const NON_OFAC_DUMMY_INPUT: KycData = {
   country: 'KEN',
   idType: 'NATIONAL ID',
   idNumber: '12345678901234567890123456789012', //32 digits
@@ -63,15 +63,15 @@ export const NON_OFAC_DUMMY_INPUT: SelfperData = {
   selector_older_than: '1',
 };
 
-export const createSelfperDiscloseSelFromFields = (fieldsToReveal: SelfperField[]): string[] => {
-  const [lowResult, highResult] = createSelfperSelector(fieldsToReveal);
+export const createKycDiscloseSelFromFields = (fieldsToReveal: KycField[]): string[] => {
+  const [lowResult, highResult] = createKycSelector(fieldsToReveal);
   return [lowResult.toString(), highResult.toString()];
 };
 
 
-export const generateMockSelfperRegisterInput = (secretKey?: bigint, ofac?: boolean, secret?: string, attestationId?: string) => {
-  const selfperData = ofac ? OFAC_DUMMY_INPUT : NON_OFAC_DUMMY_INPUT;
-  const serializedData = serializeSelfperData(selfperData).padEnd(SELFPER_MAX_LENGTH, '\0');
+export const generateMockKycRegisterInput = (secretKey?: bigint, ofac?: boolean, secret?: string, attestationId?: string) => {
+  const kycData = ofac ? OFAC_DUMMY_INPUT : NON_OFAC_DUMMY_INPUT;
+  const serializedData = serializeKycData(kycData).padEnd(KYC_MAX_LENGTH, '\0');
 
   const msgPadded = Array.from(serializedData, (x) => x.charCodeAt(0));
 
@@ -94,7 +94,7 @@ export const generateMockSelfperRegisterInput = (secretKey?: bigint, ofac?: bool
   const rInv = modInv(sig.R[0], subOrder);
   const rInvLimbs = bigintTo64bitLimbs(modulus(-rInv, subOrder));
 
-  const selfperRegisterInput: SelfperRegisterInput = {
+  const kycRegisterInput: KycRegisterInput = {
     data_padded: msgPadded.map((x) => x.toString()),
     s: sig.s.toString(),
     Tx: T[0].toString(),
@@ -106,16 +106,16 @@ export const generateMockSelfperRegisterInput = (secretKey?: bigint, ofac?: bool
     attestation_id: attestationId || '4',
   };
 
-  return selfperRegisterInput;
+  return kycRegisterInput;
 };
 
-export const generateCircuitInputsOfac = (data: SelfperData, smt: SMT, proofLevel: number) => {
+export const generateCircuitInputsOfac = (data: KycData, smt: SMT, proofLevel: number) => {
   const name = data.fullName;
   const dob = data.dob;
   const yob = data.dob.slice(0, 4);
 
-  const nameDobLeaf = getNameDobLeafSelfper(name, dob);
-  const nameYobLeaf = getNameYobLeafSelfper(name, yob);
+  const nameDobLeaf = getNameDobLeafKyc(name, dob);
+  const nameYobLeaf = getNameYobLeafKyc(name, yob);
 
   let root, closestleaf, siblings;
   if (proofLevel == 2) {
@@ -133,7 +133,7 @@ export const generateCircuitInputsOfac = (data: SelfperData, smt: SMT, proofLeve
   };
 };
 
-export const generateSelfperDiscloseInput = (
+export const generateKycDiscloseInput = (
   ofac_input: boolean,
   nameDobSmt: SMT,
   nameYobSmt: SMT,
@@ -141,7 +141,7 @@ export const generateSelfperDiscloseInput = (
   ofac: boolean,
   scope: string,
   userIdentifier: string,
-  fieldsToReveal?: SelfperField[],
+  fieldsToReveal?: KycField[],
   forbiddenCountriesList?: string[],
   minimumAge?: number,
   updateTree?: boolean,
@@ -149,7 +149,7 @@ export const generateSelfperDiscloseInput = (
   secret: string = "1234"
 ) => {
   const data = ofac_input ? OFAC_DUMMY_INPUT : NON_OFAC_DUMMY_INPUT;
-  const serializedData = serializeSelfperData(data).padEnd(SELFPER_MAX_LENGTH, '\0');
+  const serializedData = serializeKycData(data).padEnd(KYC_MAX_LENGTH, '\0');
   const msgPadded = Array.from(serializedData, (x) => x.charCodeAt(0));
   const commitment = poseidon2([secret, packBytesAndPoseidon(msgPadded)]);
   if (updateTree) {
@@ -166,7 +166,7 @@ export const generateSelfperDiscloseInput = (
   const nameYobInputs = generateCircuitInputsOfac(data, nameYobSmt, 1);
 
   const fieldsToRevealFinal = fieldsToReveal || [];
-  const compressed_disclose_sel = createSelfperDiscloseSelFromFields(fieldsToRevealFinal);
+  const compressed_disclose_sel = createKycDiscloseSelFromFields(fieldsToRevealFinal);
 
   const majorityAgeASCII = minimumAge
     ? minimumAge
@@ -179,7 +179,7 @@ export const generateSelfperDiscloseInput = (
     const currentDate = new Date().toISOString().split('T')[0].replace(/-/g, '').split('');
 
 
-    const circuitInput: SelfperDiscloseInput = {
+    const circuitInput: KycDiscloseInput = {
     data_padded: formatInput(msgPadded),
     compressed_disclose_sel: compressed_disclose_sel,
     scope: scope,
