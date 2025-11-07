@@ -19,15 +19,18 @@ const addEventToStoreAndPoll = async (
   title: string,
   type: PointEventType,
   points: number,
-  id: string,
+  jobId: string,
 ): Promise<void> => {
   const { usePointEventStore } = await import('@/stores/pointEventStore');
-  await usePointEventStore.getState().addEvent(title, type, points, id);
+  // Use job_id as the event id
+  await usePointEventStore.getState().addEvent(title, type, points, jobId);
 
   // Start polling in background - don't await
-  pollEventProcessingStatus(id, type).then(processed => {
-    if (processed) {
-      usePointEventStore.getState().markEventAsProcessed(id);
+  pollEventProcessingStatus(jobId).then(result => {
+    if (result === 'completed') {
+      usePointEventStore.getState().markEventAsProcessed(jobId);
+    } else if (result === 'failed') {
+      usePointEventStore.getState().markEventAsFailed(jobId);
     }
   });
 };
@@ -45,16 +48,12 @@ export const recordBackupPointEvent = async (): Promise<{
     const userAddress = await getPointsAddress();
     const response = await registerBackupPoints(userAddress);
 
-    if (response.success && response.status === 200) {
-      // TODO: Extract actual event ID from response.data when API is finalized
-      // Expected: response.data.eventId or similar
-      const id = response.data?.eventId ?? 'backup-' + Date.now();
-
+    if (response.success && response.status === 200 && response.jobId) {
       await addEventToStoreAndPoll(
         'Secret backed up',
         'backup',
         POINT_VALUES.backup,
-        id,
+        response.jobId,
       );
       return { success: true };
     }
@@ -81,15 +80,12 @@ export const recordNotificationPointEvent = async (): Promise<{
     const userAddress = await getPointsAddress();
     const response = await registerNotificationPoints(userAddress);
 
-    if (response.success && response.status === 200) {
-      // TODO: Extract actual event ID from response.data when API is finalized
-      const id = response.data?.eventId ?? 'notification-' + Date.now();
-
+    if (response.success && response.status === 200 && response.jobId) {
       await addEventToStoreAndPoll(
         'Push notifications enabled',
         'notification',
         POINT_VALUES.notification,
-        id,
+        response.jobId,
       );
       return { success: true };
     }
@@ -119,15 +115,12 @@ export const recordReferralPointEvent = async (
     const referee = await getPointsAddress();
     const response = await registerReferralPoints({ referee, referrer });
 
-    if (response.success && response.status === 200) {
-      // TODO: Extract actual event ID from response.data when API is finalized
-      const id = response.data?.eventId ?? 'refer-' + Date.now();
-
+    if (response.success && response.status === 200 && response.jobId) {
       await addEventToStoreAndPoll(
         'Friend referred',
         'refer',
         POINT_VALUES.referee,
-        id,
+        response.jobId,
       );
       return { success: true };
     }

@@ -24,6 +24,7 @@ interface PointEventState {
     id: string,
   ) => Promise<void>;
   markEventAsProcessed: (id: string) => Promise<void>;
+  markEventAsFailed: (id: string) => Promise<void>;
   removeEvent: (id: string) => Promise<void>;
   clearEvents: () => Promise<void>;
   getUnprocessedEvents: () => PointEvent[];
@@ -52,14 +53,17 @@ export const usePointEventStore = create<PointEventState>()((set, get) => ({
       set({ isLoading: true });
       const stored = await AsyncStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const events = JSON.parse(stored);
+        const events: PointEvent[] = JSON.parse(stored);
         set({ events, isLoading: false });
         get()
           .getUnprocessedEvents()
           .forEach(event => {
-            pollEventProcessingStatus(event.id, event.type).then(processed => {
-              if (processed) {
+            // Use event.id as job_id (id is the job_id)
+            pollEventProcessingStatus(event.id).then(result => {
+              if (result === 'completed') {
                 get().markEventAsProcessed(event.id);
+              } else if (result === 'failed') {
+                get().markEventAsFailed(event.id);
               }
             });
           });
@@ -118,7 +122,7 @@ export const usePointEventStore = create<PointEventState>()((set, get) => ({
     }
   },
   getUnprocessedEvents: () => {
-    return get().events.filter(event => event.processedAt === null);
+    return get().events.filter(event => event.status === 'pending');
   },
   /*
    * Calculates the total optimistic incoming points based on the current events.
@@ -129,7 +133,7 @@ export const usePointEventStore = create<PointEventState>()((set, get) => ({
       .getUnprocessedEvents()
       .filter(
         event =>
-          // by checking the processedAt and timestamp  is > than last point update time we can be sure
+          // by checking the timestamp is > than last point update time we can be sure
           // that we are only counting points that have not yet been counted in the last update
           event.timestamp > (pointsLastUpdated ?? 0),
       )
@@ -145,7 +149,7 @@ export const usePointEventStore = create<PointEventState>()((set, get) => ({
         type,
         timestamp: Date.now(),
         points,
-        processedAt: null,
+        status: 'pending',
       };
 
       const currentEvents = get().events;
@@ -162,7 +166,7 @@ export const usePointEventStore = create<PointEventState>()((set, get) => ({
     try {
       const currentEvents = get().events;
       const updatedEvents = currentEvents.map(event =>
-        event.id === id ? { ...event, processedAt: Date.now() } : event,
+        event.id === id ? { ...event, status: 'completed' as const } : event,
       );
 
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedEvents));
@@ -186,6 +190,20 @@ export const usePointEventStore = create<PointEventState>()((set, get) => ({
       }
     } catch (error) {
       console.error('Error marking point event as processed:', error);
+    }
+  },
+
+  markEventAsFailed: async (id: string) => {
+    try {
+      const currentEvents = get().events;
+      const updatedEvents = currentEvents.map(event =>
+        event.id === id ? { ...event, status: 'failed' as const } : event,
+      );
+
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedEvents));
+      set({ events: updatedEvents });
+    } catch (error) {
+      console.error('Error marking point event as failed:', error);
     }
   },
 

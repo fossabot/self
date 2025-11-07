@@ -13,21 +13,28 @@ export const POINTS_API_BASE_URL =
   'https://points-backend-1025466915061.us-central1.run.app';
 
 /**
- * Makes a POST request to the points API with consistent error handling.
+ * Makes a request to the points API with consistent error handling.
+ * Supports both POST and GET requests.
  */
-export const makeApiRequest = async (
+export const makeApiRequest = async <T = unknown>(
   endpoint: string,
-  body: Record<string, unknown>,
+  body?: Record<string, unknown>,
   errorMessages?: Record<string, string>,
-): Promise<ApiResponse> => {
+  method: 'POST' | 'GET' = 'POST',
+): Promise<ApiResponse<T>> => {
   try {
-    const response = await fetch(`${POINTS_API_BASE_URL}${endpoint}`, {
-      method: 'POST',
+    const options: RequestInit = {
+      method,
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(body),
-    });
+    };
+
+    if (method === 'POST' && body) {
+      options.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(`${POINTS_API_BASE_URL}${endpoint}`, options);
 
     if (response.status === 200) {
       const data = await response.json();

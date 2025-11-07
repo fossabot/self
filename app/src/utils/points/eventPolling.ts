@@ -2,18 +2,16 @@
 // SPDX-License-Identifier: BUSL-1.1
 // NOTE: Converts to Apache-2.0 on 2029-06-11 per LICENSE.
 
-import type { PointEventType } from '@/utils/points/types';
-
 import { checkEventProcessingStatus } from './registerEvents';
 
 /**
  * Polls the server to check if an event has been processed.
  * Checks at: 2s, 4s, 8s, 16s, 32s, 32s, 32s, 32s
+ * Returns 'completed' if completed, 'failed' if failed, or null if max attempts reached
  */
 export async function pollEventProcessingStatus(
-  eventId: string,
-  eventType: PointEventType,
-): Promise<boolean> {
+  id: string,
+): Promise<'completed' | 'failed' | null> {
   let delay = 2000; // Start at 2 seconds
   const maxAttempts = 10;
 
@@ -21,12 +19,16 @@ export async function pollEventProcessingStatus(
     await sleep(delay);
 
     try {
-      const isProcessed = await checkEventProcessingStatus(eventId, eventType);
-      if (isProcessed) {
-        return true;
+      const status = await checkEventProcessingStatus(id);
+      if (status === 'completed') {
+        return 'completed';
       }
+      if (status === 'failed') {
+        return 'failed';
+      }
+      // If status is 'pending' or null, continue polling
     } catch (error) {
-      console.error(`Error checking event ${eventId} status:`, error);
+      console.error(`Error checking event ${id} status:`, error);
       // Continue polling even on error
     }
 
@@ -34,7 +36,7 @@ export async function pollEventProcessingStatus(
     delay = Math.min(delay * 2, 32000);
   }
 
-  return false; // Gave up after max attempts
+  return null; // Gave up after max attempts
 }
 
 function sleep(ms: number): Promise<void> {
