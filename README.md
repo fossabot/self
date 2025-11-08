@@ -1,4 +1,5 @@
 ![Self Developers horizontal](https://github.com/user-attachments/assets/14c33806-9549-4eee-a2b2-bcfcf873ae80)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fselfxyz%2Fself.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fselfxyz%2Fself?ref=badge_shield)
 
 Monorepo for Self.
 
@@ -97,3 +98,7 @@ We are actively looking for contributors. Please check the [open issues](https:/
 Thanks [Rémi](https://github.com/remicolin), [Florent](https://github.com/0xturboblitz), [Ayman](https://github.com/Nesopie), [Justin](https://github.com/transphorm), [Seshanth](https://github.com/seshanthS), [Nico](https://github.com/motemotech) and all other contributors for building Self.
 
 Thanks [Aayush](https://twitter.com/yush_g), [Vivek](https://twitter.com/viv_boop), [Andy](https://twitter.com/AndyGuzmanEth) and [Vitalik](https://github.com/vbuterin) for contributing ideas and inspiring us to build this technology, and [PSE](https://pse.dev/) for supporting the initial work through grants!
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fselfxyz%2Fself.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fselfxyz%2Fself?ref=badge_large)
